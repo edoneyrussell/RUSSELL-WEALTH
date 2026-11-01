@@ -1,0 +1,15 @@
+# Python virtual environment
+russellwealth-env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local database
+russellwealth.db
+
+# Environment variables / secrets
+.env
+
+# macOS
+.DS_Store
