@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="10" height="43" viewBox="0 0 10 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Event marker" clip-path="url(#clip0_0_10)">
+<circle id="Event point" cx="5" cy="7.5" r="3.5" fill="#B4B8C0"/>
+<rect id="Event connector" x="4.5" y="11" width="1" height="36" fill="#30343B"/>
+</g>
+<defs>
+<clipPath id="clip0_0_10">
+<rect width="10" height="43" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,20 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="502" height="124" viewBox="0 0 502 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Threat trend chart" clip-path="url(#clip0_0_86)">
+<path id="Trend line" d="M0 82C22 68 39 61 56 67C73 73 88 86 111 77C134 68 148 57 166 60C184 63 196 70 219 52C242 34 254 34 274 43C294 52 312 66 337 49C362 32 365 34 387 31C409 28 419 5 446 24C473 43 479 47 502 50" stroke-width="2.2" stroke="#9285F5"/>
+<path id="Trend area" d="M0 82C22 68 39 61 56 67C73 73 88 86 111 77C134 68 148 57 166 60C184 63 196 70 219 52C242 34 254 34 274 43C294 52 312 66 337 49C362 32 365 34 387 31C409 28 419 5 446 24C473 43 479 47 502 50V124H0V82Z" fill="url(#paint0_linear_0_86)"/>
+<rect id="Chart gridline" opacity="0.45" y="123" width="502" height="1" fill="#30343B"/>
+<rect id="Chart gridline_2" opacity="0.45" y="93" width="502" height="1" fill="#30343B"/>
+<rect id="Chart gridline_3" opacity="0.45" y="62" width="502" height="1" fill="#30343B"/>
+<rect id="Chart gridline_4" opacity="0.45" y="31" width="502" height="1" fill="#30343B"/>
+<rect id="Chart gridline_5" opacity="0.45" width="502" height="1" fill="#30343B"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_86" x1="251" y1="0" x2="251" y2="124" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9285F5" stop-opacity="0.290196"/>
+<stop offset="1" stop-color="#9285F5" stop-opacity="0.0196078"/>
+</linearGradient>
+<clipPath id="clip0_0_86">
+<rect width="502" height="124" fill="white"/>
+</clipPath>
+</defs>
+</svg>

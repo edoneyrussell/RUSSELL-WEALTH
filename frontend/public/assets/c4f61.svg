@@ -1,0 +1,144 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="420" height="211" viewBox="0 0 420 211" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Threat activity world map" clip-path="url(#clip0_0_16)">
+<path id="World geography" d="M16 46L31 28L59 17L78 19L88 11L114 14L125 24L116 37L97 40L90 57H77L65 73L48 69L44 58L26 60L16 46ZM61 75L79 74L90 87L101 89L106 102L95 105L83 91L61 75ZM100 104L119 101L140 117L143 139L131 163L122 179L112 195L106 181L110 162L100 145L101 130L92 115L100 104ZM121 5L149 2L160 14L145 29L130 27L122 17L121 5ZM204 39L220 33L226 22H237L238 38L251 41L256 53L240 61L224 56L214 63L203 54L204 39ZM214 67L238 61L260 72L271 95L258 119L246 141L230 140L220 119L211 103L202 84L214 67ZM271 130L276 142L270 157L265 151L271 130ZM242 36L262 23L281 27L298 16L325 19L337 27L365 24L391 36L395 48L376 56L358 53L349 68H331L321 86L305 95L293 80L279 73L266 57L251 54L242 36ZM302 96L314 97L322 117L313 122L304 111L302 96ZM338 86L348 95L350 111L363 117L359 125L345 119L334 104L338 86ZM377 65L383 72L375 90L371 83L377 65ZM344 145L369 133L391 140L400 159L388 175L368 170L352 177L337 162L344 145ZM409 173L414 180L405 195L400 191L409 173Z" fill="#292E36"/>
+<g id="Threat hotspot" clip-path="url(#clip1_0_16)">
+<circle id="Threat origin" cx="356" cy="107" r="4" fill="#FF454F"/>
+<path id="Activity ring" opacity="0.5" d="M368.5 107C368.5 113.904 362.904 119.5 356 119.5C349.096 119.5 343.5 113.904 343.5 107C343.5 100.096 349.096 94.5 356 94.5C362.904 94.5 368.5 100.096 368.5 107Z" stroke="#FF454F"/>
+<g id="Activity halo" opacity="0.12" filter="url(#filter0_f_0_16)">
+<circle cx="356" cy="107" r="15" fill="#FF454F"/>
+</g>
+</g>
+<g id="Threat hotspot_2" clip-path="url(#clip2_0_16)">
+<circle id="Threat origin_2" cx="241" cy="58" r="4" fill="#FF454F"/>
+<path id="Activity ring_2" opacity="0.5" d="M256.5 58C256.5 66.5604 249.56 73.5 241 73.5C232.44 73.5 225.5 66.5604 225.5 58C225.5 49.4396 232.44 42.5 241 42.5C249.56 42.5 256.5 49.4396 256.5 58Z" stroke="#FF454F"/>
+<g id="Activity halo_2" opacity="0.12" filter="url(#filter1_f_0_16)">
+<circle cx="241" cy="58" r="18" fill="#FF454F"/>
+</g>
+</g>
+<g id="Threat hotspot_3" clip-path="url(#clip3_0_16)">
+<circle id="Threat origin_3" cx="224" cy="67" r="4" fill="#FF454F"/>
+<path id="Activity ring_3" opacity="0.5" d="M233.5 67C233.5 72.2467 229.247 76.5 224 76.5C218.753 76.5 214.5 72.2467 214.5 67C214.5 61.7533 218.753 57.5 224 57.5C229.247 57.5 233.5 61.7533 233.5 67Z" stroke="#FF454F"/>
+<g id="Activity halo_3" opacity="0.12" filter="url(#filter2_f_0_16)">
+<circle cx="224" cy="67" r="12" fill="#FF454F"/>
+</g>
+</g>
+<g id="Threat hotspot_4" clip-path="url(#clip4_0_16)">
+<circle id="Threat origin_4" cx="77" cy="74" r="4" fill="#FF454F"/>
+<path id="Activity ring_4" opacity="0.5" d="M87.5 74C87.5 79.799 82.799 84.5 77 84.5C71.201 84.5 66.5 79.799 66.5 74C66.5 68.201 71.201 63.5 77 63.5C82.799 63.5 87.5 68.201 87.5 74Z" stroke="#FF454F"/>
+<g id="Activity halo_4" opacity="0.12" filter="url(#filter3_f_0_16)">
+<circle cx="77" cy="74" r="13" fill="#FF454F"/>
+</g>
+</g>
+<g id="Threat hotspot_5" clip-path="url(#clip5_0_16)">
+<circle id="Threat origin_5" cx="43" cy="68" r="4" fill="#FF454F"/>
+<path id="Activity ring_5" opacity="0.5" d="M50.5 68C50.5 72.1421 47.1421 75.5 43 75.5C38.8579 75.5 35.5 72.1421 35.5 68C35.5 63.8579 38.8579 60.5 43 60.5C47.1421 60.5 50.5 63.8579 50.5 68Z" stroke="#FF454F"/>
+<g id="Activity halo_5" opacity="0.12" filter="url(#filter4_f_0_16)">
+<circle cx="43" cy="68" r="10" fill="#FF454F"/>
+</g>
+</g>
+<g id="Threat hotspot_6" clip-path="url(#clip6_0_16)">
+<circle id="Threat origin_6" cx="59" cy="69" r="4" fill="#FF454F"/>
+<path id="Activity ring_6" opacity="0.5" d="M78.5 69C78.5 79.7696 69.7696 88.5 59 88.5C48.2304 88.5 39.5 79.7696 39.5 69C39.5 58.2304 48.2304 49.5 59 49.5C69.7696 49.5 78.5 58.2304 78.5 69Z" stroke="#FF454F"/>
+<g id="Activity halo_6" opacity="0.12" filter="url(#filter5_f_0_16)">
+<circle cx="59" cy="69" r="22" fill="#FF454F"/>
+</g>
+</g>
+<rect id="Latitude grid" opacity="0.55" y="210" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_2" opacity="0.55" y="195" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_3" opacity="0.55" y="180" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_4" opacity="0.55" y="165" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_5" opacity="0.55" y="150" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_6" opacity="0.55" y="135" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_7" opacity="0.55" y="120" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_8" opacity="0.55" y="105" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_9" opacity="0.55" y="90" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_10" opacity="0.55" y="75" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_11" opacity="0.55" y="60" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_12" opacity="0.55" y="45" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_13" opacity="0.55" y="30" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_14" opacity="0.55" y="15" width="420" height="0.5" fill="#14171C"/>
+<rect id="Latitude grid_15" opacity="0.55" width="420" height="0.5" fill="#14171C"/>
+<rect id="Longitude grid" opacity="0.55" x="420" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_2" opacity="0.55" x="405" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_3" opacity="0.55" x="390" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_4" opacity="0.55" x="375" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_5" opacity="0.55" x="360" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_6" opacity="0.55" x="345" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_7" opacity="0.55" x="330" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_8" opacity="0.55" x="315" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_9" opacity="0.55" x="300" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_10" opacity="0.55" x="285" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_11" opacity="0.55" x="270" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_12" opacity="0.55" x="255" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_13" opacity="0.55" x="240" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_14" opacity="0.55" x="225" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_15" opacity="0.55" x="210" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_16" opacity="0.55" x="195" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_17" opacity="0.55" x="180" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_18" opacity="0.55" x="165" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_19" opacity="0.55" x="150" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_20" opacity="0.55" x="135" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_21" opacity="0.55" x="120" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_22" opacity="0.55" x="105" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_23" opacity="0.55" x="90" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_24" opacity="0.55" x="75" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_25" opacity="0.55" x="60" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_26" opacity="0.55" x="45" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_27" opacity="0.55" x="30" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_28" opacity="0.55" x="15" width="0.5" height="210" fill="#14171C"/>
+<rect id="Longitude grid_29" opacity="0.55" width="0.5" height="210" fill="#14171C"/>
+</g>
+<defs>
+<filter id="filter0_f_0_16" x="336" y="87" width="40" height="40" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<filter id="filter1_f_0_16" x="218" y="35" width="46" height="46" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<filter id="filter2_f_0_16" x="207" y="50" width="34" height="34" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<filter id="filter3_f_0_16" x="59" y="56" width="36" height="36" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<filter id="filter4_f_0_16" x="28" y="53" width="30" height="30" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<filter id="filter5_f_0_16" x="32" y="42" width="54" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="2.5" result="effect1_foregroundBlur_0_16"/>
+</filter>
+<clipPath id="clip0_0_16">
+<rect width="420" height="211" fill="white"/>
+</clipPath>
+<clipPath id="clip1_0_16">
+<rect width="30" height="30" fill="white" transform="translate(341 92)"/>
+</clipPath>
+<clipPath id="clip2_0_16">
+<rect width="36" height="36" fill="white" transform="translate(223 40)"/>
+</clipPath>
+<clipPath id="clip3_0_16">
+<rect width="24" height="24" fill="white" transform="translate(212 55)"/>
+</clipPath>
+<clipPath id="clip4_0_16">
+<rect width="26" height="26" fill="white" transform="translate(64 61)"/>
+</clipPath>
+<clipPath id="clip5_0_16">
+<rect width="20" height="20" fill="white" transform="translate(33 58)"/>
+</clipPath>
+<clipPath id="clip6_0_16">
+<rect width="44" height="44" fill="white" transform="translate(37 47)"/>
+</clipPath>
+</defs>
+</svg>

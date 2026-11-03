@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="110" height="32" viewBox="0 0 110 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Folded silver ribbon" d="M0 0H110C68.2759 4.69333 23.1379 16.8533 0 32V0Z" fill="url(#paint0_linear_0_21)"/>
+<defs>
+<linearGradient id="paint0_linear_0_21" x1="0" y1="0" x2="0" y2="25.6" gradientUnits="userSpaceOnUse">
+<stop stop-color="#1B222B"/>
+<stop offset="0.38" stop-color="#69727F"/>
+<stop offset="0.49" stop-color="#E0E7F1"/>
+<stop offset="0.54" stop-color="#5F6975"/>
+<stop offset="0.77" stop-color="#141A21"/>
+<stop offset="1" stop-color="#080B0E"/>
+</linearGradient>
+</defs>
+</svg>

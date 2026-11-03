@@ -1,0 +1,153 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Inter:Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Inter:Medium';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Inter:Regular';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Inter:Semi Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Inter:Italic';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: italic;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:Bold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Bold Italic';
+  src: url('https://static.figma.com/font/Lora-Italic_wght__2') format('woff2');
+  font-style: italic;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Regular';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:SemiBold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Cinzel:Bold';
+  src: url('https://static.figma.com/font/Cinzel_wght__1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans Math:Regular';
+  src: url('https://static.figma.com/font/NotoSansMath-Regular_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols2:Regular';
+  src: url('https://static.figma.com/font/NotoSansSymbols2-Regular_5') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols:Bold';
+  src: url('https://static.figma.com/font/NotoSansSymbols-VF_2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans:Bold';
+  src: url('https://static.figma.com/font/NotoSans-VF_3') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@layer base {
+  html {
+    background: #080a0d;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background: #080a0d;
+  }
+}
+
+#root,
+.screen-shell {
+  min-height: 100dvh;
+}
+
+.screen-shell:not(.mobile-experience) {
+  min-width: 1100px;
+}
+
+.screen-shell > [data-node-id] {
+  min-height: 100dvh;
+}
+
+.screen-shell [data-name='Status bar'],
+.screen-shell [data-name='Home indicator'],
+.screen-shell [data-name*='safe area' i] {
+  display: none;
+}
+
+.screen-shell :is(button, a, [role='button']),
+.screen-shell :is(p, span):where(
+    :not([data-node-id='51:2548']):not([data-node-id='68:1004'])
+  ) {
+  cursor: default;
+}
+
+.screen-shell :is(p, span):hover {
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 700px) {
+  .screen-shell:not(.mobile-experience) {
+    min-width: 1100px;
+  }
+
+  .mobile-experience {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+}

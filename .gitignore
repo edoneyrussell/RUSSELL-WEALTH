@@ -13,3 +13,52 @@ russellwealth.db
 
 # macOS
 .DS_Store
+
+# Russell Wealth repository cleanup
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+russellwealth-env/
+.venv/
+venv/
+
+# Node and Vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Local files
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+backups/
+
+# Additional Russell Wealth exclusions
+.env.save
+.env.backup*
+node_modules/
+src (1)/
+*.bak
+*.backup
