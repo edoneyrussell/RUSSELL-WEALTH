@@ -1,6 +1,6 @@
-import HoldingsList from '../HoldingsList';
-import { useTrading } from '../useTrading';
-import { usePortfolio, formatCAD } from '../usePortfolio';
+import HoldingsList from '../components/HoldingsList';
+import { useTrading } from '../hooks/useTrading';
+import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 import { logout } from '../auth';
 const assetPathPrefix = "/assets";
 const imgOriginalLogoArtwork = `${assetPathPrefix}/c8aca.png`;

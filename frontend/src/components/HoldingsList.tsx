@@ -1,4 +1,4 @@
-import { usePortfolio, formatCAD } from './usePortfolio';
+import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 
 export default function HoldingsList({
   mobile = false,

@@ -1,5 +1,5 @@
 import MarketSearch from '../components/MarketSearch'
-import { usePortfolio, formatCAD } from '../usePortfolio';
+import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 const assetPathPrefix = "/assets";
 const imgOriginalLogoArtwork = `${assetPathPrefix}/c8aca.png`;
 const imgLayoutDashboard = `${assetPathPrefix}/8bb5a.svg`;

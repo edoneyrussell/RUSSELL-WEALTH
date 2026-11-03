@@ -1,4 +1,4 @@
-import { useTransactions } from '../useTransactions';
+import { useTransactions } from '../hooks/useTransactions';
 
 const money = (value: string) =>
   new Intl.NumberFormat('en-CA', {
