@@ -4,7 +4,9 @@ const customerItems = [
   { label: "Dashboard", href: "/dashboard", icon: "50fa9.svg" },
   { label: "Portfolio", href: "/portfolio", icon: "70fb9.svg" },
   { label: "Trade", href: "/markets", icon: "74de4.svg" },
+  { label: "Watchlist", href: "/dashboard#watchlist", icon: "18ed1.svg" },
   { label: "Transactions", href: "/transactions", icon: "ca3db.svg" },
+  { label: "Add Funds", href: "/deposit", icon: "add-funds-money.svg" },
 ];
 
 const securityLinks = [
@@ -32,8 +34,22 @@ export default function UnifiedMobileNav({
     return () => window.removeEventListener("popstate", update);
   }, []);
 
-  const navigate = (href: string) => {
+  const navigate = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
     if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) return;
+
+    event.preventDefault();
+
+    if (
+      window.location.pathname !== href.split("#")[0] ||
       window.location.pathname + window.location.hash !== href
     ) {
       window.history.pushState({}, "", href);
@@ -41,8 +57,20 @@ export default function UnifiedMobileNav({
     }
 
     setCurrent(href);
-    setOpen(false);
-    window.scrollTo({ top: 0, behavior: "instant" });
+
+    const hash = href.split("#")[1];
+
+    if (hash) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById(hash)?.scrollIntoView({
+            behavior: "smooth"
+          });
+        });
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   };
 
   const isActive = (href: string) => {
@@ -102,10 +130,7 @@ export default function UnifiedMobileNav({
               <a
                 key={link.label}
                 href={link.href}
-                onClick={e => {
-                  e.preventDefault();
-                  navigate(link.href);
-                }}
+                onClick={e => navigate(e, link.href)}
                 style={{
                   display: "block",
                   padding: "13px 14px",
@@ -128,65 +153,40 @@ export default function UnifiedMobileNav({
   }
 
   return (
-    <>
-      {!open && (
-        <button
-          type="button"
-          aria-label="Open mobile navigation"
-          aria-expanded={false}
-          onClick={() => setOpen(true)}
-          className="rw-mobile-menu-trigger"
-        >
-          ☰
-        </button>
-      )}
+    <div className="rw-mobile-bottom-navigation">
+      <nav
+        aria-label="Customer mobile navigation"
+        className="rw-mobile-bottom-pill"
+      >
+        {customerItems.map(item => {
+          const active = isActive(item.href);
 
-      {open && (
-        <div className="rw-mobile-bottom-navigation">
-          <nav
-            aria-label="Customer mobile navigation"
-            className="rw-mobile-bottom-pill"
-          >
-            {customerItems.map(item => {
-              const active = isActive(item.href);
-
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  aria-label={item.label}
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => navigate(item.href)}
-                  className={
-                    "rw-mobile-bottom-item" +
-                    (active ? " is-active" : "")
-                  }
-                >
-                  <span className="rw-mobile-bottom-active">
-                    <img
-                      src={`/assets/${item.icon}`}
-                      alt=""
-                      className="rw-mobile-bottom-icon"
-                    />
-                  </span>
-                  <span className="rw-mobile-bottom-label">
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-
-          <button
-            type="button"
-            aria-label="Add funds"
-            onClick={() => navigate("/deposit")}
-            className="rw-mobile-bottom-add"
-          >
-            <img src="/assets/add-funds-money.svg" alt="" />
-          </button>
-        </div>
-      )}
-    </>
+          return (
+            <a
+              key={item.label}
+              href={item.href}
+              aria-label={item.label}
+              aria-current={active ? "page" : undefined}
+              onClick={event => navigate(event, item.href)}
+              className={
+                "rw-mobile-bottom-item" +
+                (active ? " is-active" : "")
+              }
+            >
+              <span className="rw-mobile-bottom-active">
+                <img
+                  src={`/assets/${item.icon}`}
+                  alt=""
+                  className="rw-mobile-bottom-icon"
+                />
+              </span>
+              <span className="rw-mobile-bottom-label">
+                {item.label}
+              </span>
+            </a>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
