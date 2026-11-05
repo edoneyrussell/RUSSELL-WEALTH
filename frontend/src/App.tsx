@@ -1,3 +1,8 @@
+import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
+import GlobalToastHost from './components/GlobalToastHost'
+import HelpSupport from './screens/HelpSupport'
+import CustomerSettings from './screens/CustomerSettings'
+import AdminSettings from './screens/AdminSettings'
 import RegistrationForm from './screens/RegistrationForm'
 import RWPersistentNav from './components/RWPersistentNav'
 import About from './screens/About'
@@ -17,6 +22,7 @@ import Transactions from './screens/Transactions'
 import SecurityDashboard from './screens/SecurityDashboard'
 
 const routes = {
+  '/help': HelpSupport,
   '/': Landing,
   '/about': About,
   '/create-account': RegistrationForm,
@@ -27,9 +33,12 @@ const routes = {
   '/markets': Markets,
   '/security': SecurityDashboard,
   '/security/incidents/INC-2026-0142': Incident,
+  '/admin/settings': AdminSettings,
+  '/customer/settings': CustomerSettings,
 } as const
 
 const navigationByLabel: Record<string, string> = {
+  'Help & Support': '/help',
   'Sign In': '/login',
   'Create Account': '/create-account',
   Dashboard: '/dashboard',
@@ -152,8 +161,9 @@ export default function App() {
     }
   }
 
-  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/markets']
+  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/markets', '/customer/settings', '/help']
   const securityRoutes = [
+    '/admin/settings',
     '/security',
     '/security/incidents/INC-2026-0142',
   ]
@@ -178,7 +188,9 @@ export default function App() {
   }
 
   if (
-    (isCustomerRoute && auth?.role !== 'CUSTOMER') ||
+    (isCustomerRoute &&
+      auth?.role !== 'CUSTOMER' &&
+      auth?.role !== 'SOC_ADMIN') ||
     (isSecurityRoute && auth?.role !== 'SOC_ADMIN')
   ) {
     window.location.replace(
@@ -228,7 +240,30 @@ export default function App() {
       }
       onClick={handleNavigation}
     >
-      <Screen />
+      {isSecurityRoute && !isMobile ? (
+        <div className="rw-unified-customer-layout rw-unified-soc-layout">
+          <SocSidebar />
+          <div className="rw-unified-customer-content">
+            <div key={path} className="rw-page-transition">
+              <Screen />
+            </div>
+          </div>
+        </div>
+      ) : isCustomerRoute && !isMobile ? (
+        <div className="rw-unified-customer-layout">
+          <CustomerSidebar />
+          <div className="rw-unified-customer-content">
+            <div key={path} className="rw-page-transition">
+              <Screen />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div key={path} className="rw-page-transition">
+          <Screen />
+        </div>
+      )}
+      <GlobalToastHost />
     </main>
     </>
   )

@@ -1,3 +1,4 @@
+import AnimatedValue from '../components/ui/AnimatedValue';
 import SecurityInvestigationDrawer from '../components/ui/SecurityInvestigationDrawer';
 import SecurityThreatChart from '../components/charts/SecurityThreatChart';
 import { useNewSecurityEvents } from '../hooks/useNewSecurityEvents';
@@ -146,6 +147,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
   const { data: security, error: securityError } = useSecurityOverview();
 
   const metrics = security?.metrics;
+  const monitoringOnline = Boolean(security) && !securityError;
   const events = security?.recent_events ?? [];
   const investigationEvent = events.find(event => event.id === investigationEventId) ?? null;
   const sources = security?.top_sources ?? [];
@@ -153,6 +155,14 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
   return (
     <>
+      <div
+        className="rw-soc-monitoring-status"
+        role="status"
+        aria-label={monitoringOnline ? 'Security monitoring connected' : 'Security monitoring unavailable'}
+      >
+        <span className={monitoringOnline ? 'rw-monitoring-dot' : 'rw-monitoring-dot offline'} />
+        <span>{monitoringOnline ? 'LIVE MONITORING' : 'MONITORING UNAVAILABLE'}</span>
+      </div>
       {/* RW_INTERACTIVE_INVESTIGATION */}
       <SecurityInvestigationDrawer
         event={investigationEvent}
@@ -393,7 +403,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   Open Incidents
                 </p>
                 <p className="text-[#f5f5f5] text-[36px] font-semibold leading-none">
-                  {metrics?.open_incidents ?? 0}
+                  <AnimatedValue value={metrics?.open_incidents ?? 0} />
                 </p>
                 <p className="text-[#8c929c] text-[11px]">
                   Incident tracking

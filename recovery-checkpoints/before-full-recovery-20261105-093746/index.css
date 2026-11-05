@@ -1,0 +1,2701 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Inter:Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Inter:Medium';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Inter:Regular';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Inter:Semi Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Inter:Italic';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: italic;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:Bold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Bold Italic';
+  src: url('https://static.figma.com/font/Lora-Italic_wght__2') format('woff2');
+  font-style: italic;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Regular';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:SemiBold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Cinzel:Bold';
+  src: url('https://static.figma.com/font/Cinzel_wght__1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans Math:Regular';
+  src: url('https://static.figma.com/font/NotoSansMath-Regular_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols2:Regular';
+  src: url('https://static.figma.com/font/NotoSansSymbols2-Regular_5') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols:Bold';
+  src: url('https://static.figma.com/font/NotoSansSymbols-VF_2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans:Bold';
+  src: url('https://static.figma.com/font/NotoSans-VF_3') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@layer base {
+  html {
+    background: #080a0d;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background: #080a0d;
+  }
+}
+
+#root,
+.screen-shell {
+  min-height: 100dvh;
+}
+
+.screen-shell:not(.mobile-experience) {
+  min-width: 1100px;
+}
+
+.screen-shell > [data-node-id] {
+  min-height: 100dvh;
+}
+
+.screen-shell [data-name='Status bar'],
+.screen-shell [data-name='Home indicator'],
+.screen-shell [data-name*='safe area' i] {
+  display: none;
+}
+
+.screen-shell :is(button, a, [role='button']),
+.screen-shell :is(p, span):where(
+    :not([data-node-id='51:2548']):not([data-node-id='68:1004'])
+  ) {
+  cursor: default;
+}
+
+.screen-shell :is(p, span):hover {
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 700px) {
+  .screen-shell:not(.mobile-experience) {
+    min-width: 1100px;
+  }
+
+  .mobile-experience {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+}
+
+
+/* RUSSELL WEALTH — RESPONSIVE FOUNDATION */
+
+html {
+  max-width: 100%;
+}
+
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 700px) {
+  .screen-shell,
+  .screen-shell:not(.mobile-experience) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mobile-experience {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+
+/* RW MOBILE RESPONSIVE V1 START */
+
+/* Global mobile viewport foundation */
+@media (max-width: 700px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  #root {
+    overflow-x: clip;
+  }
+
+  /* Remove desktop minimum-width restrictions */
+  .screen-shell,
+  .screen-shell:not(.mobile-experience),
+  .mobile-experience {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0 !important;
+  }
+
+  /* Keep normal content within the mobile viewport */
+  .mobile-experience img,
+  .mobile-experience video,
+  .mobile-experience canvas,
+  .mobile-experience svg {
+    max-width: 100%;
+  }
+
+  /* Flexible content containers */
+  .mobile-experience .flex,
+  .mobile-experience .grid {
+    min-width: 0;
+  }
+
+  /* Prevent long financial values from expanding cards */
+  .mobile-experience p,
+  .mobile-experience span,
+  .mobile-experience h1,
+  .mobile-experience h2,
+  .mobile-experience h3 {
+    overflow-wrap: break-word;
+  }
+
+  /* Forms and trading controls */
+  .mobile-experience input,
+  .mobile-experience select,
+  .mobile-experience textarea {
+    max-width: 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  /* Avoid iOS input zoom */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* Mobile navigation and touch targets */
+  .mobile-experience button,
+  .mobile-experience [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Tables may scroll inside their own containers */
+  .mobile-experience table {
+    max-width: 100%;
+  }
+
+  /* Account registration: allow narrow devices */
+  [data-name="Russell Wealth mobile Create Account"],
+  [data-name="Russell Wealth Create Account"] {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+}
+
+/* Extra-small phones */
+@media (max-width: 375px) {
+
+  .mobile-experience {
+    min-width: 0;
+  }
+
+  .mobile-experience input {
+    min-width: 0;
+  }
+
+}
+
+/* RW MOBILE RESPONSIVE V1 END */
+
+
+/* RW IOS INPUT ZOOM FIX START */
+
+@media screen and (max-width: 700px) {
+
+  /* iOS Safari requires at least 16px on focused inputs */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Keep authentication forms inside the viewport */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="number"] {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+}
+
+/* RW IOS INPUT ZOOM FIX END */
+
+/* RW_RECOVERED_NOV4_STYLES */
+
+@font-face {
+  font-family: 'Inter:Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Inter:Medium';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Inter:Regular';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Inter:Semi Bold';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Inter:Italic';
+  src: url('https://static.figma.com/font/Inter_1') format('woff2');
+  font-style: italic;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:Bold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Bold Italic';
+  src: url('https://static.figma.com/font/Lora-Italic_wght__2') format('woff2');
+  font-style: italic;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Lora:Regular';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Lora:SemiBold';
+  src: url('https://static.figma.com/font/Lora_wght__2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Cinzel:Bold';
+  src: url('https://static.figma.com/font/Cinzel_wght__1') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans Math:Regular';
+  src: url('https://static.figma.com/font/NotoSansMath-Regular_1') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols2:Regular';
+  src: url('https://static.figma.com/font/NotoSansSymbols2-Regular_5') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Noto Sans Symbols:Bold';
+  src: url('https://static.figma.com/font/NotoSansSymbols-VF_2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Noto Sans:Bold';
+  src: url('https://static.figma.com/font/NotoSans-VF_3') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
+
+@layer base {
+  html {
+    background: #080a0d;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background: #080a0d;
+  }
+}
+
+#root,
+.screen-shell {
+  min-height: 100dvh;
+}
+
+.screen-shell:not(.mobile-experience) {
+  min-width: 1100px;
+}
+
+.screen-shell > [data-node-id] {
+  min-height: 100dvh;
+}
+
+.screen-shell [data-name='Status bar'],
+.screen-shell [data-name='Home indicator'],
+.screen-shell [data-name*='safe area' i] {
+  display: none;
+}
+
+.screen-shell :is(button, a, [role='button']),
+.screen-shell :is(p, span):where(
+    :not([data-node-id='51:2548']):not([data-node-id='68:1004'])
+  ) {
+  cursor: default;
+}
+
+.screen-shell :is(p, span):hover {
+  text-decoration-color: currentColor;
+}
+
+@media (max-width: 700px) {
+  .screen-shell:not(.mobile-experience) {
+    min-width: 1100px;
+  }
+
+  .mobile-experience {
+    width: 100%;
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+}
+
+
+
+/* RUSSELL WEALTH — SOC INTERACTION SYSTEM */
+
+.soc-dashboard button,
+.soc-dashboard a,
+.soc-dashboard [role="button"],
+.soc-dashboard [tabindex="0"],
+.soc-dashboard [data-name="Navigation item"] {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+/* Sidebar and navigation */
+.soc-dashboard [data-name="Navigation item"]:hover,
+.soc-dashboard [data-name="Navigation item"]:focus-visible {
+  background-color: #222831;
+  border-color: #59616d;
+  box-shadow: 0 0 12px rgba(197, 202, 210, 0.08);
+}
+
+/* Interactive controls */
+.soc-dashboard button:hover,
+.soc-dashboard a:hover,
+.soc-dashboard [role="button"]:hover {
+  filter: brightness(1.14);
+}
+
+.soc-dashboard button:focus-visible,
+.soc-dashboard a:focus-visible,
+.soc-dashboard [role="button"]:focus-visible {
+  outline: 1px solid #9299a3;
+  outline-offset: 3px;
+}
+
+/* Dashboard panels and cards */
+.soc-dashboard [data-name*="Panel"]:hover,
+.soc-dashboard [data-name*="Card"]:hover,
+.soc-dashboard [data-name*="SOC operations"]:hover {
+  border-color: #515966;
+  box-shadow: 0 0 16px rgba(197, 202, 210, 0.055);
+}
+
+/* Smooth icon response */
+.soc-dashboard button:hover img,
+.soc-dashboard a:hover img,
+.soc-dashboard [role="button"]:hover img {
+  filter: brightness(1.3);
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .soc-dashboard *,
+  .soc-dashboard *::before,
+  .soc-dashboard *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+
+/* RUSSELL WEALTH — CUSTOMER DASHBOARD INTERACTIONS */
+
+.customer-dashboard button,
+.customer-dashboard a,
+.customer-dashboard [role="button"],
+.customer-dashboard [tabindex="0"],
+.customer-dashboard [data-name="Navigation item"] {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+/* Sidebar navigation */
+.customer-dashboard [data-name="Navigation item"]:hover {
+  background-color: #222831;
+  border-color: #59616d;
+  box-shadow: 0 0 12px rgba(197, 202, 210, 0.08);
+  transform: translateX(3px);
+}
+
+/* Buttons and clickable controls */
+.customer-dashboard button:hover,
+.customer-dashboard a:hover,
+.customer-dashboard [role="button"]:hover {
+  filter: brightness(1.14);
+}
+
+/* Portfolio and dashboard cards */
+.customer-dashboard [data-name*="Card"]:hover,
+.customer-dashboard [data-name*="Panel"]:hover,
+.customer-dashboard [data-name*="Holdings"]:hover {
+  border-color: #515966;
+  box-shadow: 0 5px 18px rgba(197, 202, 210, 0.07);
+  transform: translateY(-2px);
+}
+
+/* Icon illumination */
+.customer-dashboard button:hover img,
+.customer-dashboard a:hover img,
+.customer-dashboard [role="button"]:hover img,
+.customer-dashboard [data-name="Navigation item"]:hover img {
+  filter: brightness(1.3);
+}
+
+/* Logo interaction */
+.customer-dashboard [data-node-id="10:1589"]:hover {
+  filter: brightness(1.18);
+}
+
+/* Keyboard focus */
+.customer-dashboard button:focus-visible,
+.customer-dashboard a:focus-visible,
+.customer-dashboard [role="button"]:focus-visible,
+.customer-dashboard [tabindex="0"]:focus-visible {
+  outline: 1px solid #9299a3;
+  outline-offset: 3px;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .customer-dashboard *,
+  .customer-dashboard *::before,
+  .customer-dashboard *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+
+/* RUSSELL WEALTH — FULL CUSTOMER DASHBOARD HOVER SYSTEM */
+
+.customer-dashboard * {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+/* Interactive navigation */
+.customer-dashboard [data-name="Navigation item"]:hover {
+  background-color: #242a32;
+  border-color: #69717d;
+  box-shadow: 0 0 14px rgba(197, 202, 210, 0.10);
+  transform: translateX(3px);
+}
+
+/* All dashboard cards and named content panels */
+@media (hover: hover) {
+  .customer-dashboard [data-name*="Card"]:hover,
+  .customer-dashboard [data-name*="Panel"]:hover,
+  .customer-dashboard [data-name*="Portfolio"]:hover,
+  .customer-dashboard [data-name*="Holding"]:hover,
+  .customer-dashboard [data-name*="Balance"]:hover,
+  .customer-dashboard [data-name*="Account"]:hover,
+  .customer-dashboard [data-name*="Transaction"]:hover,
+  .customer-dashboard [data-name*="Activity"]:hover,
+  .customer-dashboard [data-name*="Market"]:hover,
+  .customer-dashboard [data-name*="Chart"]:hover,
+  .customer-dashboard [data-name*="Watchlist"]:hover,
+  .customer-dashboard [data-name*="Performance"]:hover {
+    border-color: #59616d;
+    box-shadow: 0 5px 20px rgba(197, 202, 210, 0.075);
+    filter: brightness(1.08);
+  }
+}
+
+/* Buttons, links and clickable elements */
+.customer-dashboard button:hover,
+.customer-dashboard a:hover,
+.customer-dashboard [role="button"]:hover {
+  filter: brightness(1.16);
+  border-color: #707987;
+  box-shadow: 0 0 12px rgba(197, 202, 210, 0.09);
+}
+
+/* Icons */
+.customer-dashboard button:hover img,
+.customer-dashboard a:hover img,
+.customer-dashboard [role="button"]:hover img,
+.customer-dashboard [data-name="Navigation item"]:hover img {
+  filter: brightness(1.4);
+}
+
+/* Search and notification controls */
+.customer-dashboard [data-name="Search"]:hover,
+.customer-dashboard [data-name="Notifications"]:hover,
+.customer-dashboard [data-name="Sign out"]:hover {
+  background-color: #222831;
+  border-color: #59616d;
+}
+
+/* Logo */
+.customer-dashboard [data-node-id="10:1589"] {
+  cursor: pointer;
+}
+
+.customer-dashboard [data-node-id="10:1589"]:hover {
+  filter: brightness(1.2);
+}
+
+/* Keyboard accessibility */
+.customer-dashboard button:focus-visible,
+.customer-dashboard a:focus-visible,
+.customer-dashboard [role="button"]:focus-visible,
+.customer-dashboard [tabindex="0"]:focus-visible {
+  outline: 1px solid #aeb5bf;
+  outline-offset: 3px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .customer-dashboard *,
+  .customer-dashboard *::before,
+  .customer-dashboard *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+
+/* RUSSELL WEALTH — COMPLETE SOC INTERACTION SYSTEM */
+
+/* Consistent transitions */
+.soc-dashboard * {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+/* Sidebar navigation */
+.soc-dashboard [data-name="Navigation item"]:hover {
+  background-color: #242a32;
+  border-color: #69717d;
+  box-shadow: 0 0 14px rgba(197, 202, 210, 0.10);
+  transform: translateX(3px);
+}
+
+/* SOC dashboard panels and sections */
+@media (hover: hover) {
+  .soc-dashboard [data-name*="Panel"]:hover,
+  .soc-dashboard [data-name*="Card"]:hover,
+  .soc-dashboard [data-name*="Coverage"]:hover,
+  .soc-dashboard [data-name*="Threat"]:hover,
+  .soc-dashboard [data-name*="Incident"]:hover,
+  .soc-dashboard [data-name*="Alert"]:hover,
+  .soc-dashboard [data-name*="Event"]:hover,
+  .soc-dashboard [data-name*="Operations"]:hover,
+  .soc-dashboard [data-name*="Trend"]:hover,
+  .soc-dashboard [data-name*="Activity"]:hover,
+  .soc-dashboard [data-name*="Response"]:hover,
+  .soc-dashboard [data-name*="Security"]:hover {
+    border-color: #59616d;
+    box-shadow: 0 5px 20px rgba(197, 202, 210, 0.075);
+    filter: brightness(1.07);
+  }
+}
+
+/* Interactive controls */
+.soc-dashboard button:hover,
+.soc-dashboard a:hover,
+.soc-dashboard [role="button"]:hover {
+  filter: brightness(1.16);
+  border-color: #707987;
+  box-shadow: 0 0 12px rgba(197, 202, 210, 0.09);
+}
+
+/* Search and notification controls */
+.soc-dashboard [data-name="Search"]:hover,
+.soc-dashboard [data-name="Notifications"]:hover {
+  background-color: #222831;
+  border-color: #59616d;
+}
+
+/* Icons */
+.soc-dashboard button:hover img,
+.soc-dashboard a:hover img,
+.soc-dashboard [role="button"]:hover img,
+.soc-dashboard [data-name="Navigation item"]:hover img {
+  filter: brightness(1.4);
+}
+
+/* Logo */
+.soc-dashboard [data-node-id="15:2926"]:hover {
+  filter: brightness(1.18);
+}
+
+/* Keyboard focus */
+.soc-dashboard button:focus-visible,
+.soc-dashboard a:focus-visible,
+.soc-dashboard [role="button"]:focus-visible,
+.soc-dashboard [tabindex="0"]:focus-visible {
+  outline: 1px solid #aeb5bf;
+  outline-offset: 3px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .soc-dashboard *,
+  .soc-dashboard *::before,
+  .soc-dashboard *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+
+/* RUSSELL WEALTH — GLOBAL EXPERIENCE SYSTEM */
+
+/* Page transitions */
+@keyframes rw-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rw-page-transition {
+  width: 100%;
+  min-height: 100dvh;
+  animation: rw-page-enter 240ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Global notification system */
+.rw-toast-container {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.rw-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 16px;
+  color: #f5f5f5;
+  background: rgba(20, 23, 28, 0.97);
+  border: 1px solid #30343b;
+  border-radius: 10px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  animation: rw-toast-enter 220ms ease-out both;
+}
+
+@keyframes rw-toast-enter {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.rw-toast-indicator {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #9299a3;
+}
+
+.rw-toast-success .rw-toast-indicator { background: #25e487; }
+.rw-toast-warning .rw-toast-indicator { background: #f5b942; }
+.rw-toast-error .rw-toast-indicator { background: #ff454f; }
+
+.rw-toast-message {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rw-toast-close {
+  color: #8c929c;
+  font-size: 21px;
+  line-height: 1;
+  padding: 2px 5px;
+  cursor: pointer !important;
+}
+
+.rw-toast-close:hover { color: #ffffff; }
+
+@media (max-width: 700px) {
+  .rw-toast-container {
+    top: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-page-transition,
+  .rw-toast {
+    animation: none !important;
+  }
+}
+
+
+/* RUSSELL WEALTH — PREMIUM INTERACTION POLISH */
+
+:root {
+  --rw-motion-fast: 160ms;
+  --rw-motion-normal: 240ms;
+  --rw-motion-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Dashboard cards */
+.customer-dashboard [data-name*="Card"],
+.customer-dashboard [data-name*="Panel"],
+.soc-dashboard [data-name*="Card"],
+.soc-dashboard [data-name*="Panel"] {
+  transition:
+    transform var(--rw-motion-normal) var(--rw-motion-ease),
+    box-shadow var(--rw-motion-normal) ease,
+    border-color var(--rw-motion-normal) ease,
+    background-color var(--rw-motion-normal) ease;
+}
+
+.customer-dashboard [data-name*="Card"]:hover,
+.customer-dashboard [data-name*="Panel"]:hover,
+.soc-dashboard [data-name*="Card"]:hover,
+.soc-dashboard [data-name*="Panel"]:hover {
+  transform: translateY(-3px);
+  border-color: #59616d;
+  box-shadow:
+    0 12px 32px rgba(0,0,0,.22),
+    0 0 18px rgba(197,202,210,.045);
+}
+
+/* Buttons */
+.customer-dashboard button,
+.soc-dashboard button {
+  transition:
+    transform var(--rw-motion-fast) ease,
+    filter var(--rw-motion-fast) ease,
+    background-color var(--rw-motion-fast) ease,
+    border-color var(--rw-motion-fast) ease;
+}
+
+.customer-dashboard button:active,
+.soc-dashboard button:active {
+  transform: scale(.98);
+}
+
+/* Sidebar navigation */
+.customer-dashboard [data-name="Navigation item"],
+.soc-dashboard [data-name="Navigation item"] {
+  transition:
+    background-color 200ms ease,
+    transform 200ms var(--rw-motion-ease),
+    box-shadow 200ms ease;
+}
+
+.customer-dashboard [data-name="Navigation item"]:hover,
+.soc-dashboard [data-name="Navigation item"]:hover {
+  transform: translateX(3px);
+  box-shadow: inset 2px 0 0 #9299a3;
+}
+
+/* Interactive inputs */
+.customer-dashboard input,
+.soc-dashboard input,
+.customer-dashboard select,
+.soc-dashboard select {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.customer-dashboard input:focus,
+.soc-dashboard input:focus,
+.customer-dashboard select:focus,
+.soc-dashboard select:focus {
+  outline: none;
+  border-color: #9299a3;
+  box-shadow: 0 0 0 3px rgba(146,153,163,.12);
+}
+
+/* Dashboard entrance */
+@keyframes rw-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.customer-dashboard,
+.soc-dashboard {
+  animation: rw-panel-enter 350ms var(--rw-motion-ease) both;
+}
+
+/* Accessible keyboard focus */
+.customer-dashboard :is(button, a, [role="button"]):focus-visible,
+.soc-dashboard :is(button, a, [role="button"]):focus-visible {
+  outline: 2px solid #9299a3;
+  outline-offset: 3px;
+}
+
+/* Respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .customer-dashboard,
+  .soc-dashboard {
+    animation: none !important;
+  }
+
+  .customer-dashboard *,
+  .soc-dashboard * {
+    transition-duration: .01ms !important;
+  }
+}
+
+
+/* RUSSELL WEALTH — LIVE DATA MOTION */
+
+/* Portfolio chart entrance */
+@keyframes rw-chart-draw {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Only chart content, not the whole dashboard */
+.rw-chart-animated svg {
+  animation: rw-chart-draw 650ms cubic-bezier(.22,1,.36,1) both;
+}
+
+/* Values updated by React */
+@keyframes rw-value-update {
+  from {
+    opacity: .55;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rw-value-updated {
+  animation: rw-value-update 350ms ease-out both;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Newly received SOC events */
+@keyframes rw-event-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    background-color: rgba(146,153,163,.12);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: transparent;
+  }
+}
+
+.rw-event-new {
+  animation: rw-event-arrive 500ms ease-out both;
+}
+
+/* Alert attention indicator */
+@keyframes rw-alert-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255,69,79,0);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(255,69,79,.15);
+  }
+}
+
+.rw-alert-new {
+  animation: rw-alert-pulse 1.8s ease-in-out 2;
+}
+
+/* Smooth chart interaction */
+.rw-chart-animated svg path,
+.rw-chart-animated svg circle {
+  transition:
+    stroke 220ms ease,
+    fill 220ms ease,
+    opacity 220ms ease;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .rw-chart-animated svg,
+  .rw-value-updated,
+  .rw-event-new,
+  .rw-alert-new {
+    animation: none !important;
+  }
+}
+
+
+/* RUSSELL WEALTH — CONNECTED CHART MOTION */
+
+@keyframes rw-exported-chart-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+[data-rw-chart="true"] img {
+  animation: rw-exported-chart-reveal 850ms cubic-bezier(.22,1,.36,1) both;
+}
+
+[data-rw-chart="true"] img:nth-child(2) {
+  animation-delay: 100ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-rw-chart="true"] img {
+    animation: none !important;
+  }
+}
+
+/* RUSSELL WEALTH — INTERACTIVE PANELS */
+
+.rw-expandable-panel {
+  background: #14171c;
+  border: 1px solid #30343b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rw-expandable-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 18px 20px;
+  text-align: left;
+  transition: background 180ms ease;
+}
+
+.rw-expandable-trigger:hover {
+  background: #1a1d22;
+}
+
+.rw-expandable-chevron {
+  color: #8c929c;
+  font-size: 20px;
+  transition: transform 220ms ease;
+}
+
+.rw-expandable-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.rw-expandable-content {
+  padding: 20px;
+  border-top: 1px solid #30343b;
+  animation: rw-panel-enter 240ms ease both;
+}
+
+@keyframes rw-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-expandable-content {
+    animation: none;
+  }
+}
+
+/* RUSSELL WEALTH — ALLOCATION */
+
+.rw-allocation {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.rw-allocation-chart {
+  width: 210px;
+  height: 210px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.rw-allocation-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  gap: 5px;
+}
+
+.rw-allocation-center span {
+  font-size: 11px;
+  color: #8c929c;
+}
+
+.rw-allocation-center strong {
+  font-size: 19px;
+  color: #f5f5f5;
+  font-weight: 600;
+}
+
+.rw-allocation-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rw-allocation-legend > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+}
+
+.rw-allocation-legend span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #b4b8c0;
+}
+
+.rw-allocation-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.rw-allocation-legend strong {
+  color: #f5f5f5;
+}
+
+/* RUSSELL WEALTH — INVESTIGATION DRAWER */
+
+.rw-investigation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rw-investigation-drawer {
+  width: min(480px, 100%);
+  height: 100%;
+  background: #101318;
+  border-left: 1px solid #30343b;
+  padding: 32px;
+  overflow-y: auto;
+  animation: rw-drawer-enter 300ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes rw-drawer-enter {
+  from { transform: translateX(100%); opacity: .6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.rw-investigation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #30343b;
+}
+
+.rw-investigation-eyebrow {
+  color: #8c929c;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.rw-investigation-header h2 {
+  color: #f5f5f5;
+  font-size: 25px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.rw-investigation-header p {
+  color: #8c929c;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+.rw-investigation-header button {
+  color: #b4b8c0;
+  font-size: 20px;
+}
+
+.rw-investigation-fields {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rw-investigation-fields > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #252a31;
+}
+
+.rw-investigation-fields span {
+  color: #8c929c;
+  font-size: 11px;
+}
+
+.rw-investigation-fields strong {
+  color: #f5f5f5;
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.rw-investigation-footer {
+  margin-top: 35px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #8c929c;
+  font-size: 11px;
+}
+
+.rw-investigation-dot {
+  width: 7px;
+  height: 7px;
+  background: #39e58c;
+  border-radius: 50%;
+}
+
+@media (max-width: 700px) {
+  .rw-allocation {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rw-allocation-chart {
+    align-self: center;
+  }
+
+  .rw-investigation-drawer {
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-investigation-drawer {
+    animation: none;
+  }
+}
+
+
+/* RUSSELL WEALTH — STEP 136 */
+
+.rw-soc-monitoring-status {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 15px;
+  background: rgba(20,23,28,.95);
+  border: 1px solid #30343b;
+  border-radius: 999px;
+  color: #b4b8c0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  backdrop-filter: blur(12px);
+}
+
+.rw-monitoring-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #39e58c;
+  box-shadow: 0 0 0 0 rgba(57,229,140,.4);
+  animation: rw-monitoring-pulse 2.5s infinite;
+}
+
+.rw-monitoring-dot.offline {
+  background: #ff454f;
+  animation: none;
+}
+
+@keyframes rw-monitoring-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(57,229,140,.35);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(57,229,140,0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(57,229,140,0);
+  }
+}
+
+@media (max-width: 700px) {
+  .rw-soc-monitoring-status {
+    right: 12px;
+    bottom: 12px;
+    padding: 9px 12px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-monitoring-dot {
+    animation: none;
+  }
+}
+
+/* RW_CARBON_BLACK_THEME */
+
+
+/* RW_CUSTOMER_PALETTE_START */
+
+/*
+  RUSSELL WEALTH
+  CARBON BLACK × PLATINUM × CHAMPAGNE
+
+  Scope: customer pages only.
+  No dimensions, layout, or functionality changes.
+*/
+
+.rw-customer-theme {
+  --rw-canvas: #090b0e;
+  --rw-sidebar: #0c0f13;
+  --rw-surface: #15191e;
+  --rw-surface-raised: #1d2228;
+  --rw-border: #30343a;
+  --rw-text: #eeece7;
+  --rw-muted: #aaaeb5;
+  --rw-accent: #c3ad83;
+  --rw-accent-light: #ddcba8;
+  --rw-positive: #78cba2;
+
+  background-color: var(--rw-canvas) !important;
+  color: var(--rw-text);
+}
+
+/* PAGE BACKGROUNDS */
+
+.rw-customer-theme [class*="bg-[#080a0d]"],
+.rw-customer-theme [class*="bg-[#08090a]"],
+.rw-customer-theme [class*="bg-[#080a0e]"] {
+  background-color: #090b0e !important;
+}
+
+.rw-customer-theme [class*="bg-[#0b0d11]"] {
+  background-color: #0c0f13 !important;
+}
+
+.rw-customer-theme [class*="bg-[#14171c]"] {
+  background-color: #15191e !important;
+}
+
+.rw-customer-theme [class*="bg-[#101216]"] {
+  background-color: #101419 !important;
+}
+
+.rw-customer-theme [class*="bg-[#1a1d22]"] {
+  background-color: #25231f !important;
+}
+
+.rw-customer-theme [class*="bg-[#252a31]"] {
+  background-color: #292d33 !important;
+}
+
+.rw-customer-theme [class*="bg-[#1b1f24]"],
+.rw-customer-theme [class*="bg-[#1e2228]"] {
+  background-color: #1d2228 !important;
+}
+
+/* BORDERS */
+
+.rw-customer-theme [class*="border-[#30343b]"],
+.rw-customer-theme [class*="border-[#2d3239]"] {
+  border-color: #30343a !important;
+}
+
+/* PLATINUM TEXT */
+
+.rw-customer-theme [class*="text-[#f5f5f5]"],
+.rw-customer-theme [class*="text-[#ffffff]"] {
+  color: #eeece7 !important;
+}
+
+.rw-customer-theme [class*="text-[#b4b8c0]"],
+.rw-customer-theme [class*="text-[#c5cad2]"] {
+  color: #aaaeb5 !important;
+}
+
+.rw-customer-theme [class*="text-[#8c929c]"] {
+  color: #8e959e !important;
+}
+
+/* CHAMPAGNE ACCENTS */
+
+.rw-customer-theme [class*="text-[#39e58c]"],
+.rw-customer-theme [class*="text-[#42d996]"] {
+  color: #c3ad83 !important;
+}
+
+.rw-customer-theme [class*="bg-[#39e58c]"],
+.rw-customer-theme [class*="bg-[#42d996]"] {
+  background-color: #c3ad83 !important;
+}
+
+.rw-customer-theme [class*="border-[#39e58c]"],
+.rw-customer-theme [class*="border-[#42d996]"] {
+  border-color: #c3ad83 !important;
+}
+
+/* CUSTOMER NAVIGATION */
+
+.rw-customer-theme [data-name="Main navigation"]
+  > [data-name="Navigation item"][class*="bg-[#1a1d22]"] {
+  background-color: #28251f !important;
+}
+
+.rw-customer-theme [data-name="Main navigation"]
+  > [data-name="Navigation item"][class*="bg-[#1a1d22]"] p {
+  color: #e9d7b3 !important;
+}
+
+/* PRIMARY ACTION GRADIENTS */
+
+.rw-customer-theme [class*="bg-gradient-to-b"] {
+  background-image:
+    linear-gradient(120deg,#ddcba8,#bca47c) !important;
+}
+
+/* CUSTOMER PERFORMANCE ARTWORK */
+
+.rw-customer-theme [data-name="Performance chart"] img {
+  filter:
+    sepia(1)
+    saturate(.55)
+    hue-rotate(350deg)
+    brightness(.94);
+}
+
+/* FORM FOCUS */
+
+.rw-customer-theme
+  :is(input,select,textarea,button,a):focus-visible {
+  outline-color: #c3ad83;
+}
+
+/* RW_CUSTOMER_PALETTE_END */
+
+
+
+/* RUSSELL WEALTH — CUSTOMER PAGE TRANSITIONS */
+
+@keyframes rwCustomerPageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(3px);
+  }
+
+  55% {
+    opacity: 0.85;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.rw-page-transition {
+  animation:
+    rwCustomerPageEnter 450ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+  will-change: opacity, transform;
+}
+
+/* Keep interactive elements feeling responsive */
+
+.rw-customer-theme button,
+.rw-customer-theme a {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-page-transition {
+    animation: none !important;
+  }
+
+  .rw-customer-theme button,
+  .rw-customer-theme a {
+    transition: none !important;
+  }
+}
+
+
+/* RW SMOOTH BRAND REFRESH */
+
+@keyframes rwRefreshExit {
+  from { opacity: 1; filter: blur(0); }
+  to { opacity: 0; filter: blur(4px); }
+}
+
+@keyframes rwRefreshEnter {
+  from { opacity: 0; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+html.rw-refresh-leaving #root {
+  animation: rwRefreshExit 700ms ease-in-out forwards !important;
+  pointer-events: none;
+}
+
+html.rw-refresh-entering #root {
+  animation: rwRefreshEnter 650ms ease-out both !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.rw-refresh-leaving #root,
+  html.rw-refresh-entering #root {
+    animation: none !important;
+  }
+}
+
+
+/* RW PERSISTENT CUSTOMER SIDEBAR START */
+
+/*
+  Russell Wealth — Persistent Customer Navigation
+  Desktop only. Preserves existing sidebar design.
+*/
+
+@media (min-width: 701px) {
+
+  /* Keep sidebar visible while scrolling */
+
+  .rw-customer-theme [data-name="Sidebar"] {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #343941 transparent;
+  }
+
+  /* Prevent the page transition from clipping the sidebar */
+
+  .rw-customer-theme .rw-page-transition {
+    overflow: visible !important;
+  }
+
+  /* Allow the main page to scroll normally */
+
+  .rw-customer-theme [data-name="Dashboard content"],
+  .rw-customer-theme [data-name="Portfolio content"] {
+    min-height: 100vh;
+  }
+
+}
+
+/* RW PERSISTENT CUSTOMER SIDEBAR END */
+
+
+/* RW UNIFIED CUSTOMER LAYOUT START */
+
+@media (min-width: 701px) {
+  .rw-unified-customer-layout {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 100vh;
+    background: #090b0e;
+  }
+
+  .rw-unified-sidebar {
+    position: sticky !important;
+    top: 0;
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #343941 transparent;
+    z-index: 30;
+  }
+
+  .rw-unified-customer-content {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 0;
+  }
+
+  .rw-unified-customer-content > .rw-page-transition {
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  /* Existing page sidebars are superseded by the shared one. */
+  .rw-unified-customer-content [data-name="Sidebar"] {
+    display: none !important;
+  }
+
+  /* Hide the old Help & Support sidebar component. */
+  .rw-unified-customer-content > .rw-page-transition
+  [data-name="Unified Customer Sidebar"] {
+    display: none !important;
+  }
+
+  .rw-unified-customer-content .customer-dashboard,
+  .rw-unified-customer-content .rw-carbon-portfolio {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .rw-unified-customer-content .rw-help {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .rw-unified-nav-item:focus-visible {
+    outline: 2px solid #c3ad83;
+    outline-offset: 2px;
+  }
+}
+
+/* RW UNIFIED CUSTOMER LAYOUT END */
+
+
+/* RW UNIFIED SOC LAYOUT START */
+
+@media (min-width: 701px) {
+  .rw-unified-soc-layout {
+    min-height: 100vh;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .rw-unified-soc-layout [data-name="Sidebar"] {
+    display: none !important;
+  }
+
+  .rw-unified-soc-layout .rw-unified-customer-content {
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .rw-unified-soc-layout .rw-page-transition {
+    min-width: 0;
+  }
+}
+
+/* RW UNIFIED SOC LAYOUT END */
+
+
+/* RW CUSTOMER SIDEBAR MOTION START */
+
+@media (min-width: 701px) {
+
+  /* Navigation items */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item {
+    position: relative;
+    overflow: hidden;
+    transition:
+      background-color 240ms ease,
+      color 240ms ease,
+      transform 240ms cubic-bezier(.2,.8,.2,1),
+      box-shadow 240ms ease;
+  }
+
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item:hover {
+    background: #20242b;
+    color: #f5f5f5;
+    transform: translateX(3px);
+    box-shadow: inset 2px 0 0 #c5ad82;
+  }
+
+  /* Animated champagne indicator */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22%;
+    width: 2px;
+    height: 56%;
+    border-radius: 4px;
+    background: #c5ad82;
+    transform: scaleY(0);
+    transform-origin: center;
+    opacity: 0;
+    transition:
+      transform 260ms cubic-bezier(.2,.8,.2,1),
+      opacity 260ms ease;
+  }
+
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item:hover::before,
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item[aria-current="page"]::before {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  /* Icons */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item img {
+    transition:
+      transform 260ms cubic-bezier(.2,.8,.2,1),
+      filter 260ms ease;
+  }
+
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item:hover img {
+    transform: scale(1.12);
+    filter: brightness(1.3);
+  }
+
+  /* Active tab */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-nav-item[aria-current="page"] {
+    background: #1a1d22;
+    color: #f5f5f5;
+    box-shadow: inset 2px 0 0 #c5ad82;
+  }
+
+  /* Logo */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-sidebar [aria-label="Refresh Russell Wealth"] img {
+    transition:
+      transform 420ms cubic-bezier(.2,.8,.2,1),
+      filter 420ms ease;
+  }
+
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-sidebar [aria-label="Refresh Russell Wealth"]:hover img {
+    transform: scale(1.035);
+    filter: brightness(1.13);
+  }
+
+  /* Profile card */
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-sidebar > div:last-child {
+    transition:
+      border-color 260ms ease,
+      background-color 260ms ease,
+      box-shadow 260ms ease;
+  }
+
+  .rw-unified-customer-layout:not(.rw-unified-soc-layout)
+  .rw-unified-sidebar > div:last-child:hover {
+    border-color: #575044;
+    background: #191c21;
+    box-shadow: 0 6px 22px rgba(0,0,0,.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-unified-nav-item,
+  .rw-unified-nav-item::before,
+  .rw-unified-nav-item img,
+  .rw-unified-sidebar img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* RW CUSTOMER SIDEBAR MOTION END */
+
+
+/* RW PREMIUM MOTION START */
+
+/* 1 — Active sidebar indicator */
+.rw-unified-nav-item {
+  position: relative;
+  isolation: isolate;
+}
+
+.rw-unified-nav-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 3px;
+  border-radius: 3px;
+  background: #c5ad82;
+  opacity: 0;
+  transform: translateY(7px) scaleY(.5);
+  transition:
+    opacity 280ms ease,
+    transform 380ms cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+
+.rw-unified-nav-item[aria-current="page"]::after {
+  opacity: 1;
+  transform: translateY(0) scaleY(1);
+}
+
+/* 4 — Skeleton shimmer */
+@keyframes rw-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.rw-skeleton {
+  background: linear-gradient(
+    100deg,
+    #1b1e24 20%,
+    #30343c 40%,
+    #1b1e24 60%
+  );
+  background-size: 200% 100%;
+  animation: rw-skeleton-shimmer 1.8s linear infinite;
+  border-radius: 6px;
+}
+
+.rw-skeleton-text {
+  height: 12px;
+  width: 65%;
+}
+
+.rw-skeleton-title {
+  height: 24px;
+  width: 45%;
+}
+
+.rw-skeleton-card {
+  height: 136px;
+  width: 100%;
+  border: 1px solid #30343b;
+  border-radius: 12px;
+}
+
+/* 5 — Staggered page reveal */
+@keyframes rw-premium-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rw-unified-customer-content .rw-page-transition > * {
+  animation: rw-premium-reveal 420ms cubic-bezier(.22,1,.36,1) both;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > *,
+.rw-unified-customer-content
+[data-name="Portfolio content"] > * {
+  animation: rw-premium-reveal 480ms cubic-bezier(.22,1,.36,1) both;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > :nth-child(1),
+.rw-unified-customer-content
+[data-name="Portfolio content"] > :nth-child(1) {
+  animation-delay: 60ms;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > :nth-child(2),
+.rw-unified-customer-content
+[data-name="Portfolio content"] > :nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > :nth-child(3),
+.rw-unified-customer-content
+[data-name="Portfolio content"] > :nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > :nth-child(4),
+.rw-unified-customer-content
+[data-name="Portfolio content"] > :nth-child(4) {
+  animation-delay: 240ms;
+}
+
+.rw-unified-customer-content
+[data-name="Dashboard content"] > :nth-child(n+5),
+.rw-unified-customer-content
+[data-name="Portfolio content"] > :nth-child(n+5) {
+  animation-delay: 300ms;
+}
+
+/* 8 — Premium card hover */
+@media (hover: hover) and (pointer: fine) {
+  .rw-unified-customer-content
+  [data-name="Metric card"],
+  .rw-unified-customer-content
+  [data-name="Holding card"],
+  .rw-unified-customer-content
+  [data-name="Portfolio card"] {
+    transition:
+      transform 280ms cubic-bezier(.22,1,.36,1),
+      box-shadow 280ms ease,
+      border-color 280ms ease;
+    will-change: transform;
+  }
+
+  .rw-unified-customer-content
+  [data-name="Metric card"]:hover,
+  .rw-unified-customer-content
+  [data-name="Holding card"]:hover,
+  .rw-unified-customer-content
+  [data-name="Portfolio card"]:hover {
+    transform: translateY(-3px);
+    border-color: #786b52;
+    box-shadow:
+      0 12px 30px rgba(0,0,0,.25),
+      0 0 0 1px rgba(197,173,130,.08);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .rw-unified-nav-item::after,
+  .rw-unified-customer-content .rw-page-transition > *,
+  .rw-unified-customer-content
+  [data-name="Dashboard content"] > *,
+  .rw-unified-customer-content
+  [data-name="Portfolio content"] > *,
+  .rw-unified-customer-content
+  [data-name="Metric card"],
+  .rw-unified-customer-content
+  [data-name="Holding card"],
+  .rw-unified-customer-content
+  [data-name="Portfolio card"] {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* RW PREMIUM MOTION END */
+
+
+/* RW REAL MOTION START */
+
+/* Real moving sidebar indicator */
+.rw-motion-nav {
+  position: relative;
+}
+
+.rw-moving-indicator {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 3px;
+  height: 28px;
+  border-radius: 4px;
+  background: #c5ad82;
+  box-shadow: 0 0 12px rgba(197,173,130,.3);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform 380ms cubic-bezier(.22,1,.36,1);
+}
+
+.rw-motion-nav .rw-unified-nav-item::before,
+.rw-motion-nav .rw-unified-nav-item::after {
+  display: none !important;
+}
+
+/* Visible card lift */
+@media (hover: hover) and (pointer: fine) {
+  .rw-unified-customer-content [data-name="Metric card"],
+  .rw-unified-customer-content [data-name="Holding card"],
+  .rw-unified-customer-content [data-name="Portfolio card"],
+  .rw-unified-customer-content [data-name="Quick action"] {
+    transition:
+      transform 320ms cubic-bezier(.22,1,.36,1),
+      box-shadow 320ms ease,
+      border-color 320ms ease !important;
+  }
+
+  .rw-unified-customer-content [data-name="Metric card"]:hover,
+  .rw-unified-customer-content [data-name="Holding card"]:hover,
+  .rw-unified-customer-content [data-name="Portfolio card"]:hover,
+  .rw-unified-customer-content [data-name="Quick action"]:hover {
+    transform: translateY(-5px) !important;
+    box-shadow:
+      0 16px 38px rgba(0,0,0,.35),
+      0 0 0 1px rgba(197,173,130,.25) !important;
+    border-color: #a28d66 !important;
+    z-index: 2;
+  }
+}
+
+/* Clear page entrance */
+@keyframes rw-real-page-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rw-unified-customer-content .rw-page-transition {
+  animation: rw-real-page-reveal 550ms
+    cubic-bezier(.22,1,.36,1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-moving-indicator,
+  .rw-unified-customer-content .rw-page-transition {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* RW REAL MOTION END */
+
+
+/* RW RESTORE ORIGINAL SOC SIDEBAR START */
+
+@media (min-width: 701px) {
+
+  /* Hide the simplified replacement SOC sidebar */
+  .rw-unified-soc-layout > [data-name="Unified SOC Sidebar"] {
+    display: none !important;
+  }
+
+  /* Restore the original full SOC sidebar */
+  .rw-unified-soc-layout .soc-dashboard > [data-name="Sidebar"],
+  .rw-unified-soc-layout
+  [data-name="Russell Wealth Incident Investigation"]
+  > [data-name="Sidebar"] {
+    display: flex !important;
+    visibility: visible !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Let the original SOC dashboard control its layout */
+  .rw-unified-soc-layout .rw-unified-customer-content {
+    width: 100%;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard {
+    display: flex !important;
+    align-items: flex-start;
+  }
+
+}
+
+/* RW RESTORE ORIGINAL SOC SIDEBAR END */
+
+
+/* RW SOC CUSTOMER DESIGN MATCH */
+
+@media (min-width: 701px) {
+
+  /* Match Customer Dashboard sidebar dimensions */
+  .rw-unified-soc-layout .soc-dashboard > [data-name="Sidebar"] {
+    display: flex !important;
+    width: 208px !important;
+    min-width: 208px !important;
+    max-width: 208px !important;
+    padding: 26px 16px 24px !important;
+    gap: 30px !important;
+    background: #0b0d11 !important;
+    border-right: 1px solid #30343b !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  /* Hide the replacement SOC sidebar */
+  .rw-unified-soc-layout > .rw-unified-sidebar {
+    display: none !important;
+  }
+
+  /* Keep original SOC content and features */
+  .rw-unified-soc-layout .soc-dashboard {
+    width: 100% !important;
+    min-width: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  /* Match navigation typography and spacing */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"] {
+    min-height: 48px;
+    border-radius: 8px;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    transition:
+      background 250ms ease,
+      color 250ms ease,
+      transform 300ms cubic-bezier(.22,1,.36,1);
+  }
+
+  /* Customer-style hover animation */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"]:hover {
+    background: #1a1d22 !important;
+    transform: translateX(3px);
+  }
+
+  /* Smooth icon interaction */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"] img {
+    transition: transform 300ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"]:hover img {
+    transform: scale(1.08);
+  }
+
+  /* SOC panel hover animation */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Security metrics"] > * {
+    transition:
+      transform 300ms cubic-bezier(.22,1,.36,1),
+      box-shadow 300ms ease;
+  }
+
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Security metrics"] > *:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(0,0,0,.25);
+  }
+
+  /* Page entrance */
+  .rw-unified-soc-layout .rw-page-transition {
+    animation: rw-real-page-reveal 480ms
+      cubic-bezier(.22,1,.36,1) both;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"],
+  .rw-unified-soc-layout .rw-page-transition {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* END RW SOC CUSTOMER DESIGN MATCH */
+
+
+/* RW SOC LOGO SCROLL FIX START */
+
+@media (min-width: 701px) {
+
+  /* Original SOC sidebar: Customer-matched sizing */
+  .rw-unified-soc-layout
+  .soc-dashboard > [data-name="Sidebar"] {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 208px !important;
+    min-width: 208px !important;
+    max-width: 208px !important;
+    height: 100vh !important;
+    min-height: 0 !important;
+    max-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    position: sticky !important;
+    top: 0;
+    padding: 26px 16px 24px !important;
+    scrollbar-width: thin;
+    scrollbar-color: #30343b transparent;
+  }
+
+  /* Customer-matched logo container */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Original logo artwork"] {
+    position: relative !important;
+    width: 176px !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    flex-shrink: 0 !important;
+    left: auto !important;
+    top: auto !important;
+    overflow: hidden !important;
+  }
+
+  /* Match the Customer logo's actual crop and scale */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Original logo artwork"] img {
+    position: absolute !important;
+    width: 216.4px !important;
+    height: 86.7px !important;
+    max-width: none !important;
+    left: -20.2px !important;
+    top: -17.3px !important;
+    inset: auto !important;
+    object-fit: cover !important;
+  }
+
+  /* Preserve navigation instead of compressing it */
+  .rw-unified-soc-layout
+  .soc-dashboard [data-name="Sidebar"]
+  [data-name="Navigation item"] {
+    flex-shrink: 0 !important;
+  }
+
+  /* Keep the SOC dashboard content scrollable */
+  .rw-unified-soc-layout .rw-unified-customer-content {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+  }
+
+}
+
+/* RW SOC LOGO SCROLL FIX END */
+
+
+/* RW SHARED SOC SIDEBAR V2 START */
+@media (min-width: 701px) {
+
+  .rw-unified-soc-layout {
+    display: flex !important;
+    min-width: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .rw-unified-soc-layout > [data-name="Unified SOC Sidebar"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    width: 208px !important;
+    min-width: 208px !important;
+    max-width: 208px !important;
+    height: 100vh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    z-index: 20;
+  }
+
+  /* Hide the old embedded navigation on both SOC screens. */
+  .rw-unified-soc-layout .soc-dashboard > [data-name="Sidebar"],
+  .rw-unified-soc-layout
+  [data-name="Russell Wealth Incident Investigation"]
+  > [data-name="Sidebar"] {
+    display: none !important;
+  }
+
+  .rw-unified-soc-layout .rw-unified-customer-content {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: 100vh;
+    overflow: auto !important;
+  }
+
+  .rw-unified-soc-layout .rw-page-transition {
+    min-width: 0;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .rw-soc-scroll-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #30343b transparent;
+    overscroll-behavior: contain;
+  }
+
+  .rw-soc-nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .rw-soc-nav-section + .rw-soc-nav-section {
+    border-top: 1px solid #30343b;
+    padding-top: 18px;
+  }
+
+  .rw-soc-nav-heading {
+    padding: 0 12px 8px;
+    color: #8c929c;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .12em;
+  }
+
+  .rw-soc-nav-entry {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 43px;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    text-align: left;
+    color: #b4b8c0;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    transition:
+      background 250ms ease,
+      color 250ms ease,
+      transform 300ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .rw-soc-nav-entry:not(.rw-soc-nav-unavailable):hover,
+  .rw-soc-nav-highlight:not(.rw-soc-nav-unavailable) {
+    background: #1a1d22;
+    color: #f5f5f5;
+    transform: translateX(2px);
+  }
+
+  .rw-soc-nav-active {
+    background: #292e36 !important;
+    color: #f5f5f5 !important;
+    font-weight: 600;
+  }
+
+  .rw-soc-nav-unavailable {
+    opacity: .52;
+    cursor: not-allowed;
+  }
+
+  .rw-soc-sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    padding-top: 12px;
+    border-top: 1px solid #30343b;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-soc-nav-entry {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+/* RW SHARED SOC SIDEBAR V2 END */
+
+
+/* RW SOC CUSTOMER SYSTEM V3 START */
+
+@media (min-width: 701px) {
+
+  /* Dashboard foundation */
+  .rw-unified-soc-layout {
+    background: #080a0d !important;
+    color: #f5f5f5;
+    font-family: Inter, sans-serif;
+  }
+
+  .rw-unified-soc-layout .rw-unified-customer-content {
+    background: #080a0d !important;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard {
+    background: #080a0d !important;
+    color: #f5f5f5;
+    font-family: Inter, sans-serif;
+  }
+
+  /* Typography — same system as Customer */
+  .rw-unified-soc-layout .soc-dashboard h1,
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Page title"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Dashboard title"] {
+    font-family: Lora, Georgia, serif !important;
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+    color: #f5f5f5;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard h2 {
+    font-family: Lora, Georgia, serif !important;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard
+  button,
+  .rw-unified-soc-layout .soc-dashboard
+  input,
+  .rw-unified-soc-layout .soc-dashboard
+  select {
+    font-family: Inter, sans-serif;
+  }
+
+  /* Unified premium cards */
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Metric card"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Security metric"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Security metrics"] > *,
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Recent events"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Recent alerts"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Threat trends"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Global Threats Map"] {
+    border-color: #30343b !important;
+    border-radius: 14px !important;
+  }
+
+  /* Customer-style depth and interaction */
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Security metrics"] > *,
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Metric card"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Recent alerts"],
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Recent events"] {
+    transition:
+      transform 340ms cubic-bezier(.22,1,.36,1),
+      box-shadow 340ms ease,
+      border-color 340ms ease !important;
+    will-change: transform;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .rw-unified-soc-layout .soc-dashboard
+    [data-name="Security metrics"] > *:hover,
+    .rw-unified-soc-layout .soc-dashboard
+    [data-name="Metric card"]:hover,
+    .rw-unified-soc-layout .soc-dashboard
+    [data-name="Recent alerts"]:hover,
+    .rw-unified-soc-layout .soc-dashboard
+    [data-name="Recent events"]:hover {
+      transform: translateY(-3px);
+      border-color: #484e58 !important;
+      box-shadow: 0 16px 36px rgba(0,0,0,.24);
+    }
+  }
+
+  /* Inputs and buttons */
+  .rw-unified-soc-layout .soc-dashboard
+  input,
+  .rw-unified-soc-layout .soc-dashboard
+  select {
+    background: #1a1d22;
+    border-color: #30343b;
+    color: #f5f5f5;
+    border-radius: 8px;
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard
+  input:focus,
+  .rw-unified-soc-layout .soc-dashboard
+  select:focus {
+    outline: none;
+    border-color: #a8adb6;
+    box-shadow: 0 0 0 3px rgba(168,173,182,.1);
+  }
+
+  .rw-unified-soc-layout .soc-dashboard button {
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease,
+      color 220ms ease,
+      transform 220ms ease;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard
+  button:active {
+    transform: scale(.98);
+  }
+
+  /* Smooth entrance, same pacing as Customer */
+  .rw-unified-soc-layout .rw-page-transition {
+    animation: rw-soc-customer-enter
+      480ms cubic-bezier(.22,1,.36,1) both;
+  }
+
+  @keyframes rw-soc-customer-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Preserve the map's own transforms and animation */
+  .rw-unified-soc-layout
+  [data-name="Global Threats Map"] *,
+  .rw-unified-soc-layout
+  [data-name="Global Threats Map"] svg {
+    animation-duration: revert;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-unified-soc-layout .rw-page-transition {
+    animation: none !important;
+  }
+
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Security metrics"] > *,
+  .rw-unified-soc-layout .soc-dashboard
+  [data-name="Metric card"] {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* RW SOC CUSTOMER SYSTEM V3 END */
