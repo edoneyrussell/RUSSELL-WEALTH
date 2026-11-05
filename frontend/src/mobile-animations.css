@@ -1,0 +1,61 @@
+
+/* Russell Wealth — Mobile Motion System */
+
+@media (max-width: 700px) {
+  .rw-mobile-landing {
+    scroll-behavior: smooth;
+  }
+
+  .rw-mobile-landing.rw-mobile-motion-ready
+  .rw-motion-item:not(.rw-motion-visible) {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  .rw-mobile-landing .rw-motion-item {
+    transition:
+      opacity 650ms cubic-bezier(.2,.8,.2,1),
+      transform 650ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  .rw-mobile-landing .rw-motion-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .rw-mobile-landing a,
+  .rw-mobile-landing button {
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform 180ms ease,
+      opacity 180ms ease,
+      color 180ms ease;
+  }
+
+  .rw-mobile-landing a:active,
+  .rw-mobile-landing button:active {
+    transform: scale(.97);
+    opacity: .82;
+  }
+
+  .rw-mobile-landing [data-name="Social profile"] {
+    transition:
+      opacity 650ms ease,
+      transform 650ms ease,
+      border-color 250ms ease;
+  }
+
+  .rw-mobile-landing [data-name="Social profile"]:active {
+    border-color: #9299a3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-mobile-landing *,
+  .rw-mobile-landing *::before,
+  .rw-mobile-landing *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

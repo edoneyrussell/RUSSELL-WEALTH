@@ -32,10 +32,10 @@ export default function RussellWealthPortfolioHoldings() {
 
   const allocation = {
     stocks: portfolio?.holdings
-      .filter(h => h.type?.toLowerCase().includes('stock'))
+      .filter(h => h.asset_type?.toLowerCase().includes('stock'))
       .reduce((sum, h) => sum + Number(h.market_value), 0) ?? 0,
     etfs: portfolio?.holdings
-      .filter(h => h.type?.toLowerCase().includes('etf'))
+      .filter(h => h.asset_type?.toLowerCase().includes('etf'))
       .reduce((sum, h) => sum + Number(h.market_value), 0) ?? 0,
     cash: Number(portfolio?.cash_balance ?? 0),
     total: Number(portfolio?.total_value ?? 0),

@@ -1,0 +1,7 @@
+import { useTrading } from '../hooks/useTrading';
+import TradeSymbolPicker from './TradeSymbolPicker';
+import type { CarbonHolding } from './CarbonHoldings';
+export default function CarbonTrade({holdings}:{holdings:CarbonHolding[]}){
+ const trading=useTrading();
+ return <div className="carbon-trade"><div className="carbon-segment"><button className={trading.direction==='BUY'?'selected':''} onClick={()=>trading.setDirection('BUY')}>Buy</button><button className={trading.direction==='SELL'?'selected':''} onClick={()=>trading.setDirection('SELL')}>Sell</button></div><label className="carbon-label">SYMBOL</label><TradeSymbolPicker direction={trading.direction} symbol={trading.symbol} onChange={trading.setSymbol} holdings={holdings}/><label className="carbon-label" htmlFor="carbon-quantity">QUANTITY</label><input id="carbon-quantity" className="carbon-input" type="number" min="1" step="1" value={trading.quantity} onChange={e=>trading.setQuantity(e.target.value)}/><div className="carbon-trade-note">Market order · Simulated execution</div><button className="carbon-primary carbon-full" disabled={trading.submitting||!trading.symbol} onClick={trading.submitTrade}>{trading.submitting?'Processing...':`${trading.direction==='BUY'?'Buy':'Sell'} ${trading.symbol||'asset'}`}</button>{trading.error&&<p className="carbon-error" role="alert">{trading.error}</p>}{trading.message&&<p className="carbon-success" role="status">{trading.message}</p>}</div>
+}

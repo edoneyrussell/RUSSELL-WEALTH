@@ -1,0 +1,107 @@
+
+/* Russell Wealth — Step 205 */
+
+.rw-desktop-landing [data-name="Landing hero"],
+.rw-mobile-landing [data-name="Landing hero"] {
+  position: relative;
+  isolation: isolate;
+}
+
+.rw-spotlight-fixed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  --rw-x: 50%;
+  --rw-y: 50%;
+  background: radial-gradient(
+    300px circle at var(--rw-x) var(--rw-y),
+    rgba(205, 215, 230, .26),
+    rgba(140, 155, 180, .10) 45%,
+    transparent 75%
+  );
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.rw-spotlight-fixed.rw-spotlight-on {
+  opacity: 1;
+}
+
+.rw-hero-line {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(5px);
+  transition:
+    opacity 850ms cubic-bezier(.16,1,.3,1),
+    transform 850ms cubic-bezier(.16,1,.3,1),
+    filter 850ms ease;
+  transition-delay: var(--rw-line-delay, 0ms);
+}
+
+.rw-hero-line.rw-hero-line-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+.rw-desktop-landing [data-name="Hero headline"],
+.rw-mobile-landing [data-node-id="68:1005"] {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 700px) {
+  .rw-landing-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 9999;
+    background: rgba(20,25,31,.8);
+    pointer-events: none;
+  }
+
+  .rw-landing-progress > div {
+    height: 100%;
+    background: linear-gradient(
+      90deg, #747d89, #f2f2f3
+    );
+  }
+
+  .rw-landing-top {
+    position: fixed;
+    right: 18px;
+    bottom: 25px;
+    z-index: 9999;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #555b64;
+    border-radius: 14px;
+    background: #14191f;
+    color: #f2f2f3;
+    font-size: 24px;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 701px) {
+  .rw-landing-progress,
+  .rw-landing-top {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-spotlight-fixed {
+    display: none;
+  }
+
+  .rw-hero-line {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

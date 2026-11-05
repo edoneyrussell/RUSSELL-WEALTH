@@ -1,0 +1,470 @@
+
+/*
+ RUSSELL WEALTH
+ CARBON BLACK — UNIFIED DASHBOARD DESIGN
+ Customer / Portfolio / Security
+*/
+
+:root {
+  --rw-canvas: #080a0d;
+  --rw-sidebar: #0b0e12;
+  --rw-surface: #11151a;
+  --rw-surface-raised: #171c22;
+  --rw-surface-hover: #1c2229;
+  --rw-border: #262d35;
+  --rw-border-strong: #343d47;
+  --rw-text: #f2f4f6;
+  --rw-muted: #929ba7;
+  --rw-accent: #42d996;
+  --rw-danger: #f16c75;
+  --rw-radius: 14px;
+  --rw-sidebar-width: 240px;
+}
+
+.customer-dashboard,
+.rw-carbon-portfolio,
+.soc-dashboard {
+  background: var(--rw-canvas) !important;
+  color: var(--rw-text);
+  min-height: 100vh;
+  width: 100%;
+  height: auto !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* UNIFIED SIDEBARS */
+
+.customer-dashboard > div:first-child,
+.rw-carbon-portfolio > div:first-child,
+.soc-dashboard > div:first-child {
+  width: var(--rw-sidebar-width) !important;
+  min-width: var(--rw-sidebar-width) !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  padding: 26px 16px !important;
+  background: var(--rw-sidebar) !important;
+  border-right: 1px solid var(--rw-border) !important;
+  gap: 26px !important;
+  overflow: visible !important;
+  position: sticky !important;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #303842 transparent;
+}
+
+/* CONTENT AREA */
+
+.customer-dashboard > div:nth-child(2),
+.rw-carbon-portfolio > div:nth-child(2),
+.soc-dashboard > div:nth-child(2) {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  max-width: none !important;
+  padding: clamp(20px, 2.5vw, 40px) !important;
+  gap: 26px !important;
+  overflow: visible !important;
+  background:
+    radial-gradient(
+      ellipse at 85% 0%,
+      rgba(48, 77, 70, 0.075),
+      transparent 42%
+    ),
+    var(--rw-canvas) !important;
+}
+
+/* CUSTOMER NAVIGATION */
+
+.customer-dashboard [data-name="Navigation item"],
+.rw-carbon-portfolio [data-name="Navigation item"],
+.soc-dashboard [data-name="Navigation item"] {
+  border-radius: 10px !important;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease !important;
+}
+
+.customer-dashboard [data-name="Navigation item"]:hover,
+.rw-carbon-portfolio [data-name="Navigation item"]:hover,
+.soc-dashboard [data-name="Navigation item"]:hover {
+  background: var(--rw-surface-hover) !important;
+  transform: translateX(2px);
+}
+
+.customer-dashboard [data-name="Navigation item"] p,
+.rw-carbon-portfolio [data-name="Navigation item"] p,
+.soc-dashboard [data-name="Navigation item"] p {
+  font-family: Inter, system-ui, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* CARD SURFACES — REPLACE FIGMA COLORS */
+
+.customer-dashboard .bg-\[\#14171c\],
+.rw-carbon-portfolio .bg-\[\#14171c\],
+.soc-dashboard .bg-\[\#14171c\] {
+  background: var(--rw-surface) !important;
+  border-color: var(--rw-border) !important;
+  border-radius: var(--rw-radius) !important;
+}
+
+.customer-dashboard .bg-\[\#101216\],
+.rw-carbon-portfolio .bg-\[\#101216\],
+.soc-dashboard .bg-\[\#101216\] {
+  background: #0c1014 !important;
+  border-color: var(--rw-border) !important;
+}
+
+.customer-dashboard .bg-\[\#1a1d22\],
+.rw-carbon-portfolio .bg-\[\#1a1d22\],
+.soc-dashboard .bg-\[\#1a1d22\] {
+  background: var(--rw-surface-raised) !important;
+}
+
+/* ALL DASHBOARD CARDS */
+
+.customer-dashboard [data-name="Portfolio summary"] > div,
+.rw-carbon-portfolio [data-name="Portfolio summary"] > div {
+  min-height: 146px;
+  height: auto !important;
+  padding: 22px !important;
+  background: var(--rw-surface) !important;
+  border: 1px solid var(--rw-border) !important;
+  border-radius: var(--rw-radius) !important;
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.customer-dashboard [data-name="Portfolio summary"] > div:hover,
+.rw-carbon-portfolio [data-name="Portfolio summary"] > div:hover {
+  background: var(--rw-surface-raised) !important;
+  border-color: var(--rw-border-strong) !important;
+  transform: translateY(-2px);
+}
+
+/* METRIC TYPOGRAPHY */
+
+.customer-dashboard [data-name="Portfolio summary"] p,
+.rw-carbon-portfolio [data-name="Portfolio summary"] p {
+  font-variant-numeric: tabular-nums;
+}
+
+.customer-dashboard [data-name="Portfolio summary"] .text-\[28px\],
+.rw-carbon-portfolio [data-name="Portfolio summary"] .text-\[28px\] {
+  font-size: clamp(22px, 2vw, 30px) !important;
+  letter-spacing: -0.055em !important;
+}
+
+/* HEADERS */
+
+.customer-dashboard [data-name="Dashboard header"],
+.rw-carbon-portfolio [data-name="Portfolio header"],
+.soc-dashboard [data-name="Dashboard header"] {
+  height: auto !important;
+  min-height: 76px;
+  overflow: visible !important;
+  align-items: center !important;
+}
+
+.customer-dashboard [data-name="Dashboard header"] .text-\[32px\] {
+  font-size: clamp(25px, 2.7vw, 36px) !important;
+  letter-spacing: -0.04em !important;
+}
+
+/* PORTFOLIO SUMMARY GRID */
+
+.customer-dashboard [data-name="Portfolio summary"],
+.rw-carbon-portfolio [data-name="Portfolio summary"] {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px !important;
+  overflow: visible !important;
+  align-items: stretch !important;
+}
+
+/* CUSTOMER TRADING LAYOUT */
+
+.customer-dashboard [data-name="Investments and trading"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 310px);
+  gap: 20px !important;
+  align-items: start !important;
+  overflow: visible !important;
+}
+
+.customer-dashboard [data-name="Trading and accounts"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 16px !important;
+}
+
+/* CHART AND HOLDINGS CARDS */
+
+.customer-dashboard [data-name="Portfolio overview"] {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.customer-dashboard [data-name="Portfolio overview"] > div {
+  max-width: 100%;
+  border-radius: var(--rw-radius) !important;
+}
+
+.customer-dashboard [data-name="Performance chart"],
+.rw-carbon-portfolio [data-name="Performance chart"] {
+  min-width: 0 !important;
+  max-width: 100%;
+}
+
+.customer-dashboard [data-name="Holdings table"],
+.rw-carbon-portfolio [data-name="Holdings table"] {
+  width: 100% !important;
+  overflow-x: auto !important;
+  scrollbar-width: thin;
+}
+
+/* BUTTONS AND INPUTS */
+
+.customer-dashboard button,
+.rw-carbon-portfolio button,
+.soc-dashboard button {
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.customer-dashboard button:hover:not(:disabled),
+.rw-carbon-portfolio button:hover:not(:disabled),
+.soc-dashboard button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.customer-dashboard button:active:not(:disabled),
+.rw-carbon-portfolio button:active:not(:disabled),
+.soc-dashboard button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.customer-dashboard input,
+.rw-carbon-portfolio input,
+.soc-dashboard input {
+  color: var(--rw-text);
+  caret-color: var(--rw-accent);
+}
+
+.customer-dashboard :is(button, a, input, [role="button"]):focus-visible,
+.rw-carbon-portfolio :is(button, a, input, [role="button"]):focus-visible,
+.soc-dashboard :is(button, a, input, [role="button"]):focus-visible {
+  outline: 2px solid var(--rw-accent);
+  outline-offset: 3px;
+}
+
+/* ALLOCATION AND EXPANDABLE HOLDINGS */
+
+.rw-allocation,
+.rw-expandable-panel {
+  color: var(--rw-text);
+}
+
+.rw-expandable-panel {
+  background: var(--rw-surface) !important;
+  border-color: var(--rw-border) !important;
+  border-radius: 12px !important;
+}
+
+.rw-expandable-trigger:hover {
+  background: var(--rw-surface-hover) !important;
+}
+
+/* SOC SURFACES AND ANALYTICS */
+
+.soc-dashboard [data-name="Threat trend chart"] {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.soc-dashboard [data-name="Navigation groups"] {
+  gap: 18px !important;
+}
+
+.soc-dashboard [data-name="Navigation links"] {
+  gap: 4px !important;
+}
+
+.soc-dashboard [data-name="Navigation item"] {
+  min-height: 42px;
+}
+
+.soc-dashboard [data-name="Navigation item"]:hover {
+  border-color: var(--rw-border-strong);
+}
+
+/* SOC EVENT INTERACTIONS */
+
+.soc-dashboard [role="button"]:not([disabled]) {
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.soc-dashboard [role="button"]:focus-visible {
+  outline: 2px solid var(--rw-accent);
+  outline-offset: 2px;
+}
+
+/* INVESTIGATION DRAWER */
+
+.rw-investigation-overlay {
+  background: rgba(0, 0, 0, 0.76) !important;
+  backdrop-filter: blur(9px) !important;
+}
+
+.rw-investigation-drawer {
+  background: #0d1115 !important;
+  border-left-color: var(--rw-border) !important;
+  box-shadow: -24px 0 80px rgba(0,0,0,.4);
+}
+
+.rw-investigation-fields > div {
+  border-color: var(--rw-border) !important;
+}
+
+/* LIVE STATUS */
+
+.rw-soc-monitoring-status {
+  background: rgba(15, 19, 24, 0.94) !important;
+  border-color: var(--rw-border-strong) !important;
+  box-shadow: 0 14px 40px rgba(0,0,0,.35) !important;
+}
+
+/* TABLE DENSITY */
+
+.customer-dashboard table,
+.rw-carbon-portfolio table,
+.soc-dashboard table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.customer-dashboard :is(td, th),
+.rw-carbon-portfolio :is(td, th),
+.soc-dashboard :is(td, th) {
+  border-color: var(--rw-border);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1280px) {
+  .customer-dashboard [data-name="Portfolio summary"],
+  .rw-carbon-portfolio [data-name="Portfolio summary"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-dashboard [data-name="Investments and trading"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-dashboard [data-name="Trading and accounts"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start !important;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --rw-sidebar-width: 76px;
+  }
+
+  .customer-dashboard > div:first-child,
+  .rw-carbon-portfolio > div:first-child,
+  .soc-dashboard > div:first-child {
+    padding: 20px 10px !important;
+  }
+
+  .customer-dashboard [data-name="Navigation item"],
+  .rw-carbon-portfolio [data-name="Navigation item"],
+  .soc-dashboard [data-name="Navigation item"] {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .customer-dashboard > div:nth-child(2),
+  .rw-carbon-portfolio > div:nth-child(2),
+  .soc-dashboard > div:nth-child(2) {
+    padding: 22px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .customer-dashboard,
+  .rw-carbon-portfolio,
+  .soc-dashboard {
+    flex-direction: column !important;
+  }
+
+  .customer-dashboard > div:first-child,
+  .rw-carbon-portfolio > div:first-child,
+  .soc-dashboard > div:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    position: relative !important;
+  }
+
+  .customer-dashboard > div:nth-child(2),
+  .rw-carbon-portfolio > div:nth-child(2),
+  .soc-dashboard > div:nth-child(2) {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 18px !important;
+  }
+
+  .customer-dashboard [data-name="Portfolio summary"],
+  .rw-carbon-portfolio [data-name="Portfolio summary"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px !important;
+  }
+
+  .customer-dashboard [data-name="Trading and accounts"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-dashboard [data-name="Dashboard header"],
+  .rw-carbon-portfolio [data-name="Portfolio header"],
+  .soc-dashboard [data-name="Dashboard header"] {
+    flex-wrap: wrap !important;
+    gap: 16px;
+  }
+
+  .customer-dashboard [data-name="Header tools"] {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-dashboard *,
+  .rw-carbon-portfolio *,
+  .soc-dashboard * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

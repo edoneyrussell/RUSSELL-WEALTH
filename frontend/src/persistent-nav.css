@@ -1,0 +1,276 @@
+
+@media (max-width: 700px) {
+  .rw-persistent-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 14px 12px 10px;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    background: rgba(8,11,14,.95);
+    border-bottom: 1px solid #30363f;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .rw-persistent-nav button {
+    position: relative;
+    border: 0;
+    background: transparent;
+    color: #9299a3;
+    padding: 6px 4px 12px;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .rw-persistent-nav button.rw-tab-active {
+    color: #f2f2f3;
+    font-weight: 600;
+  }
+
+  .rw-persistent-nav button.rw-tab-active::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #d5d9df;
+    border-radius: 3px;
+  }
+
+  body:has(.rw-persistent-nav) {
+    padding-top: 62px;
+  }
+
+  .rw-mobile-landing [id^="rw-"] {
+    scroll-margin-top: 85px;
+  }
+}
+
+
+
+
+/* RW_DESKTOP_NAV_210 */
+
+@media (min-width: 701px) {
+  .rw-persistent-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 52px;
+    min-height: 72px;
+    padding: 14px 40px;
+    background: rgba(8, 11, 14, .94);
+    border-bottom: 1px solid #30363f;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .rw-persistent-nav button {
+    position: relative;
+    border: 0;
+    background: transparent;
+    color: #9299a3;
+    padding: 10px 3px 14px;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 200ms ease;
+  }
+
+  .rw-persistent-nav button:hover,
+  .rw-persistent-nav button.rw-tab-active {
+    color: #f2f2f3;
+  }
+
+  .rw-persistent-nav button.rw-tab-active {
+    font-weight: 600;
+  }
+
+  .rw-persistent-nav button.rw-tab-active::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #d5d9df;
+    border-radius: 3px;
+  }
+
+  body:has(.rw-persistent-nav) {
+    padding-top: 72px;
+  }
+
+  .rw-desktop-landing [data-name="Navigation"] {
+    position: relative;
+  }
+
+  .rw-desktop-landing [data-name="Hero headline"],
+  .rw-desktop-landing [data-name="Platform headline"],
+  .rw-desktop-landing [data-name="Security headline"] {
+    scroll-margin-top: 100px;
+  }
+}
+
+
+/* RW_DESKTOP_DUPLICATE_FIX_211 */
+
+@media (min-width: 701px) {
+
+  /* Preserve the original logo and sign-in area. */
+  .rw-desktop-landing
+  [data-name="Landing hero"]
+  > [data-name="Navigation"] {
+    position: relative;
+  }
+
+  /* Hide only the original navigation text links. */
+  .rw-desktop-landing
+  [data-name="Landing hero"]
+  > [data-name="Navigation"]
+  [data-name="Navigation links"] {
+    display: none !important;
+  }
+
+  /* Alternative Figma-export navigation group. */
+  .rw-desktop-landing
+  [data-name="Landing hero"]
+  > [data-name="Navigation"]
+  [data-name="Navigation items"] {
+    display: none !important;
+  }
+
+  /* Keep the shared navigation visible. */
+  .rw-persistent-nav {
+    display: flex !important;
+  }
+}
+
+
+/* RW_DESKTOP_NAV_FIX_212 */
+@media (min-width: 701px) {
+  .rw-desktop-landing [data-name="Navigation"] a[href="/"],
+  .rw-desktop-landing [data-name="Navigation"] a[href="/about"],
+  .rw-desktop-landing [data-name="Navigation"] a[href="#rw-platform"],
+  .rw-desktop-landing [data-name="Navigation"] a[href="#rw-security"] {
+    display: none !important;
+  }
+
+  .rw-desktop-landing [data-name="Navigation"] [data-name="Navigation links"],
+  .rw-desktop-landing [data-name="Navigation"] [data-name="Navigation items"],
+  .rw-desktop-landing [data-name="Navigation"] [data-name="Nav links"],
+  .rw-desktop-landing [data-name="Navigation"] [data-name="Nav items"] {
+    display: none !important;
+  }
+}
+
+
+/* RW_DESKTOP_NAV_213 */
+
+@media (min-width: 701px) {
+
+  /*
+   * Hide the old Figma navigation labels.
+   * Keep the original logo and Sign In.
+   */
+
+  .rw-original-desktop-header
+  [data-name*="Navigation link"],
+
+  .rw-original-desktop-header
+  [data-name*="Nav link"],
+
+  .rw-original-desktop-header
+  [data-name*="Navigation item"],
+
+  .rw-original-desktop-header
+  [data-name*="Nav item"] {
+    display: none !important;
+  }
+
+  .rw-persistent-nav {
+    display: flex !important;
+  }
+}
+
+
+/* RW_UNIFIED_MOBILE_214 */
+
+@media (max-width: 700px) {
+  .rw-persistent-nav {
+    display: flex !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    justify-content: space-around;
+    align-items: center;
+    gap: 8px;
+    background: rgba(8, 11, 14, .96);
+    border-bottom: 1px solid #30363f;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .rw-persistent-nav button {
+    flex: 1;
+    position: relative;
+    white-space: nowrap;
+    text-align: center;
+    color: #9299a3;
+    border: none;
+    background: transparent;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .rw-persistent-nav button.rw-tab-active {
+    color: #f2f2f3;
+    font-weight: 600;
+  }
+
+  .rw-persistent-nav button.rw-tab-active::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 12%;
+    width: 76%;
+    height: 2px;
+    background: #d5d9df;
+    border-radius: 2px;
+  }
+
+  .rw-active-mobile-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 701px) {
+  .rw-persistent-nav {
+    display: flex !important;
+  }
+}
+
+.rw-mobile-landing [data-name="Landing hero"],
+.rw-desktop-landing [data-name="Landing hero"],
+.rw-mobile-landing [data-name="Platform"],
+.rw-desktop-landing [data-name="Platform"],
+.rw-mobile-landing [data-name="Security"],
+.rw-desktop-landing [data-name="Security"] {
+  scroll-margin-top: 100px;
+}

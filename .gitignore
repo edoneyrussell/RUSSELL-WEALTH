@@ -62,3 +62,31 @@ node_modules/
 src (1)/
 *.bak
 *.backup
+
+# Local development and recovery files
+*.before*
+*.bak
+*.backup
+*.save
+redesign-backups/
+mobile-audit/
+carbon_package/
+frontend/screens/
+
+# Local databases and credentials
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+
+# Generated files
+node_modules/
+dist/
+frontend/dist/
+__pycache__/
+*.pyc
+russellwealth-env/
+.venv/

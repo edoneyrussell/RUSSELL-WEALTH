@@ -1,0 +1,97 @@
+
+/* RUSSELL WEALTH — CARBON BLACK × PLATINUM
+   COLOR OVERRIDES ONLY. NO LAYOUT CHANGES.
+*/
+
+.customer-dashboard {
+  background-color: #090b0e !important;
+  color: #eeece7;
+}
+
+/* Main surfaces */
+
+.customer-dashboard .bg-\[\#080a0d\] {
+  background-color: #090b0e !important;
+}
+
+.customer-dashboard .bg-\[\#0b0d11\] {
+  background-color: #0c0f13 !important;
+}
+
+.customer-dashboard .bg-\[\#14171c\] {
+  background-color: #15191e !important;
+}
+
+.customer-dashboard .bg-\[\#101216\] {
+  background-color: #101419 !important;
+}
+
+.customer-dashboard .bg-\[\#1a1d22\] {
+  background-color: #25231f !important;
+}
+
+.customer-dashboard .bg-\[\#252a31\] {
+  background-color: #292d33 !important;
+}
+
+/* Borders */
+
+.customer-dashboard .border-\[\#30343b\] {
+  border-color: #30343a !important;
+}
+
+/* Platinum text */
+
+.customer-dashboard .text-\[\#f5f5f5\] {
+  color: #eeece7 !important;
+}
+
+.customer-dashboard .text-\[\#b4b8c0\] {
+  color: #aaaeb5 !important;
+}
+
+.customer-dashboard .text-\[\#8c929c\] {
+  color: #8e959e !important;
+}
+
+/* Champagne accents */
+
+.customer-dashboard .text-\[\#39e58c\] {
+  color: #c3ad83 !important;
+}
+
+.customer-dashboard .bg-\[\#39e58c\] {
+  background-color: #c3ad83 !important;
+}
+
+/* Existing performance chart artwork */
+
+.customer-dashboard [data-name="Performance chart"] img {
+  filter: sepia(1) saturate(.55)
+          hue-rotate(350deg) brightness(.94);
+}
+
+/* Trade button */
+
+.customer-dashboard [data-name="Trading and accounts"]
+  .bg-gradient-to-b {
+  background-image: linear-gradient(
+    120deg,
+    #ddcba8,
+    #bca47c
+  ) !important;
+  border-color: #d6bf94 !important;
+}
+
+/* Selected navigation */
+
+.customer-dashboard [data-name="Main navigation"]
+  > [data-name="Navigation item"]:first-child {
+  background-color: #28251f !important;
+}
+
+/* Focus */
+
+.customer-dashboard :is(input, button, a):focus-visible {
+  outline-color: #c3ad83;
+}
