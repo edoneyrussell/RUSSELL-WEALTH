@@ -345,22 +345,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   Search alerts, IPs, users, or assets...
                 </p>
               </div>
-              <div className="h-[48px] relative shrink-0 w-[40px]" data-node-id="15:2994" data-name="Notifications">
-                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgNotifications} />
-              </div>
-              <div className="relative shrink-0" data-name="Account menu">
-                <button
-                  type="button"
-                  onClick={() => window.location.assign('/admin/settings')}
-                  aria-label="Open admin settings"
-                  className="flex gap-[10px] items-center cursor-pointer"
-                >
-                  <div className="bg-[#292e36] flex items-center justify-center rounded-full size-[48px]">
-                    <span className="font-semibold text-[#f5f5f5] text-[16px]">ER</span>
-                  </div>
-                  <img alt="" className="size-[16px]" src={imgChevronDown} />
-                </button>
-              </div>
+
             </div>
           </div>
           <div

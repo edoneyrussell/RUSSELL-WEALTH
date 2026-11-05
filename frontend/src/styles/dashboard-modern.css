@@ -1,0 +1,216 @@
+/*
+ * Russell Wealth Dashboard
+ * Shared visual language with PortfolioExperience and TradeExplore.
+ * Presentation-only overrides.
+ */
+
+[data-name="Russell Wealth dashboard"],
+[data-name="Russell Wealth mobile dashboard"] {
+  --rw-bg: #090c10;
+  --rw-panel: #12171e;
+  --rw-card: #161d26;
+  --rw-border: #2b333d;
+  --rw-border-light: #34404d;
+  --rw-text: #f0f3f7;
+  --rw-muted: #929fac;
+  --rw-accent: #b8c6d5;
+
+  background: #090c10 !important;
+  color: var(--rw-text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Desktop layout */
+
+[data-name="Russell Wealth dashboard"] [data-name="Dashboard content"] {
+  background: #090c10 !important;
+  padding: 32px !important;
+  gap: 24px !important;
+  min-width: 0;
+}
+
+/* Match Portfolio page headings */
+
+[data-name="Russell Wealth dashboard"] [data-name="Welcome"] > p:first-child,
+[data-name="Russell Wealth mobile dashboard"] [data-name="Welcome"] > p:first-child {
+  font-family: Lora, Georgia, serif !important;
+  font-size: clamp(32px, 3vw, 46px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.15 !important;
+  color: #f0f3f7 !important;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Welcome"] > p:nth-child(2),
+[data-name="Russell Wealth mobile dashboard"] [data-name="Welcome"] > p:nth-child(2) {
+  color: #929fac !important;
+  font-size: 13px !important;
+}
+
+/* Portfolio-style financial cards */
+
+[data-name="Russell Wealth dashboard"] [data-name="Portfolio summary"] {
+  gap: 14px !important;
+  overflow: visible !important;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Metric card"] {
+  background: linear-gradient(145deg, #161d26, #12171e) !important;
+  border: 1px solid #2d3742 !important;
+  border-radius: 20px !important;
+  padding: 22px !important;
+  min-height: 150px;
+  height: auto !important;
+  box-shadow: none !important;
+  transition: border-color .2s ease, transform .2s ease;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Metric card"]:hover {
+  border-color: #60758c !important;
+  transform: translateY(-2px);
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Metric heading"] p {
+  color: #8e9baa !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: .04em;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Metric card"] > p:nth-of-type(1) {
+  color: #f0f3f7 !important;
+  font-size: clamp(23px, 2.3vw, 32px) !important;
+  font-weight: 650 !important;
+  letter-spacing: -.045em;
+}
+
+/* Portfolio / Trade panel surfaces */
+
+[data-name="Russell Wealth dashboard"] [data-name="Dashboard content"]
+  [class*="bg-[#14171c]"][class*="border"] {
+  background: #12171e !important;
+  border-color: #2b333d !important;
+  border-radius: 22px !important;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Dashboard content"]
+  [class*="bg-[#101216]"][class*="border"] {
+  background: #0d1218 !important;
+  border-color: #34404d !important;
+  border-radius: 12px !important;
+}
+
+/* Search fields */
+
+[data-name="Russell Wealth dashboard"] [data-name="Search"],
+[data-name="Russell Wealth mobile dashboard"] [data-name="Search"] {
+  background: #0d1218 !important;
+  border: 1px solid #34404d !important;
+  border-radius: 12px !important;
+  transition: border-color .2s ease;
+}
+
+[data-name="Russell Wealth dashboard"] [data-name="Search"]:hover,
+[data-name="Russell Wealth mobile dashboard"] [data-name="Search"]:hover {
+  border-color: #60758c !important;
+}
+
+/* Section titles */
+
+[data-name="Russell Wealth dashboard"] [data-name="Dashboard content"]
+  [class*="font-['Inter:Semi_Bold']"] {
+  letter-spacing: -.02em;
+}
+
+/* Tables and holding rows */
+
+[data-name="Russell Wealth dashboard"] table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+[data-name="Russell Wealth dashboard"] tbody tr {
+  transition: background-color .2s ease;
+}
+
+[data-name="Russell Wealth dashboard"] tbody tr:hover {
+  background: #1e2834;
+}
+
+/* Buttons and controls */
+
+[data-name="Russell Wealth dashboard"] button,
+[data-name="Russell Wealth mobile dashboard"] button {
+  border-radius: 11px;
+  transition:
+    background-color .2s ease,
+    border-color .2s ease,
+    transform .2s ease;
+}
+
+[data-name="Russell Wealth dashboard"] input,
+[data-name="Russell Wealth dashboard"] select,
+[data-name="Russell Wealth mobile dashboard"] input,
+[data-name="Russell Wealth mobile dashboard"] select {
+  background-color: #0d1218;
+  border-color: #34404d;
+  border-radius: 11px;
+}
+
+/* Mobile: same visual identity */
+
+[data-name="Russell Wealth mobile dashboard"] {
+  min-height: 100vh;
+}
+
+[data-name="Russell Wealth mobile dashboard"] [data-name="Welcome"] {
+  padding-top: 22px !important;
+  padding-bottom: 24px !important;
+}
+
+[data-name="Russell Wealth mobile dashboard"] [data-name="Welcome"] > p:first-child {
+  font-size: 27px !important;
+}
+
+[data-name="Russell Wealth mobile dashboard"] [data-name="Portfolio overview"] {
+  background: #12171e !important;
+  border: 1px solid #2b333d !important;
+  border-radius: 22px !important;
+  padding: 22px !important;
+  overflow: visible !important;
+}
+
+[data-name="Russell Wealth mobile dashboard"] [data-name="Investment overview"] {
+  gap: 20px !important;
+}
+
+[data-name="Russell Wealth mobile dashboard"] [data-name="Portfolio performance"] > p:nth-of-type(1) {
+  font-size: clamp(30px, 8vw, 42px) !important;
+  letter-spacing: -.05em !important;
+}
+
+/* Responsive layout */
+
+@media (max-width: 1250px) {
+  [data-name="Russell Wealth dashboard"] [data-name="Portfolio summary"] {
+    flex-wrap: wrap;
+  }
+
+  [data-name="Russell Wealth dashboard"] [data-name="Metric card"] {
+    flex: 1 1 calc(50% - 14px);
+  }
+}
+
+@media (max-width: 700px) {
+  [data-name="Russell Wealth mobile dashboard"] [data-name="Portfolio overview"] {
+    padding: 18px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-name="Russell Wealth dashboard"] *,
+  [data-name="Russell Wealth mobile dashboard"] * {
+    transition: none !important;
+  }
+}

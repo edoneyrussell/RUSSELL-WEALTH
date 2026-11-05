@@ -1824,7 +1824,7 @@ html.rw-refresh-entering #root {
     background: #20242b;
     color: #f5f5f5;
     transform: translateX(3px);
-    box-shadow: inset 2px 0 0 #c5ad82;
+    box-shadow: inset 2px 0 0 #f5f5f5;
   }
 
   /* Animated champagne indicator */
@@ -1837,7 +1837,7 @@ html.rw-refresh-entering #root {
     width: 2px;
     height: 56%;
     border-radius: 4px;
-    background: #c5ad82;
+    background: #f5f5f5;
     transform: scaleY(0);
     transform-origin: center;
     opacity: 0;
@@ -1865,7 +1865,7 @@ html.rw-refresh-entering #root {
   .rw-unified-customer-layout:not(.rw-unified-soc-layout)
   .rw-unified-nav-item:hover img {
     transform: scale(1.12);
-    filter: brightness(1.3);
+    filter: brightness(0) invert(1);
   }
 
   /* Active tab */
@@ -1873,7 +1873,7 @@ html.rw-refresh-entering #root {
   .rw-unified-nav-item[aria-current="page"] {
     background: #1a1d22;
     color: #f5f5f5;
-    box-shadow: inset 2px 0 0 #c5ad82;
+    box-shadow: inset 2px 0 0 #f5f5f5;
   }
 
   /* Logo */
@@ -1936,7 +1936,7 @@ html.rw-refresh-entering #root {
   height: 60%;
   width: 3px;
   border-radius: 3px;
-  background: #c5ad82;
+  background: #f5f5f5;
   opacity: 0;
   transform: translateY(7px) scaleY(.5);
   transition:
@@ -2109,8 +2109,8 @@ html.rw-refresh-entering #root {
   width: 3px;
   height: 28px;
   border-radius: 4px;
-  background: #c5ad82;
-  box-shadow: 0 0 12px rgba(197,173,130,.3);
+  background: #f5f5f5;
+  box-shadow: 0 0 12px rgba(245,245,245,.22);
   pointer-events: none;
   z-index: 2;
   transition: transform 380ms cubic-bezier(.22,1,.36,1);
@@ -2699,3 +2699,473 @@ html.rw-refresh-entering #root {
 }
 
 /* RW SOC CUSTOMER SYSTEM V3 END */
+
+
+/* RW CUSTOMER PREMIUM HOVER EFFECTS */
+@media (hover: hover) and (pointer: fine) {
+  body:has(.rw-customer-sidebar) main
+  :is(
+    [class*="rounded-2xl"][class*="border"],
+    [class*="rounded-xl"][class*="border"]
+  ) {
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      transform 220ms ease,
+      background-color 220ms ease;
+  }
+
+  body:has(.rw-customer-sidebar) main
+  :is(
+    [class*="rounded-2xl"][class*="border"],
+    [class*="rounded-xl"][class*="border"]
+  ):hover {
+    border-color: rgba(216, 228, 242, 0.36);
+    box-shadow: 0 0 22px rgba(184, 198, 213, 0.09);
+  }
+
+  body:has(.rw-customer-sidebar) main button {
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      transform 200ms ease,
+      color 200ms ease;
+  }
+
+  body:has(.rw-customer-sidebar) main button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 18px rgba(200, 216, 235, 0.13);
+  }
+
+  body:has(.rw-customer-sidebar) main
+  :is(input, select, textarea):focus-visible {
+    outline: none;
+    border-color: rgba(220, 232, 245, 0.65);
+    box-shadow: 0 0 0 3px rgba(184, 198, 213, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.rw-customer-sidebar) main * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* RW UNIVERSAL CUSTOMER CARD HOVER */
+
+@media (hover: hover) and (pointer: fine) {
+
+  body:has(.rw-customer-sidebar)
+  :is(
+    main,
+    [role="dialog"]
+  )
+  :is(
+    [class*="rounded-xl"][class*="bg-"],
+    [class*="rounded-2xl"][class*="bg-"],
+    [class*="rounded-3xl"][class*="bg-"]
+  ):not(input):not(textarea):not(select) {
+    transition:
+      transform 240ms cubic-bezier(.2,.8,.2,1),
+      box-shadow 240ms ease,
+      border-color 240ms ease,
+      background-color 240ms ease;
+  }
+
+  body:has(.rw-customer-sidebar)
+  :is(
+    main,
+    [role="dialog"]
+  )
+  :is(
+    [class*="rounded-xl"][class*="bg-"],
+    [class*="rounded-2xl"][class*="bg-"],
+    [class*="rounded-3xl"][class*="bg-"]
+  ):not(input):not(textarea):not(select):hover {
+    transform: translateY(-3px);
+    border-color: rgba(220,232,245,.45);
+    box-shadow:
+      0 12px 32px rgba(0,0,0,.24),
+      0 0 24px rgba(200,216,235,.13);
+  }
+
+  body:has(.rw-customer-sidebar)
+  :is(main, [role="dialog"])
+  button:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.rw-customer-sidebar) * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* RW MODERN CUSTOMER SIDEBAR TYPOGRAPHY */
+
+.rw-customer-sidebar {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-synthesis: none;
+}
+
+.rw-customer-sidebar a,
+.rw-customer-sidebar button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.45 !important;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rw-customer-sidebar a:hover,
+  .rw-customer-sidebar button:hover {
+    color: #F0F3F7 !important;
+    transform: translateX(3px);
+  }
+}
+
+.rw-customer-sidebar a[aria-current="page"] {
+  color: #F0F3F7 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-customer-sidebar a,
+  .rw-customer-sidebar button {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* RW SIDEBAR LORA TYPOGRAPHY */
+
+.rw-customer-sidebar a,
+.rw-customer-sidebar button {
+  font-family: 'Lora', Georgia, serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.5 !important;
+}
+
+.rw-customer-sidebar a[aria-current="page"] {
+  font-family: 'Lora', Georgia, serif !important;
+  font-weight: 600 !important;
+}
+
+
+/* RW COMPLETE SIDEBAR LORA START */
+
+/* Entire customer sidebar, including profile information */
+.rw-customer-sidebar,
+.rw-customer-sidebar a,
+.rw-customer-sidebar button,
+.rw-customer-sidebar span,
+.rw-customer-sidebar p,
+.rw-customer-sidebar h1,
+.rw-customer-sidebar h2,
+.rw-customer-sidebar h3,
+.rw-customer-sidebar div {
+  font-family: 'Lora', Georgia, serif !important;
+}
+
+/* Navigation labels */
+.rw-customer-sidebar a,
+.rw-customer-sidebar button {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Active navigation label */
+.rw-customer-sidebar a[aria-current="page"] {
+  font-weight: 600 !important;
+}
+
+/* Profile name: Edoney Russell */
+.rw-customer-sidebar [class*="font-semibold"],
+.rw-customer-sidebar [class*="font-bold"] {
+  font-family: 'Lora', Georgia, serif !important;
+}
+
+/* Profile subtitle: Personal Account */
+.rw-customer-sidebar [class*="text-xs"],
+.rw-customer-sidebar [class*="text-sm"] {
+  font-family: 'Lora', Georgia, serif !important;
+}
+
+/* RW COMPLETE SIDEBAR LORA END */
+
+
+
+/* RW CUSTOMER COLOR ACCENTS START */
+
+/* Premium carbon background with subtle financial-green lighting */
+.rw-unified-sidebar:not(.rw-soc-shared-sidebar) {
+  background:
+    radial-gradient(
+      ellipse at 0% 15%,
+      rgba(22,199,132,.075),
+      transparent 65%
+    ),
+    #0b0d11;
+  border-right-color: rgba(54,119,95,.35);
+}
+
+/* Customer navigation gets a subtle emerald interaction */
+.rw-unified-sidebar:not(.rw-soc-shared-sidebar)
+nav[aria-label="Customer navigation"] a:hover {
+  background: rgba(22,199,132,.085);
+  border-color: rgba(22,199,132,.18);
+}
+
+.rw-unified-sidebar:not(.rw-soc-shared-sidebar)
+nav[aria-label="Customer navigation"] a:focus-visible {
+  outline: 2px solid #16c784;
+  outline-offset: 2px;
+}
+
+/* Add Funds icon: gentle emerald accent */
+.rw-unified-sidebar:not(.rw-soc-shared-sidebar)
+img[src*="add-funds-money.svg"] {
+  filter: drop-shadow(0 0 5px rgba(22,199,132,.28));
+}
+
+/* Shared dashboard content surfaces: slight lighting without recoloring cards */
+body:has(.rw-unified-sidebar:not(.rw-soc-shared-sidebar))
+main {
+  background-image:
+    radial-gradient(
+      ellipse 60% 30% at 90% 0%,
+      rgba(22,199,132,.055),
+      transparent 80%
+    ),
+    radial-gradient(
+      ellipse 45% 30% at 10% 90%,
+      rgba(59,159,169,.045),
+      transparent 80%
+    );
+}
+
+/* RW CUSTOMER COLOR ACCENTS END */
+
+
+/* RW CUSTOMER UNIFIED PREMIUM CARD MOTION V4 */
+
+@media (hover: hover) and (pointer: fine) {
+  .rw-unified-customer-content
+  :is(div, section)[class*="rounded-"][class*="border"]:not([class*="rounded-full"]) {
+    transition:
+      transform 280ms cubic-bezier(.22,1,.36,1),
+      border-color 280ms ease,
+      box-shadow 280ms ease,
+      background-color 280ms ease;
+  }
+
+  .rw-unified-customer-content
+  :is(div, section)[class*="rounded-"][class*="border"]:not([class*="rounded-full"]):hover {
+    transform: translateY(-3px);
+    border-color: rgba(190, 210, 232, .48);
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, .27),
+      0 0 18px rgba(184, 205, 230, .10);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-unified-customer-content
+  :is(div, section)[class*="rounded-"][class*="border"] {
+    transition: none !important;
+  }
+}
+
+/* END RW CUSTOMER UNIFIED PREMIUM CARD MOTION V4 */
+
+
+/* RUSSELL WEALTH — MOBILE FLOATING BOTTOM NAVIGATION */
+
+@media (max-width: 700px) {
+  .rw-mobile-menu-trigger {
+    position: fixed;
+    top: 64px;
+    right: 16px;
+    z-index: 9999;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #30343b;
+    border-radius: 12px;
+    background: #14171c;
+    color: #f5f5f5;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  }
+
+  .rw-mobile-bottom-navigation {
+    position: fixed;
+    left: 50%;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: calc(100% - 28px);
+    max-width: 850px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    font-family: Inter, sans-serif;
+    animation: rw-mobile-nav-enter 320ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .rw-mobile-bottom-pill {
+    flex: 1;
+    min-width: 0;
+    height: 76px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+    background: rgba(20,20,21,.96);
+    box-shadow: 0 12px 40px rgba(0,0,0,.55);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .rw-mobile-bottom-item {
+    position: relative;
+    min-width: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #77797d;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rw-mobile-bottom-active {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    transition:
+      background 260ms ease,
+      transform 260ms cubic-bezier(.22,1,.36,1);
+  }
+
+  .rw-mobile-bottom-item.is-active .rw-mobile-bottom-active {
+    background: #373737;
+    transform: scale(1);
+  }
+
+  .rw-mobile-bottom-icon {
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0) invert(.48);
+    transition: filter 220ms ease, transform 220ms ease;
+  }
+
+  .rw-mobile-bottom-item.is-active .rw-mobile-bottom-icon {
+    filter: brightness(0) invert(1);
+    transform: scale(1.05);
+  }
+
+  .rw-mobile-bottom-label {
+    position: absolute;
+    bottom: -19px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 9px;
+    color: #aeb0b5;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .rw-mobile-bottom-item.is-active .rw-mobile-bottom-label {
+    opacity: 0;
+  }
+
+  .rw-mobile-bottom-add {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    flex: 0 0 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 50%;
+    background: #252525;
+    color: white;
+    font-size: 34px;
+    font-weight: 300;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(0,0,0,.45);
+    transition: transform 220ms ease, background 220ms ease;
+  }
+
+  .rw-mobile-bottom-add::after {
+    content: "+";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rw-mobile-bottom-add img {
+    display: none;
+  }
+
+  .rw-mobile-bottom-add:active {
+    transform: scale(.93);
+  }
+
+  @keyframes rw-mobile-nav-enter {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 25px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  body:has(.rw-mobile-bottom-navigation) {
+    padding-bottom: 110px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-mobile-bottom-navigation,
+  .rw-mobile-bottom-active,
+  .rw-mobile-bottom-icon,
+  .rw-mobile-bottom-add {
+    animation: none !important;
+    transition: none !important;
+  }
+}

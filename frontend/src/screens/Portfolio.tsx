@@ -1,3 +1,4 @@
+import AssetLogo from "./../components/AssetLogo";
 import MarketSearch from '../components/MarketSearch'
 import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 const assetPathPrefix = "/assets";
@@ -509,8 +510,8 @@ export default function RussellWealthPortfolioHoldings() {
               <div key={holding.symbol} className="border-[#30343b] border-b border-solid content-stretch flex gap-[14px] h-[64px] items-center overflow-clip relative shrink-0 w-full">
                 <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-[300px]">
                   <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-w-px overflow-clip whitespace-nowrap">
-                    <p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[13px]">{holding.symbol}</p>
-                    <p className="font-['Inter:Regular'] text-[#b4b8c0] text-[11px]">{holding.name}</p>
+                    <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[13px]">{holding.symbol}</p>
+                    <p className="font-['Inter:Regular'] text-[#b4b8c0] text-[11px]">{holding.name}</p></div></div>
                   </div>
                   <div className="bg-[#1a1d22] px-[6px] py-[3px] rounded-[4px]">
                     <p className="text-[#8c929c] text-[9px]">{holding.asset_type}</p>

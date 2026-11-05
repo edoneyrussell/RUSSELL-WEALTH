@@ -5,7 +5,7 @@ from trading_api import trading_bp
 from portfolio_api import portfolio_bp
 from market_api import market_bp
 from authorization import role_required
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from werkzeug.security import check_password_hash
 from database import get_db_connection
 from authorization import login_required, role_required
@@ -201,11 +201,35 @@ def api_me():
     if "user_id" not in session:
         return jsonify({"authenticated": False}), 401
 
-    return jsonify({
-        "authenticated": True,
-        "name": session["name"],
-        "role": session["role"]
-    })
+    db = get_db_connection()
+    try:
+        columns = {
+            row["name"] for row in
+            db.execute("PRAGMA table_info(users)").fetchall()
+        }
+
+        photo = None
+        if "profile_photo_data" in columns:
+            row = db.execute(
+                "SELECT profile_photo_data, profile_photo_mime "
+                "FROM users WHERE id=?",
+                (session["user_id"],)
+            ).fetchone()
+
+            if row and row["profile_photo_data"]:
+                photo = (
+                    f"data:{row['profile_photo_mime']};base64,"
+                    f"{row['profile_photo_data']}"
+                )
+
+        return jsonify({
+            "authenticated": True,
+            "name": session["name"],
+            "role": session["role"],
+            "profile_photo": photo
+        })
+    finally:
+        db.close()
 
 
 @app.route("/api/logout", methods=["POST"])
@@ -518,14 +542,15 @@ def api_security_logs():
 app.register_blueprint(market_bp)
 app.register_blueprint(market_search_bp)
 app.register_blueprint(trading_bp)
+from demo_banking_api import banking_bp
 app.register_blueprint(portfolio_bp)
+app.register_blueprint(banking_bp)
 
 app.register_blueprint(registration_bp)
 
 app.register_blueprint(password_reset_bp)
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+
 
 
 
@@ -816,3 +841,79 @@ def api_incident_add_note(incident_id):
         connection.close()
 
 # RW INCIDENT API END
+
+
+# CUSTOMER PROFILE PHOTO
+import base64
+
+@app.route("/api/me/photo", methods=["POST", "DELETE"])
+def api_profile_photo():
+    if "user_id" not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    db = get_db_connection()
+    user_id = session["user_id"]
+
+    try:
+        columns = {
+            row["name"] for row in
+            db.execute("PRAGMA table_info(users)").fetchall()
+        }
+
+        if "profile_photo_data" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN profile_photo_data TEXT")
+
+        if "profile_photo_mime" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN profile_photo_mime TEXT")
+
+        if request.method == "DELETE":
+            db.execute(
+                "UPDATE users SET profile_photo_data=NULL, "
+                "profile_photo_mime=NULL WHERE id=?",
+                (user_id,)
+            )
+            db.commit()
+            return jsonify({"success": True, "photo": None})
+
+        uploaded = request.files.get("photo")
+        if not uploaded:
+            return jsonify({"error": "Select a photo"}), 400
+
+        data = uploaded.read(5 * 1024 * 1024 + 1)
+
+        if len(data) > 5 * 1024 * 1024:
+            return jsonify({"error": "Maximum photo size is 5 MB"}), 413
+
+        mime = uploaded.mimetype
+        valid = (
+            mime == "image/jpeg" and data.startswith(b"\xff\xd8\xff")
+            or mime == "image/png" and data.startswith(b"\x89PNG\r\n\x1a\n")
+            or mime == "image/webp" and data.startswith(b"RIFF") and data[8:12] == b"WEBP"
+        )
+
+        if not valid:
+            return jsonify({"error": "Use a valid JPG, PNG or WebP image"}), 400
+
+        encoded = base64.b64encode(data).decode("ascii")
+
+        db.execute(
+            "UPDATE users SET profile_photo_data=?, "
+            "profile_photo_mime=? WHERE id=?",
+            (encoded, mime, user_id)
+        )
+        db.commit()
+
+        return jsonify({
+            "success": True,
+            "photo": f"data:{mime};base64,{encoded}"
+        })
+
+    except Exception:
+        db.rollback()
+        return jsonify({"error": "Unable to update profile photo"}), 500
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)

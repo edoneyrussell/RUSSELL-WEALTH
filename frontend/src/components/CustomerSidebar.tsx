@@ -1,18 +1,18 @@
 import { logout } from "../auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const assets = "/assets";
 
 const items = [
   { label: "Dashboard", href: "/dashboard", icon: "50fa9.svg" },
   { label: "Portfolio", href: "/portfolio", icon: "70fb9.svg" },
-  { label: "Trade", href: "/dashboard#trade", icon: "74de4.svg" },
+  { label: "Trade", href: "/markets", icon: "74de4.svg" },
   { label: "Watchlist", href: "/dashboard#watchlist", icon: "18ed1.svg" },
   { label: "Transactions", href: "/transactions", icon: "ca3db.svg" },
+  { label: "Add Funds", href: "/deposit", icon: "add-funds-money.svg" },
 ];
 
 const support = [
-  { label: "Settings", href: "/customer/settings", icon: "e1d1e.svg" },
   { label: "Help & Support", href: "/help", icon: "2bd20.svg" },
 ];
 
@@ -78,7 +78,7 @@ function NavItem({
       <img
         alt=""
         src={`${assets}/${icon}`}
-        className="size-[20px] shrink-0"
+        className="rw-customer-sidebar size-[20px] shrink-0"
       />
       <span className={
         "whitespace-nowrap text-[13px] " +
@@ -92,6 +92,19 @@ function NavItem({
 
 export default function CustomerSidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProfile = () => {
+      fetch("/api/me", { credentials: "same-origin" })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => setProfilePhoto(data?.profile_photo ?? null))
+        .catch(() => {});
+    };
+    loadProfile();
+    window.addEventListener("rw-profile-updated", loadProfile);
+    return () => window.removeEventListener("rw-profile-updated", loadProfile);
+  }, []);
 
   return (
     <aside
@@ -165,8 +178,10 @@ export default function CustomerSidebar() {
           onClick={e => go(e, "/customer/settings")}
           className="flex items-center gap-[10px]"
         >
-          <div className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-[#252a31] text-[11px] font-semibold text-[#c5cad2]">
-            ER
+          <div className="flex size-[36px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#526780] bg-[#252a31] text-[11px] font-semibold text-[#c5cad2]">
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Profile" className="size-full object-cover" />
+            ) : "ER"}
           </div>
           <div className="flex min-w-0 flex-col gap-[4px]">
             <span className="text-[12px] font-semibold text-[#f5f5f5]">
@@ -222,13 +237,6 @@ const socGroups: { heading: string; entries: SocEntry[] }[] = [
       { label: "Identity & Access", icon: "651b9.svg" },
       { label: "Vulnerability Mgmt", icon: "651b9.svg" },
       { label: "Compliance", icon: "651b9.svg" },
-    ],
-  },
-  {
-    heading: "REPORTING",
-    entries: [
-      { label: "Metrics & Reports", icon: "651b9.svg" },
-      { label: "Service Health", icon: "651b9.svg" },
     ],
   },
 ];
@@ -372,16 +380,6 @@ function SocSidebar() {
       </nav>
 
       <div className="rw-soc-sidebar-footer">
-        <NavItem
-          label="Customer Dashboard"
-          href="/dashboard"
-          icon="50fa9.svg"
-        />
-        <NavItem
-          label="Admin Settings"
-          href="/admin/settings"
-          icon="e1d1e.svg"
-        />
 
         <div className="flex shrink-0 flex-col gap-[18px] rounded-[12px] border border-[#30343b] bg-[#14171c] p-[12px]">
           <a

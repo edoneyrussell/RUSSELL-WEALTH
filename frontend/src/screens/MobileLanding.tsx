@@ -41,7 +41,7 @@ export default function RussellWealthMobileLandingPage() {
               <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} /></a>
             </div>
           </div>
-          <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex h-[48px] items-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="68:997" data-name="Sign in action">
+          <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex h-[48px] items-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="68:997" data-name="Sign in action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:998">
               Sign In
             </p>
@@ -67,7 +67,7 @@ export default function RussellWealthMobileLandingPage() {
           </p>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1007" data-name="Hero actions">
-          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1008" data-name="Action">
+          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1008" data-name="Action" onClick={() => window.location.assign("#rw-platform")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("#rw-platform"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1009">
               Explore Platform
             </p>
@@ -77,7 +77,7 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1011" data-name="Action">
+          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1011" data-name="Action" onClick={() => window.location.assign("#rw-founder")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("#rw-founder"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1012">
               Discover the Vision
             </p>
@@ -150,7 +150,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
       </div>
-      <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] pt-[16px] px-[20px] relative shrink-0 w-full" data-node-id="68:1036" data-name="Founder story">
+      <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] pt-[16px] px-[20px] relative shrink-0 w-full" id="rw-founder" data-node-id="68:1036" data-name="Founder story">
         <div className="h-[32px] relative shrink-0 w-[110px]" data-node-id="68:1037" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
         </div>
@@ -166,7 +166,7 @@ export default function RussellWealthMobileLandingPage() {
           <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">Russell Wealth</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1043">
-          Russell Wealth is a fictional fintech platform I created to bring together my interests in business, investing, technology, and cybersecurity. It serves as a hands-on project that explores how modern investment platforms operate, how they are built, and how they can be secured against real-world threats.
+          {landingContent.founderStory}
         </p>
         <div className="content-stretch flex flex-col gap-[20px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1044" data-name="Founder profile">
           <div className="h-[436px] overflow-clip relative rounded-[16px] shrink-0 w-[353px]" data-node-id="68:1045" data-name="Edoney Russell portrait">
@@ -228,7 +228,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
       </div>
-      <div data-rw-anchor="rw-platform" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1071" data-name="Customer platform">
+      <div id="rw-platform" data-rw-anchor="rw-platform" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1071" data-name="Customer platform">
         <div className="h-[32px] relative shrink-0 w-[110px]" data-node-id="68:1072" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
         </div>
@@ -244,7 +244,7 @@ export default function RussellWealthMobileLandingPage() {
           <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">Platform</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1078">
-          A modern investment platform that brings together trading, portfolio management, and account control in a secure, intuitive experience.
+          {landingContent.platformDescription}
         </p>
         <div className="h-[327px] overflow-clip relative rounded-[16px] shrink-0 w-[353px]" data-node-id="68:1079" data-name="Customer dashboard on laptop">
           <div className="absolute h-[364px] left-[-293px] top-[-37px] w-[646px]" data-node-id="68:1080" data-name="Original imagery">
@@ -293,7 +293,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1100" data-name="Platform actions">
-          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1101" data-name="Action">
+          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1101" data-name="Action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1102">
               Explore the Platform
             </p>
@@ -303,14 +303,14 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1104" data-name="Action">
+          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1104" data-name="Action" onClick={() => window.location.assign("/dashboard")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/dashboard"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1105">
               View Dashboard
             </p>
           </div>
         </div>
       </div>
-      <div data-rw-anchor="rw-security" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1106" data-name="Security showcase">
+      <div id="rw-security" data-rw-anchor="rw-security" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1106" data-name="Security showcase">
         <div className="h-[32px] relative shrink-0 w-[110px]" data-node-id="68:1107" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
         </div>
@@ -326,7 +326,7 @@ export default function RussellWealthMobileLandingPage() {
           <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">of Russell Wealth</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1113">
-          A cybersecurity environment that simulates how a modern investment platform detects, investigates, responds to, and prevents real-world threats.
+          {landingContent.securityDescription}
         </p>
         <div className="h-[318px] overflow-clip relative rounded-[16px] shrink-0 w-[353px]" data-node-id="68:1114" data-name="Security operations monitor">
           <div className="absolute h-[345px] left-[-261px] top-[-27px] w-[614px]" data-node-id="68:1115" data-name="Original imagery">
@@ -392,7 +392,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1141" data-name="Security actions">
-          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1142" data-name="Action">
+          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1142" data-name="Action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1143">
               Explore Security Environment
             </p>
@@ -402,7 +402,7 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1145" data-name="Action">
+          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1145" data-name="Action" onClick={() => window.location.assign("/security/incidents/INC-2026-0142")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/security/incidents/INC-2026-0142"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1146">
               View Investigation
             </p>

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { logout } from '../auth';
 
 type Account = {
   authenticated?: boolean;
   name?: string;
   email?: string;
+  profile_photo?: string | null;
   role?: string;
 };
 
@@ -49,6 +50,10 @@ const features = [
 
 export default function CustomerSettings() {
   const [account, setAccount] = useState<Account | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [photoVersion, setPhotoVersion] = useState(0);
+  const photoInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -73,10 +78,95 @@ export default function CustomerSettings() {
 
   const isAdmin = account?.role === 'SOC_ADMIN';
 
+  const handlePhotoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setPhotoError("Use a JPG, PNG or WebP image.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError("Maximum photo size is 5 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setUploading(true);
+    setPhotoError("");
+
+    try {
+      const form = new FormData();
+      form.append("photo", file);
+
+      const response = await fetch("/api/me/photo", {
+        method: "POST",
+        credentials: "same-origin",
+        body: form,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Photo upload failed.");
+      }
+
+      setAccount(previous => previous
+        ? { ...previous, profile_photo: data.photo }
+        : previous
+      );
+
+      window.dispatchEvent(new Event("rw-profile-updated"));
+    } catch (error) {
+      setPhotoError(
+        error instanceof Error ? error.message : "Photo upload failed."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handlePhotoRemove = async () => {
+    setUploading(true);
+    setPhotoError("");
+
+    try {
+      const response = await fetch("/api/me/photo", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Could not remove photo.");
+      }
+
+      setAccount(previous => previous
+        ? { ...previous, profile_photo: null }
+        : previous
+      );
+
+      window.dispatchEvent(new Event("rw-profile-updated"));
+    } catch (error) {
+      setPhotoError(
+        error instanceof Error ? error.message : "Could not remove photo."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-[#080a0d] text-[#f5f5f5] font-['Inter']">
       <header className="border-b border-[#30343b] bg-[#0b0d11]">
-        <div className="mx-auto max-w-[1120px] px-6 py-6 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-[1120px] px-6 py-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-[#8c929c]">
               RUSSELL WEALTH
@@ -109,8 +199,14 @@ export default function CustomerSettings() {
 
         <section className="rounded-xl border border-[#30343b] bg-[#14171c] p-6 mb-8">
           <div className="flex flex-wrap items-center gap-5">
-            <div className="flex size-[76px] items-center justify-center rounded-full bg-[#292e36] text-[23px] font-semibold">
-              {initials}
+            <div className="flex size-[76px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#526780] bg-[#292e36] text-[23px] font-semibold">
+              {account?.profile_photo ? (
+                <img
+                  src={account.profile_photo}
+                  alt="Profile"
+                  className="size-full object-cover"
+                />
+              ) : initials}
             </div>
 
             <div className="flex-1 min-w-[170px]">
@@ -123,10 +219,41 @@ export default function CustomerSettings() {
               </p>
             </div>
 
-            <span className="rounded-lg border border-[#30343b] px-4 py-2 text-[#8c929c] text-[12px]">
-              Photo upload coming next
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => photoInput.current?.click()}
+                className="rounded-lg bg-[#B8C6D5] px-4 py-2 text-[12px] font-semibold text-[#090C10] hover:bg-[#D5DFEA] disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : account?.profile_photo ? "Change Photo" : "Add Photo"}
+              </button>
+
+              {account?.profile_photo && (
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => void handlePhotoRemove()}
+                  className="rounded-lg border border-[#693a40] px-4 py-2 text-[12px] text-[#ff9299] hover:bg-[#292026] disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
+          {photoError && (
+            <p role="alert" className="mt-4 text-xs text-[#F1A8A8]">
+              {photoError}
+            </p>
+          )}
         </section>
 
         <h2 className="text-[16px] font-semibold mb-4">

@@ -1,3 +1,4 @@
+import DemoBanking from './screens/DemoBanking'
 import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
 import GlobalToastHost from './components/GlobalToastHost'
 import HelpSupport from './screens/HelpSupport'
@@ -7,7 +8,7 @@ import RegistrationForm from './screens/RegistrationForm'
 import RWPersistentNav from './components/RWPersistentNav'
 import About from './screens/About'
 import UnifiedMobileNav from './components/UnifiedMobileNav'
-import Markets from './screens/Markets'
+import Markets from './screens/TradeExplore'
 
 import { useEffect, useState, type MouseEvent } from 'react'
 import ForgotPassword from './screens/ForgotPassword'
@@ -17,7 +18,7 @@ import Landing from './screens/Landing'
 import MobileDashboard from './screens/MobileDashboard'
 import MobileLanding from './screens/MobileLanding'
 import MobileLogin from './screens/MobileLogin'
-import Portfolio from './screens/Portfolio'
+import Portfolio from './screens/PortfolioExperience'
 import Transactions from './screens/Transactions'
 import SecurityDashboard from './screens/SecurityDashboard'
 
@@ -30,6 +31,8 @@ const routes = {
   '/dashboard': Dashboard,
   '/portfolio': Portfolio,
   '/transactions': Transactions,
+  '/deposit': DemoBanking,
+  '/withdraw': DemoBanking,
   '/markets': Markets,
   '/security': SecurityDashboard,
   '/security/incidents/INC-2026-0142': Incident,
@@ -86,7 +89,7 @@ export default function App() {
   const showUnifiedMobileNav =
     isMobile &&
     (
-      ['/dashboard', '/portfolio', '/transactions', '/markets',
+      ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
        '/customer/settings', '/security', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
     )
@@ -161,7 +164,7 @@ export default function App() {
     }
   }
 
-  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/markets', '/customer/settings', '/help']
+  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets', '/customer/settings', '/help']
   const securityRoutes = [
     '/admin/settings',
     '/security',

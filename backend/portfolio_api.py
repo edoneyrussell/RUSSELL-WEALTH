@@ -42,7 +42,7 @@ def get_portfolio():
             WHERE user_id = ?
             ORDER BY id LIMIT 1
             """,
-            (session["user_id"],)
+            (portfolio_user_id,)
         ).fetchone()
 
         if account is None:

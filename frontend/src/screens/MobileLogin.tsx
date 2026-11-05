@@ -66,6 +66,7 @@ export default function RussellWealthMobileLogin() {
       data-node-id="74:3"
       data-name="Russell Wealth mobile login"
     >
+
       {/* Ambient background glow */}
       <div
         className="absolute h-[400px] left-0 top-[50px] w-[393px] pointer-events-none"
@@ -225,7 +226,7 @@ export default function RussellWealthMobileLogin() {
           </div>
 
           {/* Remember Me and Forgot Password */}
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 w-full">
             <label className="flex gap-[9.84px] items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -241,7 +242,11 @@ export default function RussellWealthMobileLogin() {
               </span>
             </label>
 
-            <a href="/forgot-password" className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[11.48px]">
+            <a href="/" className="text-[#9da5b0] text-[10px] font-medium hover:text-white transition-colors">
+              ← Back
+            </a>
+
+            <a href="/forgot-password" className="ml-auto font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[11.48px]">
               Forgot Password?
             </a>
           </div>

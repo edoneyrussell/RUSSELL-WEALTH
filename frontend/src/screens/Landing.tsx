@@ -200,7 +200,7 @@ export default function RussellWealthLandingPage() {
               </p>
             </div>
             <p className="font-['Inter:Regular'] font-normal leading-[1.5] not-italic relative shrink-0 text-[#b9bdc4] text-[18px] w-full" data-node-id="51:2627">
-              Russell Wealth is a fictional fintech platform I created to bring together my interests in business, investing, technology, and cybersecurity. It serves as a hands-on project that explores how modern investment platforms operate, how they are built, and how they can be secured against real-world threats.
+              {landingContent.founderStory}
             </p>
           </div>
           <div className="content-stretch flex gap-[20px] h-[312px] items-start overflow-clip relative shrink-0 w-full" data-node-id="51:2628" data-name="Expertise">
@@ -277,7 +277,7 @@ export default function RussellWealthLandingPage() {
             </p>
           </div>
           <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.4] not-italic relative shrink-0 text-[#b9bdc4] text-[18px] w-[520px]" data-node-id="51:2663">
-            A modern investment platform that brings together trading, portfolio management, and account control in a secure, intuitive experience.
+            {landingContent.platformDescription}
           </p>
           <div className="content-stretch flex flex-col gap-[22px] items-start overflow-clip relative shrink-0 w-[500px]" data-node-id="51:2664" data-name="Platform capabilities">
             <div className="content-stretch flex gap-[24px] items-center overflow-clip relative shrink-0 w-full" data-node-id="51:2665" data-name="Capability">
@@ -386,7 +386,7 @@ export default function RussellWealthLandingPage() {
             </p>
           </div>
           <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.4] not-italic relative shrink-0 text-[#b9bdc4] text-[18px] w-[505px]" data-node-id="51:2711">
-            A cybersecurity environment that simulates how a modern investment platform detects, investigates, responds to, and prevents real-world threats.
+            {landingContent.securityDescription}
           </p>
           <div className="content-stretch flex flex-col gap-[15px] items-start overflow-clip relative shrink-0 w-[486px]" data-node-id="51:2712" data-name="Security lifecycle">
             <div className="content-stretch flex gap-[24px] items-center overflow-clip relative shrink-0 w-full" data-node-id="51:2713" data-name="Capability">

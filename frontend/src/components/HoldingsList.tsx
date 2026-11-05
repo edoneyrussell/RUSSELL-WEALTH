@@ -1,3 +1,4 @@
+import AssetLogo from "./AssetLogo";
 import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 
 export default function HoldingsList({
@@ -41,12 +42,12 @@ export default function HoldingsList({
           }`}
         >
           <div className="flex-1 min-w-0">
-            <p className="text-[#f5f5f5] font-semibold text-[12px]">
+            <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="text-[#f5f5f5] font-semibold text-[12px]">
               {holding.symbol}
             </p>
             <p className="text-[#8c929c] text-[10px] truncate">
               {holding.name}
-            </p>
+            </p></div></div>
           </div>
 
           <div className={mobile ? 'flex justify-between' : 'text-right w-[70px]'}>
