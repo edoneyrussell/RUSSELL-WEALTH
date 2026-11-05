@@ -40,7 +40,7 @@ export default function RussellWealthDashboard() {
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] h-[1080px] items-start overflow-clip pb-[24px] pt-[26px] px-[16px] relative shrink-0 w-[208px]" data-node-id="10:1588" data-name="Sidebar">
         <div className="h-[64px] overflow-clip relative shrink-0 w-[176px]" data-node-id="10:1589" data-name="Russell Wealth logo">
           <div className="absolute h-[86.7px] left-[-20.2px] top-[-17.3px] w-[216.4px]" data-node-id="10:1590" data-name="Original logo artwork">
-            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} />
+            <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} /></a>
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[10px] items-start overflow-clip relative shrink-0 w-full" data-node-id="10:1591" data-name="Main navigation">

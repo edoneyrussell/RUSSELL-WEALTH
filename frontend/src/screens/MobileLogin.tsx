@@ -241,9 +241,9 @@ export default function RussellWealthMobileLogin() {
               </span>
             </label>
 
-            <span className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[11.48px]">
+            <a href="/forgot-password" className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[11.48px]">
               Forgot Password?
-            </span>
+            </a>
           </div>
 
           {/* Sign In button */}

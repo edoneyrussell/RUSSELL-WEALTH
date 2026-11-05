@@ -33,7 +33,7 @@ export default function RussellWealthMobileCreateAccount() {
         <div className="content-stretch flex flex-col gap-[5px] items-center overflow-clip relative shrink-0 w-full" data-node-id="74:132" data-name="Brand">
           <div className="h-[104px] relative shrink-0 w-[320px]" data-node-id="74:133" data-name="Finalized Russell Wealth logo">
             <div className="absolute h-[157.6px] left-[-36.74px] top-[-31.41px] w-[393.5px]" data-node-id="74:134" data-name="Original logo image">
-              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoImage} />
+              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoImage} /></a>
             </div>
           </div>
           <div className="content-stretch flex items-start overflow-clip pt-[19px] relative shrink-0" data-node-id="74:135" data-name="Brand accent">

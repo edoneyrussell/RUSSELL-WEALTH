@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import "../persistent-nav.css";
 
@@ -12,33 +11,24 @@ const tabs: { label: string; key: Tab }[] = [
 ];
 
 function findSection(key: Tab): HTMLElement | null {
-  const root = document.querySelector(
-    ".rw-mobile-landing, .rw-desktop-landing"
-  );
-
-  if (!root) return null;
-
   if (key === "home") {
-    return root.querySelector('[data-name="Landing hero"]');
+    return document.querySelector<HTMLElement>(
+      '[data-name="Landing hero"]'
+    );
   }
 
-  const id = root.querySelector<HTMLElement>(
-    `#rw-${key}, #${key}`
-  );
+  if (key === "platform") {
+    return document.getElementById("rw-platform") ||
+      document.querySelector<HTMLElement>(
+        '[data-name="Customer platform"], [data-name="Platform section"]'
+      );
+  }
 
-  if (id) return id;
-
-  const names =
-    key === "platform"
-      ? ["Platform", "Platform headline"]
-      : ["Security", "Security headline"];
-
-  for (const name of names) {
-    const element = root.querySelector<HTMLElement>(
-      `[data-name="${name}"]`
-    );
-
-    if (element) return element;
+  if (key === "security") {
+    return document.getElementById("rw-security") ||
+      document.querySelector<HTMLElement>(
+        '[data-name="Security showcase"], [data-name="Security section"]'
+      );
   }
 
   return null;
@@ -59,20 +49,13 @@ export default function RWPersistentNav() {
       const platform = findSection("platform");
       const security = findSection("security");
 
-      const threshold = 160;
       let current: Tab = "home";
 
-      if (
-        platform &&
-        platform.getBoundingClientRect().top <= threshold
-      ) {
+      if (platform && platform.getBoundingClientRect().top <= 160) {
         current = "platform";
       }
 
-      if (
-        security &&
-        security.getBoundingClientRect().top <= threshold
-      ) {
+      if (security && security.getBoundingClientRect().top <= 160) {
         current = "security";
       }
 
@@ -82,9 +65,15 @@ export default function RWPersistentNav() {
     const restoreHash = () => {
       if (window.location.pathname !== "/") return;
 
-      const key = window.location.hash.replace("#rw-", "") as Tab;
+      const hash = window.location.hash;
+      const key =
+        hash === "#rw-platform" || hash === "#platform"
+          ? "platform"
+          : hash === "#rw-security" || hash === "#security"
+            ? "security"
+            : null;
 
-      if (key !== "platform" && key !== "security") return;
+      if (!key) return;
 
       let attempts = 0;
 
@@ -97,7 +86,7 @@ export default function RWPersistentNav() {
             block: "start",
           });
           setActive(key);
-        } else if (++attempts < 20) {
+        } else if (++attempts < 60) {
           requestAnimationFrame(scroll);
         }
       };
@@ -131,15 +120,27 @@ export default function RWPersistentNav() {
       return;
     }
 
+    if (key === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setActive("home");
+      return;
+    }
+
     const target = findSection(key);
 
-    if (target) {
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-      setActive(key);
+    if (!target) {
+      console.error(
+        `Russell Wealth: ${key} section not found`
+      );
+      return;
     }
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    setActive(key);
   };
 
   return (

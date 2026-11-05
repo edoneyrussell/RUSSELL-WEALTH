@@ -136,7 +136,7 @@ export default function RussellWealthCreateAccount() {
       </div>
       <div className="absolute h-[175px] left-[450px] overflow-clip top-[82px] w-[540px]" data-node-id="33:29" data-name="Russell Wealth logo">
         <div className="absolute h-[266px] left-[-62px] top-[-53px] w-[664px]" data-node-id="33:30" data-name="Original logo image">
-          <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoImage} />
+          <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoImage} /></a>
         </div>
       </div>
     </div>

@@ -1,4 +1,12 @@
-import { logout } from '../auth';
+import SecurityInvestigationDrawer from '../components/ui/SecurityInvestigationDrawer';
+import SecurityThreatChart from '../components/charts/SecurityThreatChart';
+import { useNewSecurityEvents } from '../hooks/useNewSecurityEvents';
+import SecurityCoverage from '../components/SecurityCoverage';
+import SecurityAlerts from '../components/SecurityAlerts';
+import AllSecurityLogs from '../components/AllSecurityLogs';
+import SecurityActivityMap from '../components/SecurityActivityMap';
+import { useState, useEffect } from 'react';
+import { useSecurityOverview } from '../hooks/useSecurityOverview';
 const assetPathPrefix = "/assets";
 const imgOriginalLogoArtwork = `${assetPathPrefix}/c8aca.png`;
 const imgLayoutDashboard = `${assetPathPrefix}/651b9.svg`;
@@ -46,7 +54,6 @@ const imgLegendMarker = `${assetPathPrefix}/e47a0.svg`;
 const imgLegendMarker1 = `${assetPathPrefix}/e589c.svg`;
 const imgLegendMarker2 = `${assetPathPrefix}/0347a.svg`;
 const imgLegendMarker3 = `${assetPathPrefix}/45cb2.svg`;
-const imgThreatTrendChart = `${assetPathPrefix}/f1a1f.svg`;
 const imgLaptop = `${assetPathPrefix}/e2150.svg`;
 const imgNetwork1 = `${assetPathPrefix}/e2248.svg`;
 const imgCloud1 = `${assetPathPrefix}/802a4.svg`;
@@ -56,13 +63,113 @@ const imgLayers1 = `${assetPathPrefix}/27559.svg`;
 const imgSearch1 = `${assetPathPrefix}/edb9a.svg`;
 const imgFileText = `${assetPathPrefix}/e845f.svg`;
 
+
+function formatReginaAlertTime(value: string | null | undefined) {
+  if (!value) return { date: '—', time: '—' };
+
+  const normalized = value.trim().replace(' ', 'T');
+  const iso = /(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(normalized)
+    ? normalized
+    : normalized + 'Z';
+
+  const timestamp = new Date(iso);
+
+  if (Number.isNaN(timestamp.getTime())) {
+    return { date: '—', time: '—' };
+  }
+
+  return {
+    date: new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Regina',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(timestamp),
+
+    time: new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Regina',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(timestamp)
+  };
+}
+
 export default function RussellWealthSecurityAnalyticsDashboard() {
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState('All');
+  const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
+  const [showSecurityLogs, setShowSecurityLogs] = useState(false);
+  const [showSecurityAlerts, setShowSecurityAlerts] = useState(false);
+
+  const [activeAlertCount, setActiveAlertCount] = useState(0);
+  const [investigationEventId, setInvestigationEventId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const refreshActiveAlerts = async () => {
+      try {
+        const response = await fetch('/api/security/active-alerts', {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+
+        if (!response.ok) return;
+
+        const result = await response.json();
+
+        if (mounted && result.success) {
+          setActiveAlertCount(result.alerts.length);
+        }
+      } catch (error) {
+        console.error('Unable to refresh active alerts:', error);
+      }
+    };
+
+    refreshActiveAlerts();
+
+    const interval = window.setInterval(refreshActiveAlerts, 5000);
+
+    const handleCleared = () => refreshActiveAlerts();
+    window.addEventListener('security-alerts-cleared', handleCleared);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+      window.removeEventListener('security-alerts-cleared', handleCleared);
+    };
+  }, []);
+
+
+  const { data: security, error: securityError } = useSecurityOverview();
+
+  const metrics = security?.metrics;
+  const events = security?.recent_events ?? [];
+  const investigationEvent = events.find(event => event.id === investigationEventId) ?? null;
+  const sources = security?.top_sources ?? [];
+  const newSecurityEventIds = useNewSecurityEvents(events.map(event => event.id));
+
   return (
-    <div className="bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
+    <>
+      {/* RW_INTERACTIVE_INVESTIGATION */}
+      <SecurityInvestigationDrawer
+        event={investigationEvent}
+        onClose={() => setInvestigationEventId(null)}
+      />
+
+      {showSecurityLogs && (
+        <AllSecurityLogs onClose={() => setShowSecurityLogs(false)} />
+      )}
+      {showSecurityAlerts && (
+        <SecurityAlerts onClose={() => setShowSecurityAlerts(false)} />
+      )}
+    <div className="soc-dashboard bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] items-start min-h-[1080px] overflow-clip pb-[24px] pt-[27px] px-[24px] relative shrink-0 w-[324px]" data-node-id="15:2924" data-name="Sidebar">
         <div className="h-[78px] overflow-clip relative shrink-0 w-[242px]" data-node-id="15:2925" data-name="Russell Wealth logo">
           <div className="absolute h-[119.2px] left-[-27.8px] top-[-23.8px] w-[297.5px]" data-node-id="15:2926" data-name="Original logo artwork">
-            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} />
+            <img onClick={() => window.location.reload()} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") window.location.reload(); }} title="Refresh dashboard"  alt="" className="cursor-pointer absolute inset-0 max-w-none object-cover size-full" src={imgOriginalLogoArtwork} />
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[21px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:2927" data-name="Navigation groups">
@@ -79,7 +186,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   SOC Dashboard
                 </p>
               </div>
-              <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2934" data-name="Navigation item">
+              <button type="button" onClick={() => setShowSecurityAlerts(true)} className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full text-left cursor-pointer hover:bg-[#292e36]" data-node-id="15:2934" data-name="Navigation item">
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3379" data-name="triangle-alert">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgTriangleAlert} />
                 </div>
@@ -88,10 +195,10 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 </p>
                 <div className="bg-[#8f202b] content-stretch flex items-start overflow-clip px-[8px] py-[2px] relative rounded-[20px] shrink-0" data-node-id="15:2937" data-name="Alert count">
                   <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:2938">
-                    12
+                    {activeAlertCount}
                   </p>
                 </div>
-              </div>
+              </button>
               <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2939" data-name="Navigation item">
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3382" data-name="clipboard-plus">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgClipboardPlus} />
@@ -231,487 +338,327 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
               <div className="h-[48px] relative shrink-0 w-[40px]" data-node-id="15:2994" data-name="Notifications">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgNotifications} />
               </div>
-              <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0 cursor-pointer" data-node-id="15:2997" data-name="Account menu" onClick={logout} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); logout(); } }}>
-                <div className="bg-[#292e36] content-stretch flex items-center justify-center overflow-clip relative rounded-[24px] shrink-0 size-[48px]" data-node-id="15:2998" data-name="Avatar">
-                  <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[16px] whitespace-nowrap" data-node-id="15:2999">
-                    ER
-                  </p>
-                </div>
-                <div className="relative shrink-0 size-[16px]" data-node-id="15:3427" data-name="chevron-down">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgChevronDown} />
-                </div>
+              <div className="relative shrink-0" data-name="Account menu">
+                <button
+                  type="button"
+                  onClick={() => window.location.assign('/admin/settings')}
+                  aria-label="Open admin settings"
+                  className="flex gap-[10px] items-center cursor-pointer"
+                >
+                  <div className="bg-[#292e36] flex items-center justify-center rounded-full size-[48px]">
+                    <span className="font-semibold text-[#f5f5f5] text-[16px]">ER</span>
+                  </div>
+                  <img alt="" className="size-[16px]" src={imgChevronDown} />
+                </button>
               </div>
             </div>
           </div>
-          <div className="content-stretch flex gap-[16px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3001" data-name="Security metrics">
-            <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] gap-[15px] h-[130px] items-start min-w-px overflow-clip p-[15px] relative rounded-[14px]" data-node-id="15:3002" data-name="KPI card">
-              <div className="bg-[#260f14] content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[54px]" data-node-id="15:3003" data-name="Metric icon">
-                <div className="relative shrink-0 size-[29px]" data-node-id="15:3430" data-name="triangle-alert">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgTriangleAlert1} />
-                </div>
+          <div
+            className="grid grid-cols-2 gap-[24px] w-full"
+            data-name="Security metrics"
+          >
+            <div className="bg-[#14171c] border border-[#30343b] rounded-[14px] h-[130px] p-[22px] flex items-center gap-[22px] min-w-0">
+              <div className="bg-[#260f14] rounded-[12px] size-[64px] shrink-0 flex items-center justify-center">
+                <img
+                  alt=""
+                  src={imgTriangleAlert1}
+                  className="size-[32px]"
+                />
               </div>
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[5px] items-start min-w-px overflow-clip relative" data-node-id="15:3005" data-name="Metric information">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[15px] whitespace-nowrap" data-node-id="15:3006">
+
+              <div className="flex flex-col gap-[7px]">
+                <p className="text-[#b4b8c0] text-[15px] font-medium">
                   Active Alerts
                 </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[32px] whitespace-nowrap" data-node-id="15:3007">
-                  12
+                <p className="text-[#f5f5f5] text-[36px] font-semibold leading-none">
+                  {activeAlertCount}
                 </p>
-                <div className="content-stretch flex gap-[4px] items-center overflow-clip relative shrink-0" data-node-id="15:3008" data-name="Metric trend">
-                  <div className="relative shrink-0 size-[12px]" data-node-id="15:3433" data-name="arrow-up">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUp} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#ff454f] text-[12px] whitespace-nowrap" data-node-id="15:3010">
-                    +4 (vs. 24h)
-                  </p>
-                </div>
-              </div>
-              <div className="absolute bottom-[19px] h-[30px] right-[14.25px] w-[60px]" data-node-id="15:3011" data-name="Trend sparkline">
-                <div className="absolute inset-[-1.89%_-1.37%_-2.36%_-1.18%]">
-                  <img alt="" className="block max-w-none size-full" src={imgTrendSparkline} />
-                </div>
+                <p className="text-[#8c929c] text-[11px]">
+                  Recorded failed-login alerts
+                </p>
               </div>
             </div>
-            <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] gap-[15px] h-[130px] items-start min-w-px overflow-clip p-[15px] relative rounded-[14px]" data-node-id="15:3012" data-name="KPI card">
-              <div className="bg-[#1a1d22] content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[54px]" data-node-id="15:3013" data-name="Metric icon">
-                <div className="relative shrink-0 size-[29px]" data-node-id="15:3436" data-name="layers">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLayers} />
-                </div>
+
+            <div className="bg-[#14171c] border border-[#30343b] rounded-[14px] h-[130px] p-[22px] flex items-center gap-[22px] min-w-0">
+              <div className="bg-[#1a1d22] rounded-[12px] size-[64px] shrink-0 flex items-center justify-center">
+                <img
+                  alt=""
+                  src={imgLayers}
+                  className="size-[32px]"
+                />
               </div>
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[5px] items-start min-w-px overflow-clip relative" data-node-id="15:3015" data-name="Metric information">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[15px] whitespace-nowrap" data-node-id="15:3016">
+
+              <div className="flex flex-col gap-[7px]">
+                <p className="text-[#b4b8c0] text-[15px] font-medium">
                   Open Incidents
                 </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[32px] whitespace-nowrap" data-node-id="15:3017">
-                  3
+                <p className="text-[#f5f5f5] text-[36px] font-semibold leading-none">
+                  {metrics?.open_incidents ?? 0}
                 </p>
-                <div className="content-stretch flex gap-[4px] items-center overflow-clip relative shrink-0" data-node-id="15:3018" data-name="Metric trend">
-                  <div className="relative shrink-0 size-[12px]" data-node-id="15:3439" data-name="arrow-up">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUp1} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#f5b942] text-[12px] whitespace-nowrap" data-node-id="15:3020">
-                    +1 (vs. 24h)
-                  </p>
-                </div>
-              </div>
-              <div className="absolute bottom-[19px] h-[30px] right-[14.25px] w-[60px]" data-node-id="15:3021" data-name="Trend sparkline">
-                <div className="absolute inset-[-2.13%_-1.28%_-3.23%_-0.42%]">
-                  <img alt="" className="block max-w-none size-full" src={imgTrendSparkline1} />
-                </div>
-              </div>
-            </div>
-            <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] gap-[15px] h-[130px] items-start min-w-px overflow-clip p-[15px] relative rounded-[14px]" data-node-id="15:3022" data-name="KPI card">
-              <div className="bg-[#1a1d22] content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[54px]" data-node-id="15:3023" data-name="Metric icon">
-                <div className="relative shrink-0 size-[29px]" data-node-id="15:3442" data-name="shield-check">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgShieldCheck} />
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[5px] items-start min-w-px overflow-clip relative" data-node-id="15:3025" data-name="Metric information">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[15px] whitespace-nowrap" data-node-id="15:3026">
-                  Contained Incidents
+                <p className="text-[#8c929c] text-[11px]">
+                  Incident tracking
                 </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[32px] whitespace-nowrap" data-node-id="15:3027">
-                  9
-                </p>
-                <div className="content-stretch flex gap-[4px] items-center overflow-clip relative shrink-0" data-node-id="15:3028" data-name="Metric trend">
-                  <div className="relative shrink-0 size-[12px]" data-node-id="15:3445" data-name="arrow-up">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUp2} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[12px] whitespace-nowrap" data-node-id="15:3030">
-                    +2 (vs. 24h)
-                  </p>
-                </div>
-              </div>
-              <div className="absolute bottom-[19px] h-[30px] right-[14.25px] w-[60px]" data-node-id="15:3031" data-name="Trend sparkline">
-                <div className="absolute inset-[-2%_-1.33%_-3.29%_-0.27%]">
-                  <img alt="" className="block max-w-none size-full" src={imgTrendSparkline2} />
-                </div>
-              </div>
-            </div>
-            <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] gap-[15px] h-[130px] items-start min-w-px overflow-clip p-[15px] relative rounded-[14px]" data-node-id="15:3032" data-name="KPI card">
-              <div className="bg-[#1a1d22] content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[54px]" data-node-id="15:3033" data-name="Metric icon">
-                <div className="relative shrink-0 size-[29px]" data-node-id="15:3448" data-name="users-round">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgUsersRound1} />
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[5px] items-start min-w-px overflow-clip relative" data-node-id="15:3035" data-name="Metric information">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[15px] whitespace-nowrap" data-node-id="15:3036">
-                  Monitored Assets
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[32px] whitespace-nowrap" data-node-id="15:3037">
-                  2,487
-                </p>
-                <div className="content-stretch flex gap-[4px] items-center overflow-clip relative shrink-0" data-node-id="15:3038" data-name="Metric trend">
-                  <div className="relative shrink-0 size-[12px]" data-node-id="15:3451" data-name="arrow-up">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUp2} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[12px] whitespace-nowrap" data-node-id="15:3040">
-                    +2.3%
-                  </p>
-                </div>
-              </div>
-              <div className="absolute bottom-[19px] h-[30px] right-[14.25px] w-[60px]" data-node-id="15:3041" data-name="Trend sparkline">
-                <div className="absolute inset-[-1.7%_-1.43%_-2.17%_-1.26%]">
-                  <img alt="" className="block max-w-none size-full" src={imgTrendSparkline3} />
-                </div>
-              </div>
-            </div>
-            <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex gap-[16px] h-[130px] items-start overflow-clip p-[15px] relative rounded-[14px] shrink-0 w-[335px]" data-node-id="15:3042" data-name="Security posture">
-              <div className="bg-[#1a1d22] content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[54px]" data-node-id="15:3043" data-name="Posture icon">
-                <div className="relative shrink-0 size-[29px]" data-node-id="15:3454" data-name="chart-no-axes-column-increasing">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgChartNoAxesColumnIncreasing1} />
-                </div>
-              </div>
-              <div className="[word-break:break-word] content-stretch flex flex-col gap-[5px] items-start not-italic overflow-clip relative shrink-0 whitespace-nowrap" data-node-id="15:3045" data-name="Posture score">
-                <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#b4b8c0] text-[18px]" data-node-id="15:3046">
-                  Security Posture
-                </p>
-                <div className="content-stretch flex gap-[5px] items-baseline leading-[1.35] overflow-clip relative shrink-0" data-node-id="15:3047" data-name="Score">
-                  <p className="font-['Inter:Semi_Bold'] font-semibold relative shrink-0 text-[#f5f5f5] text-[32px]" data-node-id="15:3048">
-                    92
-                  </p>
-                  <p className="font-['Inter:Regular'] font-normal relative shrink-0 text-[#b4b8c0] text-[18px]" data-node-id="15:3049">
-                    / 100
-                  </p>
-                </div>
-                <p className="font-['Inter:Semi_Bold'] font-semibold leading-[1.35] relative shrink-0 text-[#25e487] text-[12px]" data-node-id="15:3050">
-                  ↑ +3 pts
-                </p>
-              </div>
-              <div className="absolute overflow-clip right-[15px] size-[70px] top-[32px]" data-node-id="15:3051" data-name="Posture gauge">
-                <p className="[word-break:break-word] absolute font-['Inter:Semi_Bold'] font-semibold leading-[normal] left-[17px] not-italic text-[#25e487] text-[16px] top-[25px] whitespace-nowrap" data-node-id="15:3053">
-                  92%
-                </p>
-                <div className="absolute left-0 size-[70px] top-0" data-node-id="15:3052" data-name="Gauge progress">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGaugeProgress} />
-                </div>
               </div>
             </div>
           </div>
         </div>
         <div className="content-stretch flex gap-[18px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3054" data-name="Live alerts and global activity">
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[14px] h-[290px] items-start overflow-clip pb-[10px] pt-[18px] px-[20px] relative rounded-[14px] shrink-0 w-[888px]" data-node-id="15:3055" data-name="Real-time alerts">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3056" data-name="Panel heading">
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3057">
+          <div
+            className={`bg-[#14171c] border border-[#30343b] border-solid flex flex-col gap-[14px] items-start overflow-hidden pb-[10px] pt-[18px] px-[20px] relative rounded-[14px] shrink-0 w-[888px] ${
+              showAllAlerts ? 'min-h-[290px]' : 'h-[290px]'
+            }`}
+            data-name="Real-time alerts"
+          >
+            <div className="flex items-center justify-between w-full">
+              <p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[20px]">
                 Real-Time Alerts
               </p>
-              <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="15:3058" data-name="Panel action">
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] whitespace-nowrap" data-node-id="15:3059">
-                  View All
-                </p>
-                <div className="relative shrink-0 size-[14px]" data-node-id="15:3457" data-name="arrow-right">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
-                </div>
-              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAllAlerts(!showAllAlerts)}
+                className="flex items-center gap-[6px] text-[#b4b8c0] hover:text-white text-[12px] cursor-pointer"
+              >
+                {showAllAlerts ? 'Show Less' : 'View All'}
+                <span>{showAllAlerts ? '↑' : '→'}</span>
+              </button>
             </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3061" data-name="Alert table">
-              <div className="[word-break:break-word] bg-[#1a1d22] content-stretch flex font-['Inter:Medium'] font-medium gap-[10px] h-[32px] items-start leading-[0] not-italic overflow-clip px-[4px] relative shrink-0 text-[#8c929c] text-[12px] w-full" data-node-id="15:3062" data-name="Table headings">
-                <div className="flex flex-col h-[32px] justify-center relative shrink-0 w-[105px]" data-node-id="15:3063">
-                  <p className="leading-[normal]">Severity</p>
+
+            <div className="flex items-center gap-3 w-full">
+              <label className="text-[#8c929c] text-[12px]">Severity</label>
+              <select
+                value={severityFilter}
+                onChange={(e) => setSeverityFilter(e.target.value)}
+                className="bg-[#1a1d22] border border-[#30343b] text-[#f5f5f5] rounded-[8px] px-3 py-1 text-[12px]"
+              >
+                {['All', 'Critical', 'High', 'Medium', 'Low'].map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+              <span className="text-[#8c929c] text-[11px]">
+                Refreshes every 5 seconds
+              </span>
+            </div>
+
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[880px]">
+                <div className="bg-[#1a1d22] flex items-center gap-[10px] h-[32px] px-[4px] text-[#8c929c] text-[12px]">
+                  <span className="w-[105px] shrink-0">Severity</span>
+                  <span className="w-[105px] shrink-0">Date (Regina)</span>
+                  <span className="w-[105px] shrink-0">Time (CST)</span>
+                  <span className="w-[280px] shrink-0">Alert</span>
+                  <span className="w-[205px] shrink-0">Asset / User</span>
+                  <span className="w-[112px] shrink-0">Status</span>
                 </div>
-                <div className="flex flex-col h-[32px] justify-center relative shrink-0 w-[90px]" data-node-id="15:3064">
-                  <p className="leading-[normal]">Time (UTC)</p>
-                </div>
-                <div className="flex flex-col h-[32px] justify-center relative shrink-0 w-[280px]" data-node-id="15:3065">
-                  <p className="leading-[normal]">Alert</p>
-                </div>
-                <div className="flex flex-col h-[32px] justify-center relative shrink-0 w-[205px]" data-node-id="15:3066">
-                  <p className="leading-[normal]">Asset / User</p>
-                </div>
-                <div className="flex flex-col h-[32px] justify-center relative shrink-0 w-[112px]" data-node-id="15:3067">
-                  <p className="leading-[normal]">Status</p>
-                </div>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[36px] items-center overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="15:3068" data-name="Alert row">
-                <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0 w-[105px]" data-node-id="15:3069" data-name="Severity">
-                  <div className="relative shrink-0 size-[10px]" data-node-id="15:3070" data-name="Severity marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#ff454f] text-[13px] whitespace-nowrap" data-node-id="15:3071">
-                    Critical
-                  </p>
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[90px]" data-node-id="15:3072">
-                  14:32:18
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] w-[280px]" data-node-id="15:3073">
-                  Suspicious Login (Impossible Travel)
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[205px]" data-node-id="15:3074">
-                  user@russellwealth.com
-                </p>
-                <div className="bg-[#1a1d22] content-stretch flex items-start overflow-clip px-[12px] py-[3px] relative rounded-[20px] shrink-0" data-node-id="15:3075" data-name="Status badge">
-                  <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#f5b942] text-[11px] whitespace-nowrap" data-node-id="15:3076">
-                    Investigating
-                  </p>
-                </div>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[36px] items-center overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="15:3077" data-name="Alert row">
-                <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0 w-[105px]" data-node-id="15:3078" data-name="Severity">
-                  <div className="relative shrink-0 size-[10px]" data-node-id="15:3079" data-name="Severity marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#ff454f] text-[13px] whitespace-nowrap" data-node-id="15:3080">
-                    Critical
-                  </p>
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[90px]" data-node-id="15:3081">
-                  14:21:07
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] w-[280px]" data-node-id="15:3082">
-                  Malware Detected (Endpoint)
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[205px]" data-node-id="15:3083">
-                  RW-LAP-1043
-                </p>
-                <div className="bg-[#8f202b] content-stretch flex items-start overflow-clip px-[12px] py-[3px] relative rounded-[20px] shrink-0" data-node-id="15:3084" data-name="Status badge">
-                  <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[11px] whitespace-nowrap" data-node-id="15:3085">
-                    Open
-                  </p>
-                </div>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[36px] items-center overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="15:3086" data-name="Alert row">
-                <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0 w-[105px]" data-node-id="15:3087" data-name="Severity">
-                  <div className="relative shrink-0 size-[10px]" data-node-id="15:3088" data-name="Severity marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker1} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5b942] text-[13px] whitespace-nowrap" data-node-id="15:3089">
-                    High
-                  </p>
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[90px]" data-node-id="15:3090">
-                  13:58:44
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] w-[280px]" data-node-id="15:3091">
-                  Multiple Failed Login Attempts
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[205px]" data-node-id="15:3092">
-                  198.51.100.24
-                </p>
-                <div className="bg-[#1a1d22] content-stretch flex items-start overflow-clip px-[12px] py-[3px] relative rounded-[20px] shrink-0" data-node-id="15:3093" data-name="Status badge">
-                  <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#f5b942] text-[11px] whitespace-nowrap" data-node-id="15:3094">
-                    Investigating
-                  </p>
-                </div>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[36px] items-center overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="15:3095" data-name="Alert row">
-                <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0 w-[105px]" data-node-id="15:3096" data-name="Severity">
-                  <div className="relative shrink-0 size-[10px]" data-node-id="15:3097" data-name="Severity marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker1} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5b942] text-[13px] whitespace-nowrap" data-node-id="15:3098">
-                    High
-                  </p>
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[90px]" data-node-id="15:3099">
-                  13:46:11
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] w-[280px]" data-node-id="15:3100">
-                  Possible Data Exfiltration
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[205px]" data-node-id="15:3101">
-                  FIN-SRV-02
-                </p>
-                <div className="bg-[#8f202b] content-stretch flex items-start overflow-clip px-[12px] py-[3px] relative rounded-[20px] shrink-0" data-node-id="15:3102" data-name="Status badge">
-                  <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[11px] whitespace-nowrap" data-node-id="15:3103">
-                    Open
-                  </p>
-                </div>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[36px] items-center overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="15:3104" data-name="Alert row">
-                <div className="content-stretch flex gap-[8px] items-center overflow-clip relative shrink-0 w-[105px]" data-node-id="15:3105" data-name="Severity">
-                  <div className="relative shrink-0 size-[10px]" data-node-id="15:3106" data-name="Severity marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker2} />
-                  </div>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#58a6ff] text-[13px] whitespace-nowrap" data-node-id="15:3107">
-                    Medium
-                  </p>
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[90px]" data-node-id="15:3108">
-                  13:27:03
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] w-[280px]" data-node-id="15:3109">
-                  Unusual API Activity
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[205px]" data-node-id="15:3110">
-                  api.russellwealth.com
-                </p>
-                <div className="bg-[#1a1d22] content-stretch flex items-start overflow-clip px-[12px] py-[3px] relative rounded-[20px] shrink-0" data-node-id="15:3111" data-name="Status badge">
-                  <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[11px] whitespace-nowrap" data-node-id="15:3112">
-                    Monitoring
-                  </p>
-                </div>
+
+                {(() => {
+                  const alerts = events
+                    .filter((event) => event.event_type === 'LOGIN_FAILED')
+                    .map((event) => ({
+                      ...event,
+                      displaySeverity: event.severity === 'CRITICAL'
+                        ? 'Critical'
+                        : event.severity === 'HIGH'
+                          ? 'High'
+                          : event.severity === 'WARNING'
+                            ? 'Low'
+                            : 'Low'
+                    }))
+                    .filter((event) =>
+                      severityFilter === 'All' || event.displaySeverity === severityFilter
+                    );
+
+                  const visibleAlerts = showAllAlerts ? alerts : alerts.slice(0, 5);
+
+                  if (securityError) {
+                    return <p className="text-[#ff454f] text-[12px] py-4">{securityError}</p>;
+                  }
+
+                  if (!security) {
+                    return <p className="text-[#8c929c] text-[12px] py-4">Loading alerts...</p>;
+                  }
+
+                  if (visibleAlerts.length === 0) {
+                    return (
+                      <p className="text-[#8c929c] text-[12px] py-4">
+                        No recorded alerts match this severity.
+                      </p>
+                    );
+                  }
+
+                  return visibleAlerts.map((event) => (
+                    <div key={event.id}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedAlertId(selectedAlertId === event.id ? null : event.id)
+                        }
+                        className="border-b border-[#30343b] flex items-center gap-[10px] min-h-[36px] px-[4px] w-full text-left hover:bg-[#1a1d22] cursor-pointer"
+                      >
+                        <span className="flex items-center gap-[8px] w-[105px] shrink-0 text-[#58a6ff] text-[12px]">
+                          <span className="bg-[#58a6ff] size-[8px] rounded-full" />
+                          {event.displaySeverity}
+                        </span>
+
+                        <span className="text-[#b4b8c0] text-[11px] w-[105px] shrink-0 whitespace-nowrap">
+                          {formatReginaAlertTime(event.created_at).date}
+                        </span>
+
+                        <span className="text-[#b4b8c0] text-[11px] w-[105px] shrink-0 whitespace-nowrap">
+                          {formatReginaAlertTime(event.created_at).time}
+                        </span>
+
+                        <span className="text-[#f5f5f5] text-[12px] w-[280px] shrink-0">
+                          Failed Login Attempt
+                        </span>
+
+                        <span className="text-[#b4b8c0] text-[12px] w-[205px] shrink-0 truncate">
+                          {event.email ?? event.details ?? 'Unknown account'}
+                        </span>
+
+                        <span className="text-[#f5b942] text-[11px] w-[112px] shrink-0">
+                          Recorded
+                        </span>
+                      </button>
+
+                      {selectedAlertId === event.id && (
+                        <div className="bg-[#1a1d22] border-b border-[#30343b] p-3 text-[12px] text-[#b4b8c0] space-y-1">
+                          <p>Event ID: {event.id}</p>
+                          <p>Account: {event.email ?? event.details ?? 'Unknown'}</p>
+                          <p>Source IP: {event.source_ip ?? 'Unknown'}</p>
+                          <p>Date (Regina): {formatReginaAlertTime(event.created_at).date}</p>
+                          <p>Time (CST): {formatReginaAlertTime(event.created_at).time}</p>
+                          <p>Event Type: {event.event_type}</p>
+                          <p>Details: {event.details ?? 'No additional details'}</p>
+                        </div>
+                      )}
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
           </div>
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[16px] h-[290px] items-start min-w-px overflow-clip p-[20px] relative rounded-[14px]" data-node-id="15:3113" data-name="Global threat activity">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3114" data-name="Threat activity heading">
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3115">
+          <div
+            className="bg-[#14171c] border border-[#30343b] border-solid flex flex-col gap-[12px] h-[290px] p-[18px] relative rounded-[14px] shrink-0 flex-1 min-w-0"
+            data-name="Global threat activity"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[18px]">
                 Global Threat Activity
               </p>
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex gap-[8px] items-center overflow-clip px-[12px] py-[6px] relative rounded-[8px] shrink-0" data-node-id="15:3116" data-name="Time filter">
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] whitespace-nowrap" data-node-id="15:3117">
-                  Last 24 Hours
-                </p>
-                <div className="relative shrink-0 size-[13px]" data-node-id="15:3460" data-name="chevron-down">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgChevronDown1} />
-                </div>
-              </div>
+              <span className="text-[#8c929c] text-[10px]">
+                Live login activity
+              </span>
             </div>
-            <div className="content-stretch flex gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3119" data-name="Threat sources">
-              <div className="h-[211px] relative shrink-0 w-[420px]" data-node-id="15:3120" data-name="Threat activity world map">
-                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgThreatActivityWorldMap} />
-              </div>
-              <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px not-italic overflow-clip relative" data-node-id="15:3190" data-name="Top threat sources">
-                <p className="font-['Inter:Semi_Bold'] font-semibold leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[14px] whitespace-nowrap" data-node-id="15:3191">
-                  Top Threat Sources
-                </p>
-                <div className="content-stretch flex font-['Inter:Regular'] font-normal gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3192" data-name="Threat source">
-                  <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[18px] whitespace-nowrap" data-node-id="15:3193">
-                    🇷🇺
-                  </p>
-                  <p className="flex-[1_0_0] leading-[1.35] min-w-px relative text-[#b4b8c0] text-[13px]" data-node-id="15:3194">
-                    RU
-                  </p>
-                  <p className="leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[13px] whitespace-nowrap" data-node-id="15:3195">
-                    1,284
-                  </p>
-                </div>
-                <div className="content-stretch flex font-['Inter:Regular'] font-normal gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3196" data-name="Threat source">
-                  <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[18px] whitespace-nowrap" data-node-id="15:3197">
-                    🇨🇳
-                  </p>
-                  <p className="flex-[1_0_0] leading-[1.35] min-w-px relative text-[#b4b8c0] text-[13px]" data-node-id="15:3198">
-                    CN
-                  </p>
-                  <p className="leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[13px] whitespace-nowrap" data-node-id="15:3199">
-                    972
-                  </p>
-                </div>
-                <div className="content-stretch flex font-['Inter:Regular'] font-normal gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3200" data-name="Threat source">
-                  <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[18px] whitespace-nowrap" data-node-id="15:3201">
-                    🇰🇵
-                  </p>
-                  <p className="flex-[1_0_0] leading-[1.35] min-w-px relative text-[#b4b8c0] text-[13px]" data-node-id="15:3202">
-                    KP
-                  </p>
-                  <p className="leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[13px] whitespace-nowrap" data-node-id="15:3203">
-                    411
-                  </p>
-                </div>
-                <div className="content-stretch flex font-['Inter:Regular'] font-normal gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3204" data-name="Threat source">
-                  <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[18px] whitespace-nowrap" data-node-id="15:3205">
-                    🇮🇷
-                  </p>
-                  <p className="flex-[1_0_0] leading-[1.35] min-w-px relative text-[#b4b8c0] text-[13px]" data-node-id="15:3206">
-                    IR
-                  </p>
-                  <p className="leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[13px] whitespace-nowrap" data-node-id="15:3207">
-                    367
-                  </p>
-                </div>
-                <div className="content-stretch flex font-['Inter:Regular'] font-normal gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3208" data-name="Threat source">
-                  <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[18px] whitespace-nowrap" data-node-id="15:3209">
-                    🇧🇷
-                  </p>
-                  <p className="flex-[1_0_0] leading-[1.35] min-w-px relative text-[#b4b8c0] text-[13px]" data-node-id="15:3210">
-                    BR
-                  </p>
-                  <p className="leading-[1.35] relative shrink-0 text-[#f5f5f5] text-[13px] whitespace-nowrap" data-node-id="15:3211">
-                    204
-                  </p>
-                </div>
-              </div>
+
+            <div className="flex-1 min-h-0">
+              <SecurityActivityMap
+                events={events.map((event) => ({
+                  ...event,
+                  latitude: null,
+                  longitude: null
+                }))}
+                selectedEventId={selectedAlertId}
+              />
+            </div>
+
+            <div className="text-[#8c929c] text-[11px]">
+              Location markers will appear when verified IP geolocation is available.
             </div>
           </div>
         </div>
-        <div className="content-stretch flex gap-[18px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3212" data-name="Incident analytics">
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[18px] h-[240px] items-start overflow-clip p-[18px] relative rounded-[14px] shrink-0 w-[444px]" data-node-id="15:3213" data-name="Incident overview">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3214" data-name="Panel heading">
-              <p className="[word-break:break-word] font-['Lora:Bold'] font-bold leading-[normal] relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3215">
-                Incident Overview
+        <div className="flex flex-wrap justify-center gap-[18px] items-stretch relative shrink-0 w-full" data-node-id="15:3212" data-name="Incident analytics">
+          <div
+            className="bg-[#14171c] border border-[#30343b] border-solid flex flex-col gap-[18px] min-h-[240px] p-[18px] relative rounded-[14px] w-full lg:flex-1 lg:min-w-[400px]"
+            data-name="Incident overview"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-['Lora:Bold'] font-bold text-[#f5f5f5] text-[20px]">
+                Security Event Overview
               </p>
+              <span className="text-[#8c929c] text-[10px]">
+                Live · 5s refresh
+              </span>
             </div>
-            <div className="content-stretch flex gap-[25px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3216" data-name="Incident severity distribution">
-              <div className="overflow-clip relative shrink-0 size-[156px]" data-node-id="15:3217" data-name="Severity donut chart">
-                <div className="[word-break:break-word] absolute content-stretch flex flex-col items-center leading-[1.35] left-[46px] not-italic overflow-clip top-[44px] w-[64px] whitespace-nowrap" data-node-id="15:3222" data-name="Incident total">
-                  <p className="font-['Inter:Semi_Bold'] font-semibold relative shrink-0 text-[#f5f5f5] text-[32px]" data-node-id="15:3223">
-                    12
-                  </p>
-                  <p className="font-['Inter:Regular'] font-normal relative shrink-0 text-[#b4b8c0] text-[13px]" data-node-id="15:3224">
-                    Total
-                  </p>
-                </div>
-                <div className="absolute left-0 size-[156px] top-0" data-node-id="15:3221" data-name="Severity segment">
-                  <div className="absolute bottom-[82.04%] left-1/4 right-1/2 top-0">
-                    <img alt="" className="block max-w-none size-full" src={imgSeveritySegment} />
-                  </div>
-                </div>
-                <div className="absolute left-0 size-[156px] top-0" data-node-id="15:3220" data-name="Severity segment">
-                  <div className="absolute bottom-0 left-0 right-1/2 top-[6.7%]">
-                    <img alt="" className="block max-w-none size-full" src={imgSeveritySegment1} />
-                  </div>
-                </div>
-                <div className="absolute left-0 size-[156px] top-0" data-node-id="15:3219" data-name="Severity segment">
-                  <div className="absolute bottom-0 left-1/2 right-0 top-1/4">
-                    <img alt="" className="block max-w-none size-full" src={imgSeveritySegment2} />
-                  </div>
-                </div>
-                <div className="absolute left-0 size-[156px] top-0" data-node-id="15:3218" data-name="Severity segment">
-                  <div className="absolute bottom-[68.5%] left-1/2 right-[6.7%] top-0">
-                    <img alt="" className="block max-w-none size-full" src={imgSeveritySegment3} />
-                  </div>
-                </div>
-              </div>
-              <div className="content-stretch flex flex-[1_0_0] flex-col gap-[17px] items-start min-w-px overflow-clip relative" data-node-id="15:3225" data-name="Severity legend">
-                <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3226" data-name="Severity total">
-                  <div className="relative shrink-0 size-[11px]" data-node-id="15:3227" data-name="Legend marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLegendMarker} />
-                  </div>
-                  <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[13px]" data-node-id="15:3228">
-                    Critical
-                  </p>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:3229">
-                    2 (17%)
-                  </p>
-                </div>
-                <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3230" data-name="Severity total">
-                  <div className="relative shrink-0 size-[11px]" data-node-id="15:3231" data-name="Legend marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLegendMarker1} />
-                  </div>
-                  <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[13px]" data-node-id="15:3232">
-                    High
-                  </p>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:3233">
-                    4 (33%)
-                  </p>
-                </div>
-                <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3234" data-name="Severity total">
-                  <div className="relative shrink-0 size-[11px]" data-node-id="15:3235" data-name="Legend marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLegendMarker2} />
-                  </div>
-                  <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[13px]" data-node-id="15:3236">
-                    Medium
-                  </p>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:3237">
-                    5 (42%)
-                  </p>
-                </div>
-                <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3238" data-name="Severity total">
-                  <div className="relative shrink-0 size-[11px]" data-node-id="15:3239" data-name="Legend marker">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLegendMarker3} />
-                  </div>
-                  <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[13px]" data-node-id="15:3240">
-                    Low
-                  </p>
-                  <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:3241">
-                    1 (8%)
-                  </p>
-                </div>
-              </div>
+
+            <div className="flex items-center gap-[25px] w-full">
+              {(() => {
+                const total = Number(metrics?.total_events ?? 0);
+                const critical = Number(metrics?.critical_events ?? 0);
+                const warning = Number(metrics?.warning_events ?? 0);
+                const info = Number(metrics?.info_events ?? 0);
+
+                const percent = (count: number) =>
+                  total > 0 ? Math.round((count / total) * 100) : 0;
+
+                const criticalEnd = total > 0 ? critical / total * 100 : 0;
+                const warningEnd = total > 0
+                  ? (critical + warning) / total * 100
+                  : 0;
+
+                const donut = total === 0
+                  ? '#30343b'
+                  : `conic-gradient(
+                      #ff454f 0% ${criticalEnd}%,
+                      #f5b942 ${criticalEnd}% ${warningEnd}%,
+                      #25e487 ${warningEnd}% 100%
+                    )`;
+
+                const categories = [
+                  { label: 'Critical', count: critical, color: '#ff454f' },
+                  { label: 'Warning', count: warning, color: '#f5b942' },
+                  { label: 'Info', count: info, color: '#25e487' }
+                ];
+
+                return (
+                  <>
+                    <div
+                      className="relative shrink-0 size-[156px] rounded-full flex items-center justify-center"
+                      style={{ background: donut }}
+                    >
+                      <div className="size-[112px] bg-[#14171c] rounded-full flex flex-col items-center justify-center">
+                        <span className="text-[#f5f5f5] text-[30px] font-semibold leading-none">
+                          {security ? total : '—'}
+                        </span>
+                        <span className="text-[#b4b8c0] text-[12px] mt-2">
+                          Events
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-[17px] min-w-0">
+                      {categories.map(category => (
+                        <div
+                          key={category.label}
+                          className="flex items-center gap-[10px] w-full"
+                        >
+                          <span
+                            className="size-[11px] rounded-full shrink-0"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="text-[#b4b8c0] text-[13px] flex-1">
+                            {category.label}
+                          </span>
+                          <span className="text-[#f5f5f5] text-[12px] whitespace-nowrap">
+                            {security
+                              ? `${category.count} (${percent(category.count)}%)`
+                              : '—'}
+                          </span>
+                        </div>
+                      ))}
+
+                      {securityError && (
+                        <span className="text-[#ff454f] text-[10px]">
+                          Unable to refresh
+                        </span>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[4px] h-[240px] items-start overflow-clip p-[18px] relative rounded-[14px] shrink-0 w-[584px]" data-node-id="15:3242" data-name="Threat trends">
+          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[4px] min-h-[240px] items-start overflow-hidden p-[18px] relative rounded-[14px] w-full lg:flex-1 lg:min-w-[400px]" data-node-id="15:3242" data-name="Threat trends">
             <div className="[word-break:break-word] content-stretch flex font-['Inter:Semi_Bold'] font-semibold items-center justify-between not-italic overflow-clip relative shrink-0 w-full whitespace-nowrap" data-node-id="15:3243" data-name="Trend heading">
               <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[20px]" data-node-id="15:3244">
                 Threat Trends
@@ -741,8 +688,8 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   0
                 </p>
               </div>
-              <div className="h-[124px] relative shrink-0 w-[502px]" data-node-id="15:3254" data-name="Threat trend chart">
-                <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgThreatTrendChart} />
+              <div className="h-[124px] relative shrink-0 w-[502px]" data-node-id="15:3254" data-name="Threat trend chart" data-rw-chart="true">
+                <SecurityThreatChart events={events} />
               </div>
             </div>
             <div className="[word-break:break-word] content-stretch flex font-['Inter:Regular'] font-normal items-start justify-between leading-[1.35] not-italic overflow-clip pl-[42px] relative shrink-0 text-[#b4b8c0] text-[11px] w-full whitespace-nowrap" data-node-id="15:3262" data-name="Time axis">
@@ -766,271 +713,126 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
               </p>
             </div>
           </div>
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[5px] h-[240px] items-start min-w-px overflow-clip p-[18px] relative rounded-[14px]" data-node-id="15:3269" data-name="MITRE ATT&CK activity">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3270" data-name="Panel heading">
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3271">{`MITRE ATT&CK Activity`}</p>
-              <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="15:3272" data-name="Panel action">
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] whitespace-nowrap" data-node-id="15:3273">
-                  View Details
-                </p>
-                <div className="relative shrink-0 size-[14px]" data-node-id="15:3463" data-name="arrow-right">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
-                </div>
-              </div>
-            </div>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[13px] whitespace-nowrap" data-node-id="15:3275">
-              Top Techniques (24h)
-            </p>
-            <div className="content-stretch flex flex-col gap-[13px] items-start overflow-clip pt-[12px] relative shrink-0 w-full" data-node-id="15:3276" data-name="Technique rankings">
-              <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3277" data-name="Attack technique">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[12px] w-[62px]" data-node-id="15:3278">
-                  T1110
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[12px]" data-node-id="15:3279">
-                  Brute Force
-                </p>
-                <div className="bg-[#1a1d22] h-[8px] overflow-clip relative rounded-[4px] shrink-0 w-[137px]" data-node-id="15:3280" data-name="Technique frequency">
-                  <div className="absolute bg-[#9285f5] h-[8px] left-0 rounded-[4px] top-0 w-[99px]" data-node-id="15:3281" data-name="Frequency bar" />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] text-right w-[37px]" data-node-id="15:3282">
-                  30%
-                </p>
-              </div>
-              <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3283" data-name="Attack technique">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[12px] w-[62px]" data-node-id="15:3284">
-                  T1059
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[12px]" data-node-id="15:3285">{`Command & Scripting`}</p>
-                <div className="bg-[#1a1d22] h-[8px] overflow-clip relative rounded-[4px] shrink-0 w-[137px]" data-node-id="15:3286" data-name="Technique frequency">
-                  <div className="absolute bg-[#9285f5] h-[8px] left-0 rounded-[4px] top-0 w-[59.4px]" data-node-id="15:3287" data-name="Frequency bar" />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] text-right w-[37px]" data-node-id="15:3288">
-                  18%
-                </p>
-              </div>
-              <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3289" data-name="Attack technique">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[12px] w-[62px]" data-node-id="15:3290">
-                  T1078
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[12px]" data-node-id="15:3291">
-                  Valid Accounts
-                </p>
-                <div className="bg-[#1a1d22] h-[8px] overflow-clip relative rounded-[4px] shrink-0 w-[137px]" data-node-id="15:3292" data-name="Technique frequency">
-                  <div className="absolute bg-[#9285f5] h-[8px] left-0 rounded-[4px] top-0 w-[49.5px]" data-node-id="15:3293" data-name="Frequency bar" />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] text-right w-[37px]" data-node-id="15:3294">
-                  15%
-                </p>
-              </div>
-              <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3295" data-name="Attack technique">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[12px] w-[62px]" data-node-id="15:3296">
-                  T1041
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[12px]" data-node-id="15:3297">
-                  Exfiltration Over C2
-                </p>
-                <div className="bg-[#1a1d22] h-[8px] overflow-clip relative rounded-[4px] shrink-0 w-[137px]" data-node-id="15:3298" data-name="Technique frequency">
-                  <div className="absolute bg-[#9285f5] h-[8px] left-0 rounded-[4px] top-0 w-[39.6px]" data-node-id="15:3299" data-name="Frequency bar" />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] text-right w-[37px]" data-node-id="15:3300">
-                  12%
-                </p>
-              </div>
-              <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3301" data-name="Attack technique">
-                <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[12px] w-[62px]" data-node-id="15:3302">
-                  T1021
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[12px]" data-node-id="15:3303">
-                  Remote Services
-                </p>
-                <div className="bg-[#1a1d22] h-[8px] overflow-clip relative rounded-[4px] shrink-0 w-[137px]" data-node-id="15:3304" data-name="Technique frequency">
-                  <div className="absolute bg-[#9285f5] h-[8px] left-0 rounded-[4px] top-0 w-[19.8px]" data-node-id="15:3305" data-name="Frequency bar" />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] text-right w-[37px]" data-node-id="15:3306">
-                  6%
-                </p>
-              </div>
-            </div>
           </div>
-        </div>
-        <div className="content-stretch flex gap-[18px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3307" data-name="Coverage and response operations">
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[19px] h-[227px] items-start overflow-clip p-[18px] relative rounded-[14px] shrink-0 w-[444px]" data-node-id="15:3308" data-name="Security coverage">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3309" data-name="Panel heading">
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3310">
-                Security Coverage
-              </p>
-            </div>
-            <div className="content-stretch flex gap-[16px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3311" data-name="Coverage by environment">
-              <div className="bg-[#1a1d22] content-stretch flex flex-[1_0_0] flex-col gap-[5px] h-[146px] items-center min-w-px overflow-clip pb-[10px] pt-[16px] relative rounded-[12px]" data-node-id="15:3312" data-name="Coverage card">
-                <div className="relative shrink-0 size-[32px]" data-node-id="15:3466" data-name="laptop">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLaptop} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[13px] whitespace-nowrap" data-node-id="15:3314">
-                  Endpoints
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[24px] whitespace-nowrap" data-node-id="15:3315">
-                  98.6%
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[12px] whitespace-nowrap" data-node-id="15:3316">
-                  ↑ +0.4%
-                </p>
-              </div>
-              <div className="bg-[#1a1d22] content-stretch flex flex-[1_0_0] flex-col gap-[5px] h-[146px] items-center min-w-px overflow-clip pb-[10px] pt-[16px] relative rounded-[12px]" data-node-id="15:3317" data-name="Coverage card">
-                <div className="relative shrink-0 size-[32px]" data-node-id="15:3469" data-name="network">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgNetwork1} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[13px] whitespace-nowrap" data-node-id="15:3319">
-                  Network
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[24px] whitespace-nowrap" data-node-id="15:3320">
-                  99.2%
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[12px] whitespace-nowrap" data-node-id="15:3321">
-                  ↑ +0.3%
-                </p>
-              </div>
-              <div className="bg-[#1a1d22] content-stretch flex flex-[1_0_0] flex-col gap-[5px] h-[146px] items-center min-w-px overflow-clip pb-[10px] pt-[16px] relative rounded-[12px]" data-node-id="15:3322" data-name="Coverage card">
-                <div className="relative shrink-0 size-[32px]" data-node-id="15:3472" data-name="cloud">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCloud1} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[13px] whitespace-nowrap" data-node-id="15:3324">
-                  Cloud
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[24px] whitespace-nowrap" data-node-id="15:3325">
-                  99.0%
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[1.35] not-italic relative shrink-0 text-[#25e487] text-[12px] whitespace-nowrap" data-node-id="15:3326">
-                  ↑ +0.5%
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[10px] h-[227px] items-start overflow-clip p-[18px] relative rounded-[14px] shrink-0 w-[584px]" data-node-id="15:3327" data-name="Recent security events">
+        <div className="flex flex-wrap justify-center items-stretch gap-[18px] w-full" data-node-id="15:3307" data-name="Coverage and response operations">
+          <SecurityCoverage />
+          <div className="bg-[#14171c] border border-[#30343b] flex flex-col gap-[10px] min-h-[227px] min-w-0 w-full lg:flex-1 p-[18px] rounded-[14px]" data-node-id="15:3327" data-name="Recent security events">
             <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3328" data-name="Panel heading">
               <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3329">
                 Recent Security Events
               </p>
-              <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="15:3330" data-name="Panel action">
+              <button type="button" onClick={() => setShowSecurityLogs(true)} className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0 cursor-pointer hover:opacity-75" data-node-id="15:3330" data-name="Panel action">
                 <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] whitespace-nowrap" data-node-id="15:3331">
                   View Logs
                 </p>
                 <div className="relative shrink-0 size-[14px]" data-node-id="15:3475" data-name="arrow-right">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
                 </div>
-              </div>
+              </button>
             </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3333" data-name="Event log">
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[30px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3334" data-name="Security event">
-                <div className="relative shrink-0 size-[10px]" data-node-id="15:3335" data-name="Event status">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEventStatus} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[82px]" data-node-id="15:3336">
-                  14:36:02
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[11px]" data-node-id="15:3337">
-                  EDR threat blocked: Trojan.Generic
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[10px] text-right w-[140px]" data-node-id="15:3338">
-                  RW-LAP-1043
-                </p>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[30px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3339" data-name="Security event">
-                <div className="relative shrink-0 size-[10px]" data-node-id="15:3340" data-name="Event status">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEventStatus} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[82px]" data-node-id="15:3341">
-                  14:32:18
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[11px]" data-node-id="15:3342">
-                  Risky login detected (New location)
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[10px] text-right w-[140px]" data-node-id="15:3343">
-                  user@russellwealth.com
-                </p>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[30px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3344" data-name="Security event">
-                <div className="relative shrink-0 size-[10px]" data-node-id="15:3345" data-name="Event status">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker1} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[82px]" data-node-id="15:3346">
-                  14:21:07
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[11px]" data-node-id="15:3347">
-                  Malware quarantined
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[10px] text-right w-[140px]" data-node-id="15:3348">
-                  RW-LAP-1043
-                </p>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[30px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3349" data-name="Security event">
-                <div className="relative shrink-0 size-[10px]" data-node-id="15:3350" data-name="Event status">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker1} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[82px]" data-node-id="15:3351">
-                  13:58:44
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[11px]" data-node-id="15:3352">
-                  Failed login attempts (×18)
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[10px] text-right w-[140px]" data-node-id="15:3353">
-                  198.51.100.24
-                </p>
-              </div>
-              <div className="border-[#30343b] border-b border-solid content-stretch flex gap-[10px] h-[30px] items-center overflow-clip relative shrink-0 w-full" data-node-id="15:3354" data-name="Security event">
-                <div className="relative shrink-0 size-[10px]" data-node-id="15:3355" data-name="Event status">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSeverityMarker1} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[12px] w-[82px]" data-node-id="15:3356">
-                  13:46:11
-                </p>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Regular'] font-normal leading-[1.35] min-w-px not-italic relative text-[#b4b8c0] text-[11px]" data-node-id="15:3357">
-                  Large outbound transfer (flagged)
-                </p>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[10px] text-right w-[140px]" data-node-id="15:3358">
-                  FIN-SRV-02
-                </p>
-              </div>
+            <div className="flex flex-col w-full overflow-y-auto max-h-[160px]" data-name="Live event log">
+              {securityError ? (
+                <p className="text-[#ff454f] text-[12px] py-3">{securityError}</p>
+              ) : !security ? (
+                <p className="text-[#8c929c] text-[12px] py-3">Loading security events...</p>
+              ) : events.length === 0 ? (
+                <p className="text-[#8c929c] text-[12px] py-3">No recorded security events.</p>
+              ) : (
+                events.map((event) => (
+                  <div
+                    key={event.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Investigate security event ${event.id}`}
+                    onClick={() => setInvestigationEventId(event.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setInvestigationEventId(event.id);
+                      }
+                    }}
+                    className={`cursor-pointer transition-colors hover:bg-[#1a1d22] flex items-center gap-[10px] border-b border-[#30343b] min-h-[34px] w-full ${newSecurityEventIds.has(event.id) ? 'rw-event-new' : ''}`}
+                  >
+                    <span
+                      className={`shrink-0 size-[8px] rounded-full ${
+                        event.event_type === 'LOGIN_SUCCESS'
+                          ? 'bg-[#25e487]'
+                          : 'bg-[#f5b942]'
+                      }`}
+                    />
+
+                    <span className="text-[#b4b8c0] text-[10px] shrink-0 w-[100px] whitespace-nowrap">
+                      {formatReginaAlertTime(event.created_at).date}
+                    </span>
+
+                    <span className="text-[#b4b8c0] text-[10px] shrink-0 w-[105px] whitespace-nowrap">
+                      {formatReginaAlertTime(event.created_at).time}
+                    </span>
+
+                    <span className="text-[#f5f5f5] text-[11px] flex-1 truncate">
+                      {event.event_type === 'LOGIN_SUCCESS'
+                        ? 'Successful login'
+                        : event.event_type === 'LOGIN_FAILED'
+                          ? 'Failed login'
+                          : event.event_type}
+                    </span>
+
+                    <span
+                      className="text-[#b4b8c0] text-[10px] truncate max-w-[145px]"
+                      title={event.email ?? event.details ?? ''}
+                    >
+                      {event.email ?? event.details ?? 'Unknown user'}
+                    </span>
+
+                    <span className="text-[#8c929c] text-[10px] shrink-0">
+                      {event.source_ip ?? 'Unknown IP'}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-          <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[23px] h-[227px] items-start min-w-px overflow-clip p-[18px] relative rounded-[14px]" data-node-id="15:3359" data-name="SOC operations">
+          </div>
+<div className="w-full mt-[18px]">
+<div className="bg-[#14171c] border border-[#30343b] flex flex-col gap-5 w-full min-w-0 p-5 rounded-[14px]" data-node-id="15:3359" data-name="SOC operations">
             <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3360" data-name="Panel heading">
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3361">
+              <p className="break-normal font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3361">
                 SOC Operations
               </p>
             </div>
-            <div className="content-stretch flex gap-[14px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3362" data-name="Response actions">
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[13px] h-[118px] items-center min-w-px overflow-clip pb-[12px] pt-[16px] relative rounded-[12px]" data-node-id="15:3363" data-name="Operation action">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full" data-node-id="15:3362" data-name="Response actions">
+              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3363" data-name="Operation action">
                 <div className="relative shrink-0 size-[30px]" data-node-id="15:3478" data-name="goal">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGoal} />
                 </div>
-                <div className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#f5f5f5] text-[12px] text-center w-[min-content]" data-node-id="15:3365">
+                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3365">
                   <p className="leading-[1.4] mb-0">Create</p>
                   <p className="leading-[1.4]">Incident</p>
                 </div>
               </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[13px] h-[118px] items-center min-w-px overflow-clip pb-[12px] pt-[16px] relative rounded-[12px]" data-node-id="15:3366" data-name="Operation action">
+              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3366" data-name="Operation action">
                 <div className="relative shrink-0 size-[30px]" data-node-id="15:3481" data-name="layers">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLayers1} />
                 </div>
-                <div className="[word-break:break-word] font-['Lora:Bold'] font-bold leading-[0] min-w-full relative shrink-0 text-[#f5f5f5] text-[12px] text-center w-[min-content]" data-node-id="15:3368">
+                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3368">
                   <p className="leading-[1.4] mb-0">Run</p>
                   <p className="leading-[1.4]">Investigation</p>
                 </div>
               </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[13px] h-[118px] items-center min-w-px overflow-clip pb-[12px] pt-[16px] relative rounded-[12px]" data-node-id="15:3369" data-name="Operation action">
+              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3369" data-name="Operation action">
                 <div className="relative shrink-0 size-[30px]" data-node-id="15:3484" data-name="search">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSearch1} />
                 </div>
-                <div className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#f5f5f5] text-[12px] text-center w-[min-content]" data-node-id="15:3371">
+                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3371">
                   <p className="leading-[1.4] mb-0">Threat</p>
                   <p className="leading-[1.4]">Hunt</p>
                 </div>
               </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[13px] h-[118px] items-center min-w-px overflow-clip pb-[12px] pt-[16px] relative rounded-[12px]" data-node-id="15:3372" data-name="Operation action">
+              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3372" data-name="Operation action">
                 <div className="relative shrink-0 size-[30px]" data-node-id="15:3487" data-name="file-text">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFileText} />
                 </div>
-                <div className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[0] min-w-full not-italic relative shrink-0 text-[#f5f5f5] text-[12px] text-center w-[min-content]" data-node-id="15:3374">
+                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3374">
                   <p className="leading-[1.4] mb-0">Generate</p>
                   <p className="leading-[1.4]">Report</p>
                 </div>
@@ -1040,5 +842,6 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

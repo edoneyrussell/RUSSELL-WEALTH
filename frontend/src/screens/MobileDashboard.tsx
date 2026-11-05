@@ -56,7 +56,7 @@ export default function RussellWealthMobileDashboard() {
         <div className="content-stretch flex h-[68px] items-center justify-between overflow-clip px-[20px] relative shrink-0 w-full" data-node-id="74:1895" data-name="Brand and account">
           <div className="h-[52px] relative shrink-0 w-[160px]" data-node-id="74:1896" data-name="Finalized Russell Wealth logo">
             <div className="absolute h-[78.8px] left-[-18.37px] top-[-15.7px] w-[196.75px]" data-node-id="74:1897" data-name="Original logo artwork">
-              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} />
+              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} /></a>
             </div>
           </div>
           <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0" data-node-id="74:1898" data-name="Account tools">

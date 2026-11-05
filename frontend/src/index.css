@@ -151,3 +151,166 @@
     overflow-x: hidden;
   }
 }
+
+
+/* RUSSELL WEALTH — RESPONSIVE FOUNDATION */
+
+html {
+  max-width: 100%;
+}
+
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 700px) {
+  .screen-shell,
+  .screen-shell:not(.mobile-experience) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mobile-experience {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+
+/* RW MOBILE RESPONSIVE V1 START */
+
+/* Global mobile viewport foundation */
+@media (max-width: 700px) {
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  #root {
+    overflow-x: clip;
+  }
+
+  /* Remove desktop minimum-width restrictions */
+  .screen-shell,
+  .screen-shell:not(.mobile-experience),
+  .mobile-experience {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0 !important;
+  }
+
+  /* Keep normal content within the mobile viewport */
+  .mobile-experience img,
+  .mobile-experience video,
+  .mobile-experience canvas,
+  .mobile-experience svg {
+    max-width: 100%;
+  }
+
+  /* Flexible content containers */
+  .mobile-experience .flex,
+  .mobile-experience .grid {
+    min-width: 0;
+  }
+
+  /* Prevent long financial values from expanding cards */
+  .mobile-experience p,
+  .mobile-experience span,
+  .mobile-experience h1,
+  .mobile-experience h2,
+  .mobile-experience h3 {
+    overflow-wrap: break-word;
+  }
+
+  /* Forms and trading controls */
+  .mobile-experience input,
+  .mobile-experience select,
+  .mobile-experience textarea {
+    max-width: 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  /* Avoid iOS input zoom */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  /* Mobile navigation and touch targets */
+  .mobile-experience button,
+  .mobile-experience [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Tables may scroll inside their own containers */
+  .mobile-experience table {
+    max-width: 100%;
+  }
+
+  /* Account registration: allow narrow devices */
+  [data-name="Russell Wealth mobile Create Account"],
+  [data-name="Russell Wealth Create Account"] {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+}
+
+/* Extra-small phones */
+@media (max-width: 375px) {
+
+  .mobile-experience {
+    min-width: 0;
+  }
+
+  .mobile-experience input {
+    min-width: 0;
+  }
+
+}
+
+/* RW MOBILE RESPONSIVE V1 END */
+
+
+/* RW IOS INPUT ZOOM FIX START */
+
+@media screen and (max-width: 700px) {
+
+  /* iOS Safari requires at least 16px on focused inputs */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Keep authentication forms inside the viewport */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="number"] {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+}
+
+/* RW IOS INPUT ZOOM FIX END */

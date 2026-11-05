@@ -1,11 +1,14 @@
+import RegistrationForm from './screens/RegistrationForm'
+import RWPersistentNav from './components/RWPersistentNav'
+import About from './screens/About'
+import UnifiedMobileNav from './components/UnifiedMobileNav'
 import Markets from './screens/Markets'
 
 import { useEffect, useState, type MouseEvent } from 'react'
-import CreateAccount from './screens/CreateAccount'
+import ForgotPassword from './screens/ForgotPassword'
 import Dashboard from './screens/Dashboard'
 import Incident from './screens/Incident'
 import Landing from './screens/Landing'
-import MobileCreateAccount from './screens/MobileCreateAccount'
 import MobileDashboard from './screens/MobileDashboard'
 import MobileLanding from './screens/MobileLanding'
 import MobileLogin from './screens/MobileLogin'
@@ -15,7 +18,9 @@ import SecurityDashboard from './screens/SecurityDashboard'
 
 const routes = {
   '/': Landing,
-  '/create-account': CreateAccount,
+  '/about': About,
+  '/create-account': RegistrationForm,
+  '/forgot-password': ForgotPassword,
   '/dashboard': Dashboard,
   '/portfolio': Portfolio,
   '/transactions': Transactions,
@@ -68,6 +73,15 @@ function navigate(path: string) {
 export default function App() {
   const [path, setPath] = useState(window.location.pathname)
   const isMobile = useMediaQuery('(max-width: 700px)')
+  const showPublicNavigation = path === '/' || path === '/about'
+  const showUnifiedMobileNav =
+    isMobile &&
+    (
+      ['/dashboard', '/portfolio', '/transactions', '/markets',
+       '/customer/settings', '/security', '/admin/settings'].includes(path) ||
+      path.startsWith('/security/incidents/')
+    )
+
 
   const [auth, setAuth] = useState<{
     authenticated: boolean
@@ -178,7 +192,7 @@ export default function App() {
   if (path === '/login') {
     Screen = MobileLogin
   } else if (path === '/create-account') {
-    Screen = isMobile ? MobileCreateAccount : CreateAccount
+    Screen = RegistrationForm
   } else if (path === '/dashboard') {
     Screen = isMobile ? MobileDashboard : Dashboard
   } else if (path === '/') {
@@ -195,6 +209,17 @@ export default function App() {
         path === '/dashboard'))
 
   return (
+    <>
+      {showPublicNavigation && <RWPersistentNav />}
+      {showUnifiedMobileNav && (
+        <UnifiedMobileNav
+          security={
+            path.startsWith('/security') ||
+            path === '/admin/settings'
+          }
+        />
+      )}
+
     <main
       className={
         mobileExperience
@@ -205,5 +230,6 @@ export default function App() {
     >
       <Screen />
     </main>
+    </>
   )
 }

@@ -1,3 +1,5 @@
+import { landingLinks } from "../content/landingLinks";
+import { landingContent } from "../content/landingContent";
 const assetPathPrefix = "/assets";
 const imgOriginalImagery = `${assetPathPrefix}/aee09.png`;
 const imgOriginalLogo = `${assetPathPrefix}/c8aca.png`;
@@ -37,35 +39,7 @@ export default function RussellWealthLandingPage() {
         <div className="content-stretch flex h-[110px] items-center justify-between overflow-clip pl-[80px] pr-[40px] relative shrink-0 w-full" data-node-id="51:2546" data-name="Navigation">
           <div className="h-[80px] overflow-clip relative shrink-0 w-[260px]" data-node-id="51:2547" data-name="Russell Wealth logo">
             <div className="absolute h-[128px] left-[-30px] top-[-25px] w-[320px]" data-node-id="51:2548" data-name="Original logo">
-              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} />
-            </div>
-          </div>
-          <div className="content-stretch flex gap-[38px] items-center overflow-clip relative shrink-0" data-node-id="51:2549" data-name="Site navigation">
-            <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip pt-[12px] relative shrink-0" data-node-id="51:2550" data-name="Navigation link">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[16px] whitespace-nowrap" data-node-id="51:2551">
-                Home
-              </p>
-              <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[60px]" data-node-id="51:2552" data-name="Active indicator" />
-            </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip pt-[12px] relative shrink-0" data-node-id="51:2553" data-name="Navigation link">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[16px] whitespace-nowrap" data-node-id="51:2554">
-                About
-              </p>
-            </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip pt-[12px] relative shrink-0" data-node-id="51:2555" data-name="Navigation link">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[16px] whitespace-nowrap" data-node-id="51:2556">
-                Platform
-              </p>
-            </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip pt-[12px] relative shrink-0" data-node-id="51:2557" data-name="Navigation link">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[16px] whitespace-nowrap" data-node-id="51:2558">
-                Security
-              </p>
-            </div>
-            <div className="content-stretch flex flex-col items-start overflow-clip pt-[12px] relative shrink-0" data-node-id="51:2559" data-name="Navigation link">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[16px] whitespace-nowrap" data-node-id="51:2560">
-                Project
-              </p>
+              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} /></a>
             </div>
           </div>
           <div className="content-stretch flex gap-[24px] items-center overflow-clip relative shrink-0" data-node-id="51:2561" data-name="Account and language">
@@ -204,7 +178,7 @@ export default function RussellWealthLandingPage() {
             <div className="bg-[#555b64] h-px relative shrink-0 w-[72px]" data-node-id="51:2616" data-name="Identity rule" />
             <div className="[word-break:break-word] font-['Inter:Italic'] font-normal italic leading-[0] min-w-full relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content] whitespace-pre-wrap" data-node-id="51:2617">
               <p className="leading-[1.5] mb-0">{`Computer Science Student  •  Business Graduate`}</p>
-              <p className="leading-[1.5]">Aspiring Cybersecurity Professional</p>
+              <p className="leading-[1.5]">{landingContent.text_003_aspiring_cybersecurity_professional}</p>
             </div>
           </div>
         </div>
@@ -273,7 +247,7 @@ export default function RussellWealthLandingPage() {
           </div>
         </div>
       </div>
-      <div className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[100px] pt-[84px] relative shrink-0 w-full" data-node-id="51:2647" data-name="Customer platform">
+      <div data-rw-anchor="rw-platform" className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[100px] pt-[84px] relative shrink-0 w-full" id="rw-platform" data-node-id="51:2647" data-name="Customer platform">
         <div className="absolute h-[810px] left-0 top-0 w-[1440px]" data-node-id="51:2648" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 1440 810' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(64.8 36.45 -79.2 36.45 792 445.5)'><stop stop-color='rgba(28,35,43,0.4)' offset='0'/><stop stop-color='rgba(0,0,0,0)' offset='1'/></radialGradient></defs></svg>\")" }} data-name="Ambient light" />
         <div className="absolute h-[150px] left-0 top-0 w-[290px]" data-node-id="51:2649" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
@@ -367,7 +341,7 @@ export default function RussellWealthLandingPage() {
           </div>
         </div>
       </div>
-      <div className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[96px] pt-[84px] relative shrink-0 w-full" data-node-id="51:2689" data-name="Security showcase">
+      <div data-rw-anchor="rw-security" className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[96px] pt-[84px] relative shrink-0 w-full" id="rw-security" data-node-id="51:2689" data-name="Security showcase">
         <div className="absolute content-stretch flex gap-[24px] items-start left-[96px] overflow-clip top-[720px]" data-node-id="51:2690" data-name="Security actions">
           <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[20px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2691" data-name="Action">
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="51:2692">
@@ -486,11 +460,11 @@ export default function RussellWealthLandingPage() {
             </p>
             <p className="font-['Inter:Regular'] leading-[0] not-italic relative shrink-0 text-[#b9bdc4] text-[23px] whitespace-nowrap" data-node-id="51:2741">
               <span className="leading-[normal]">{`Designed & Developed by `}</span>
-              <span className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] text-[#f2f2f3]">Edoney Russell</span>
+              <span className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] text-[#f2f2f3]">{landingContent.text_004_edoney_russell}</span>
             </p>
             <div className="font-['Inter:Regular'] leading-[0] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[20px] w-[min-content]" data-node-id="51:2742">
-              <p className="leading-[1.45] mb-0">A fictional fintech and cybersecurity project.</p>
-              <p className="leading-[1.45]">No real investments or transactions.</p>
+              <p className="leading-[1.45] mb-0">{landingContent.text_001_a_fictional_fintech_and_cybersecurity}</p>
+              <p className="leading-[1.45]">{landingContent.text_002_no_real_investments_or_transactions}</p>
             </div>
           </div>
           <div className="border-[#555b64] border-l border-solid content-stretch flex flex-col gap-[32px] items-start overflow-clip pl-[78px] relative shrink-0 w-[480px]" data-node-id="51:2743" data-name="Connect">
@@ -501,7 +475,7 @@ export default function RussellWealthLandingPage() {
               <div className="bg-[#555b64] h-px relative shrink-0 w-[144px]" data-node-id="51:2746" data-name="Connect rule" />
             </div>
             <div className="content-stretch flex gap-[92px] items-start overflow-clip relative shrink-0 w-full" data-node-id="51:2747" data-name="Social links">
-              <div className="content-stretch flex flex-col gap-[20px] items-center overflow-clip relative shrink-0" data-node-id="51:2748" data-name="Social profile">
+              <a href={landingLinks.github} target="_blank" rel="noopener noreferrer" className="cursor-pointer content-stretch flex flex-col gap-[20px] items-center overflow-clip relative shrink-0" data-node-id="51:2748" data-name="Social profile">
                 <div className="bg-gradient-to-r border border-[#555b64] border-solid content-stretch flex from-[#343b44] items-center justify-center overflow-clip relative rounded-[20px] shrink-0 size-[80px] to-[#080b0e] via-1/2 via-[#101419]" data-node-id="51:2749" data-name="Social symbol">
                   <div className="relative shrink-0 size-[44px]" data-node-id="51:2818" data-name="github">
                     <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGithub} />
@@ -515,8 +489,8 @@ export default function RussellWealthLandingPage() {
                     <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
                   </div>
                 </div>
-              </div>
-              <div className="content-stretch flex flex-col gap-[20px] items-center overflow-clip relative shrink-0" data-node-id="51:2754" data-name="Social profile">
+              </a>
+              <a href={landingLinks.linkedin} target="_blank" rel="noopener noreferrer" className="cursor-pointer content-stretch flex flex-col gap-[20px] items-center overflow-clip relative shrink-0" data-node-id="51:2754" data-name="Social profile">
                 <div className="bg-gradient-to-r border border-[#555b64] border-solid content-stretch flex from-[#343b44] items-center justify-center overflow-clip relative rounded-[20px] shrink-0 size-[80px] to-[#080b0e] via-1/2 via-[#101419]" data-node-id="51:2755" data-name="Social symbol">
                   <div className="relative shrink-0 size-[44px]" data-node-id="51:2824" data-name="linkedin">
                     <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLinkedin} />
@@ -530,7 +504,7 @@ export default function RussellWealthLandingPage() {
                     <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
                   </div>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function RussellWealthIncidentInvestigation() {
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] h-[1080px] items-start overflow-clip pb-[24px] pt-[27px] px-[24px] relative shrink-0 w-[324px]" data-node-id="42:1714" data-name="Sidebar">
         <div className="h-[78px] overflow-clip relative shrink-0 w-[242px]" data-node-id="42:1715" data-name="Russell Wealth logo">
           <div className="absolute h-[119.2px] left-[-27.8px] top-[-23.8px] w-[297.5px]" data-node-id="42:1716" data-name="Original logo artwork">
-            <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} />
+            <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogoArtwork} /></a>
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[21px] items-start overflow-clip relative shrink-0 w-full" data-node-id="42:1717" data-name="Navigation groups">

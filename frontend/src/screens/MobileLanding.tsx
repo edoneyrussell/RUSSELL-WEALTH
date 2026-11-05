@@ -1,3 +1,5 @@
+import { landingLinks } from "../content/landingLinks";
+import { landingContent } from "../content/landingContent";
 const assetPathPrefix = "/assets";
 const imgOriginalLogo = `${assetPathPrefix}/c8aca.png`;
 const imgOriginalImagery = `${assetPathPrefix}/aee09.png`;
@@ -36,7 +38,7 @@ export default function RussellWealthMobileLandingPage() {
         <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="68:994" data-name="Navigation">
           <div className="h-[53px] overflow-clip relative shrink-0 w-[164px]" data-node-id="68:995" data-name="Russell Wealth logo">
             <div className="absolute h-[81px] left-[-19px] top-[-16px] w-[202px]" data-node-id="68:996" data-name="Original logo">
-              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} />
+              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} /></a>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex h-[48px] items-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="68:997" data-name="Sign in action">
@@ -180,7 +182,7 @@ export default function RussellWealthMobileLandingPage() {
             <div className="bg-[#30363f] h-px relative shrink-0 w-[52px]" data-node-id="68:1050" data-name="Identity rule" />
             <div className="[word-break:break-word] font-['Inter:Italic'] font-normal italic leading-[0] min-w-full relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content] whitespace-pre-wrap" data-node-id="68:1051">
               <p className="leading-[1.5] mb-0">{`Computer Science Student  •  Business Graduate`}</p>
-              <p className="leading-[1.5]">Aspiring Cybersecurity Professional</p>
+              <p className="leading-[1.5]">{landingContent.text_003_aspiring_cybersecurity_professional}</p>
             </div>
           </div>
         </div>
@@ -226,7 +228,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
       </div>
-      <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1071" data-name="Customer platform">
+      <div data-rw-anchor="rw-platform" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1071" data-name="Customer platform">
         <div className="h-[32px] relative shrink-0 w-[110px]" data-node-id="68:1072" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
         </div>
@@ -308,7 +310,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
       </div>
-      <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1106" data-name="Security showcase">
+      <div data-rw-anchor="rw-security" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1106" data-name="Security showcase">
         <div className="h-[32px] relative shrink-0 w-[110px]" data-node-id="68:1107" data-name="Folded silver ribbon">
           <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFoldedSilverRibbon} />
         </div>
@@ -414,11 +416,11 @@ export default function RussellWealthMobileLandingPage() {
           </p>
           <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[0] not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1150">
             <span className="leading-[1.5]">{`Designed & Developed by `}</span>
-            <span className="font-['Inter:Semi_Bold'] font-semibold leading-[1.5] text-[#f2f2f3]">Edoney Russell</span>
+            <span className="font-['Inter:Semi_Bold'] font-semibold leading-[1.5] text-[#f2f2f3]">{landingContent.text_004_edoney_russell}</span>
           </p>
           <div className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[0] not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1151">
-            <p className="leading-[1.5] mb-0">A fictional fintech and cybersecurity project.</p>
-            <p className="leading-[1.5]">No real investments or transactions.</p>
+            <p className="leading-[1.5] mb-0">{landingContent.text_001_a_fictional_fintech_and_cybersecurity}</p>
+            <p className="leading-[1.5]">{landingContent.text_002_no_real_investments_or_transactions}</p>
           </div>
           <div className="content-stretch flex gap-[16px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1152" data-name="Connect heading">
             <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] tracking-[3px] whitespace-nowrap" data-node-id="68:1153">
@@ -427,7 +429,7 @@ export default function RussellWealthMobileLandingPage() {
             <div className="bg-[#30363f] flex-[1_0_0] h-px min-w-px relative" data-node-id="68:1154" data-name="Connect rule" />
           </div>
           <div className="content-stretch flex gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1155" data-name="Social links">
-            <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] gap-[10px] h-[50px] items-center justify-center min-w-px overflow-clip relative rounded-[14px]" data-node-id="68:1156" data-name="Social profile">
+            <a href={landingLinks.github} target="_blank" rel="noopener noreferrer" className="cursor-pointer bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] gap-[10px] h-[50px] items-center justify-center min-w-px overflow-clip relative rounded-[14px]" data-node-id="68:1156" data-name="Social profile">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1199" data-name="github">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGithub} />
               </div>
@@ -437,8 +439,8 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[14px]" data-node-id="68:1202" data-name="arrow-up-right">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
               </div>
-            </div>
-            <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] gap-[10px] h-[50px] items-center justify-center min-w-px overflow-clip relative rounded-[14px]" data-node-id="68:1160" data-name="Social profile">
+            </a>
+            <a href={landingLinks.linkedin} target="_blank" rel="noopener noreferrer" className="cursor-pointer bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] gap-[10px] h-[50px] items-center justify-center min-w-px overflow-clip relative rounded-[14px]" data-node-id="68:1160" data-name="Social profile">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1205" data-name="linkedin">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLinkedin} />
               </div>
@@ -448,7 +450,7 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[14px]" data-node-id="68:1208" data-name="arrow-up-right">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
               </div>
-            </div>
+            </a>
           </div>
           <div className="[word-break:break-word] border-[#30363f] border-solid border-t content-stretch flex flex-col font-['Inter:Regular'] font-normal gap-[12px] items-start leading-[normal] not-italic overflow-clip pb-[8px] pt-[24px] relative shrink-0 text-[#9299a3] w-full" data-node-id="68:1164" data-name="Copyright">
             <p className="relative shrink-0 text-[11px] w-full" data-node-id="68:1165">
