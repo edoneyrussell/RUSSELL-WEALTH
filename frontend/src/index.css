@@ -3185,3 +3185,94 @@ main {
     display: none !important;
   }
 }
+
+
+/* RUSSELL WEALTH RESPONSIVE LAYOUT */
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  main,
+  section,
+  article,
+  aside {
+    min-width: 0;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Smooth floating mobile navigation */
+@media (max-width: 700px) {
+  .rw-mobile-bottom-navigation {
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .rw-mobile-bottom-navigation.rw-nav-scrolling-down {
+    transform: translateY(7px);
+  }
+
+  .rw-mobile-bottom-navigation.rw-nav-scrolling-up {
+    transform: translateY(-3px);
+  }
+
+  .rw-mobile-bottom-pill {
+    transition:
+      box-shadow 320ms ease,
+      background-color 320ms ease,
+      border-color 320ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-mobile-bottom-navigation,
+  .rw-mobile-bottom-pill {
+    transition: none !important;
+  }
+}
+
+/* Keep floating mobile navigation centered */
+@media (max-width: 700px) {
+  .rw-mobile-bottom-navigation {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .rw-mobile-bottom-navigation.rw-nav-scrolling-down {
+    transform: translate(-50%, 7px) !important;
+  }
+
+  .rw-mobile-bottom-navigation.rw-nav-scrolling-up {
+    transform: translate(-50%, -3px) !important;
+  }
+}

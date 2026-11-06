@@ -51,7 +51,7 @@ export default function RussellWealthMobileLogin() {
       }
 
       window.location.assign(
-        data.role === 'SOC_ADMIN' ? '/security' : '/dashboard'
+        '/dashboard'
       );
     } catch {
       setError('Cannot connect to the authentication server.');

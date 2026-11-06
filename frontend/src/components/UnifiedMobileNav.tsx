@@ -34,6 +34,35 @@ export default function UnifiedMobileNav({
     return () => window.removeEventListener("popstate", update);
   }, []);
 
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let frame = 0;
+
+    const updateScroll = () => {
+      if (frame) return;
+
+      frame = requestAnimationFrame(() => {
+        const currentY = window.scrollY;
+        const nav = document.querySelector(".rw-mobile-bottom-navigation");
+
+        if (nav && Math.abs(currentY - lastY) > 3) {
+          nav.classList.toggle("rw-nav-scrolling-down", currentY > lastY);
+          nav.classList.toggle("rw-nav-scrolling-up", currentY < lastY);
+        }
+
+        lastY = currentY;
+        frame = 0;
+      });
+    };
+
+    window.addEventListener("scroll", updateScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updateScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const navigate = (
     event: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -57,6 +86,10 @@ export default function UnifiedMobileNav({
     }
 
     setCurrent(href);
+
+    if (href === "/deposit") {
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
 
     const hash = href.split("#")[1];
 

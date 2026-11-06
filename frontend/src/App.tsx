@@ -197,7 +197,7 @@ export default function App() {
     (isSecurityRoute && auth?.role !== 'SOC_ADMIN')
   ) {
     window.location.replace(
-      auth?.role === 'SOC_ADMIN' ? '/security' : '/dashboard'
+      '/dashboard'
     )
     return null
   }

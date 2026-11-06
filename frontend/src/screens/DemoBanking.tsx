@@ -131,8 +131,25 @@ export default function DemoBanking() {
   const [mode, setMode] = useState<"DEPOSIT" | "WITHDRAW">(
     window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT"
   );
+  useEffect(() => {
+    const syncBankingRoute = () => {
+      const nextMode =
+        window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT";
+
+      setMode(nextMode);
+      setStep(1);
+      setError("");
+    };
+
+    syncBankingRoute();
+
+    window.addEventListener("popstate", syncBankingRoute);
+    return () => window.removeEventListener("popstate", syncBankingRoute);
+  }, []);
+
   const [bankCode, setBankCode] = useState("TD");
-  const [amount, setAmount] = useState("1000");
+  const [bankPickerOpen, setBankPickerOpen] = useState(false);
+  const [amount, setAmount] = useState("");
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
@@ -157,14 +174,21 @@ export default function DemoBanking() {
 
   const bank = data?.banks.find((b) => b.code === bankCode);
   const numericAmount = Number(amount);
-  const validAmount = Number.isFinite(numericAmount) &&
+  const bankBalance = Number(bank?.balance ?? 0);
+  const investmentCash = Number(data?.cash_balance ?? 0);
+  const bankCapacity = Number.MAX_SAFE_INTEGER / 100;
+
+  const maxTransfer = mode === "DEPOSIT"
+    ? Number.MAX_SAFE_INTEGER / 100
+    : Number.MAX_SAFE_INTEGER / 100;
+
+  const validAmount =
+    amount.trim() !== "" &&
+    Number.isFinite(numericAmount) &&
     numericAmount > 0 &&
-    Math.round(numericAmount * 100) === numericAmount * 100 &&
-    numericAmount <= (
-      mode === "DEPOSIT"
-        ? Number(bank?.balance ?? 0)
-        : Number(data?.cash_balance ?? 0)
-    );
+    Number.isInteger(Math.round(numericAmount * 100)) &&
+    Math.abs(numericAmount * 100 - Math.round(numericAmount * 100)) < 0.000001 &&
+    numericAmount <= maxTransfer;
 
   async function submit() {
     if (!validAmount || busy || step !== 2) return;
@@ -216,7 +240,7 @@ export default function DemoBanking() {
     setCompleted("");
     setError("");
     setRequestId(crypto.randomUUID());
-    setAmount("1000");
+    setAmount("");
   }
 
   return (
@@ -264,7 +288,7 @@ export default function DemoBanking() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(350px,.85fr)]">
           <section id="rw-bank-transfer-form" className={`${panel} scroll-mt-6`}>
             <div className="mb-8 flex items-center justify-center gap-3 sm:gap-6">
-              {["Details", "Confirm", "Complete"].map((name, i) => (
+              {["Transfer details", "Review", "Complete"].map((name, i) => (
                 <div key={name} className="flex items-center gap-3 sm:gap-6">
                   {i > 0 && <div className="h-px w-5 bg-[#53616E] sm:w-16" />}
                   <div className="flex flex-col items-center gap-2">
@@ -313,7 +337,7 @@ export default function DemoBanking() {
                     </select>
                   </div>
                   <p className="mt-2 text-xs text-[#8EA3B5]">
-                    Available simulated bank balance: {cad(bank?.balance || 0)}
+                    Simulated bank balance · {cad(bank?.balance || 0)}
                   </p>
                 </div>
 
@@ -322,8 +346,12 @@ export default function DemoBanking() {
                     {mode === "DEPOSIT" ? "To (Russell Wealth)" : "From (Russell Wealth)"}
                   </label>
                   <div className="flex items-center gap-4 rounded-xl border border-[#36414D] bg-[#151D25] p-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#26333F] font-['Lora'] text-2xl font-bold">
-                      RW
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#26333F]">
+                      <img
+                        src="/assets/c8aca.png"
+                        alt="Russell Wealth logo"
+                        className="h-full w-full object-contain"
+                      />
                     </div>
                     <div>
                       <p className="font-semibold">Russell Wealth Account</p>
@@ -341,19 +369,18 @@ export default function DemoBanking() {
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">$</span>
                     <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={amount}
+                      type="text"
+                      inputMode="decimal"
+                      value={amount.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       onChange={(e) => {
-                        setAmount(e.target.value);
+                        setAmount(e.target.value.replace(/,/g, ""));
                         setRequestId(crypto.randomUUID());
                       }}
                       className={`${field} pl-10 text-2xl`}
                     />
                   </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    {[500, 1000, 5000, 10000].map((n) => (
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[100, 500, 1000, 5000].map((n) => (
                       <button
                         key={n}
                         onClick={() => {
@@ -369,14 +396,20 @@ export default function DemoBanking() {
                         ${n.toLocaleString("en-CA")}
                       </button>
                     ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[#A8B8C7]">
+                    <span>
+                      Available: {mode === "DEPOSIT" ? "Demo funding" : cad(maxTransfer)}
+                    </span>
                     <button
+                      type="button"
                       onClick={() => {
-                        setAmount("");
+                        setAmount(String(maxTransfer));
                         setRequestId(crypto.randomUUID());
                       }}
-                      className={secondaryButton}
+                      className="font-semibold text-[#D3E4EE] hover:text-white"
                     >
-                      Custom
+                      Use maximum available
                     </button>
                   </div>
                 </div>
@@ -405,9 +438,17 @@ export default function DemoBanking() {
 
             {data && step === 2 && (
               <div className="space-y-5">
-                <h2 className="font-['Lora'] text-2xl">Confirm Transfer</h2>
+                <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#91A9BA]">
+                  Step 2 of 3 · Review
+                </p>
+                <h2 className="font-['Lora'] text-2xl">Review your transfer</h2>
+                <p className="text-sm text-[#A8B8C7]">
+                  Check the details before completing your simulated transfer.
+                </p>
                 <div className="rounded-xl border border-[#36414D] bg-[#151D25] p-5">
-                  <p className="text-sm text-[#A8B8C7]">Transfer amount</p>
+                  <p className="text-sm text-[#A8B8C7]">
+                      {mode === "DEPOSIT" ? "Deposit amount" : "Withdrawal amount"}
+                    </p>
                   <p className="mt-2 font-['Lora'] text-4xl">{cad(amount)}</p>
                   <div className="mt-5 space-y-3 border-t border-[#35414D] pt-4 text-sm">
                     <div className="flex justify-between gap-4">
@@ -427,12 +468,32 @@ export default function DemoBanking() {
                 <p className="text-sm text-[#B8C6D2]">
                   This action moves simulated funds between your demo accounts.
                 </p>
+                {mode === "WITHDRAW" && (
+                  <div className="rounded-xl border border-[#36414D] bg-[#151D25] p-4 text-sm">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[#A8B8C7]">Bank balance after withdrawal</span>
+                      <span className="font-semibold">
+                        {cad(bankBalance + numericAmount)}
+                      </span>
+                    </div>
+                    <div className="mt-3 flex justify-between gap-3">
+                      <span className="text-[#A8B8C7]">Maximum bank balance</span>
+                      <span>{cad(900000)}</span>
+                    </div>
+                    {bankCapacity <= 0 && (
+                      <p className="mt-3 text-[#E7B4B4]">
+                        This bank is at its $900,000 limit. Select another bank
+                        or deposit funds from this bank into Russell Wealth first.
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => setStep(1)} className={secondaryButton}>
                     Back
                   </button>
                   <button
-                    disabled={busy}
+                    disabled={busy || !validAmount}
                     onClick={submit}
                     className="rounded-xl bg-[#D3E4EE] px-4 py-3 font-semibold text-[#101820] hover:bg-white disabled:opacity-50"
                   >
@@ -445,11 +506,29 @@ export default function DemoBanking() {
             {data && step === 3 && (
               <div className="flex flex-col items-center gap-5 py-8 text-center">
                 <CircleCheck size={68} className="text-[#BBDACD]" />
-                <h2 className="font-['Lora'] text-3xl">Transfer Complete</h2>
+                <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#BBDACD]">
+                  Transaction successful
+                </p>
+                <h2 className="font-['Lora'] text-3xl">
+                  {mode === "DEPOSIT" ? "Deposit complete" : "Withdrawal complete"}
+                </h2>
                 <p className="font-['Lora'] text-4xl">{cad(amount)}</p>
                 <p className="text-sm text-[#B6C5D2]">
-                  Your simulated account balances have been updated.
+                  {mode === "DEPOSIT"
+                    ? `Transferred from ${bank?.name} to Russell Wealth.`
+                    : `Transferred from Russell Wealth to ${bank?.name}.`}
                 </p>
+                <div className="w-full rounded-xl border border-[#36414D] bg-[#151D25] p-5 text-left">
+                  <p className="text-xs uppercase tracking-wider text-[#91A9BA]">
+                    Updated Russell Wealth cash balance
+                  </p>
+                  <p className="mt-2 font-['Lora'] text-3xl font-semibold">
+                    {cad(data.cash_balance)}
+                  </p>
+                  <p className="mt-3 text-xs text-[#91A9BA]">
+                    Simulated transfer · No real funds moved
+                  </p>
+                </div>
                 <p className="max-w-full break-all text-xs text-[#75899A]">
                   Reference: {completed}
                 </p>
@@ -477,39 +556,19 @@ export default function DemoBanking() {
               <h2 className="mb-4 flex items-center gap-3 font-['Lora'] text-xl">
                 <Building2 size={22} /> Your Simulated Banks
               </h2>
-              <div className="space-y-3">
-                {data?.banks.map((b) => (
-                  <button
-                    key={b.code}
-                    onClick={() => {
-                      setBankCode(b.code);
-                      setRequestId(crypto.randomUUID());
-                      setStep(1);
-                      setError("");
-                      window.requestAnimationFrame(() => {
-                        document.getElementById("rw-bank-transfer-form")
-                          ?.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start"
-                          });
-                      });
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:-translate-y-0.5 hover:border-[#C5D8E5] ${
-                      bankCode === b.code
-                        ? "border-[#A5BECE] bg-[#24313C]"
-                        : "border-[#35414B] bg-[#151C23]"
-                    }`}
-                  >
-                    <BankLogo code={b.code} size={44} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{b.name}</p>
-                      <p className="text-xs text-[#A9BAC7]">{cad(b.balance)} available</p>
-                    </div>
-                    {bankCode === b.code && <Check size={18} className="text-[#D0E3EE]" />}
-                  </button>
-                ))}
-              </div>
+
               
+                <button
+                  type="button"
+                  onClick={() => setBankPickerOpen(true)}
+                  className="relative z-10 shrink-0 rounded-lg border border-[#526779] px-5 py-3 text-sm font-semibold text-[#D5E5EF] transition hover:bg-[#263845] active:scale-95"
+                >
+                  Change
+                </button>
+
+              <p className="mt-3 text-xs text-[#8294A3]">
+                Select from {data?.banks.length ?? 0} Canadian financial institutions.
+              </p>
             </section>
 
             <section className={panel}>
@@ -543,9 +602,7 @@ export default function DemoBanking() {
               <div className="space-y-3">
                 {data?.history.slice(0, 6).map((t) => (
                   <div key={t.id} className="flex items-center gap-3 border-b border-[#2B3641] pb-3 last:border-0">
-                    {t.direction === "DEPOSIT"
-                      ? <ArrowDownToLine size={18} className="text-[#B9DACA]" />
-                      : <ArrowUpRight size={18} className="text-[#B7CBE1]" />}
+                    <BankLogo code={t.bank_code} size={42} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">
                         {t.direction === "DEPOSIT" ? "Deposit" : "Withdrawal"} · {t.bank_code}
@@ -561,6 +618,96 @@ export default function DemoBanking() {
             </section>
           </aside>
         </div>
+
+        {bankPickerOpen && (
+          <div
+            className="fixed inset-0 z-[200] overflow-y-auto bg-[#090D12]"
+            onClick={() => setBankPickerOpen(false)}
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="rw-bank-picker-title"
+              onClick={(event) => event.stopPropagation()}
+              className="mx-auto min-h-dvh w-full max-w-7xl bg-[#090D12]"
+            >
+              <header className="flex items-center justify-between border-b border-[#303D48] px-6 py-8 sm:px-10">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#91A9BA]">
+                    Russell Wealth · Banking
+                  </p>
+                  <h2
+                    id="rw-bank-picker-title"
+                    className="mt-2 font-['Lora'] text-2xl font-semibold text-white"
+                  >
+                    Select your bank
+                  </h2>
+                  <p className="mt-1 text-sm text-[#9DAAB7]">
+                    Choose a Canadian financial institution.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setBankPickerOpen(false)}
+                  aria-label="Close bank selection"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#354451] text-xl text-[#C3D0DA] transition hover:bg-[#263544]"
+                >
+                  ×
+                </button>
+              </header>
+
+              <div className="px-6 py-10 sm:px-10">
+                <p className="mb-5 text-sm text-[#A9BAC7]">
+                  {(data?.banks ?? []).length} Canadian financial institutions available
+                </p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(data?.banks ?? []).map((b) => (
+                    <button
+                      type="button"
+                      key={b.code}
+                      onClick={() => {
+                        setBankCode(b.code);
+                        setRequestId(crypto.randomUUID());
+                        setStep(1);
+                        setError("");
+                        setBankPickerOpen(false);
+                      }}
+                      className={`flex min-w-0 items-center gap-3 rounded-xl border p-4 text-left transition active:scale-[.98] ${
+                        bankCode === b.code
+                          ? "border-[#A5BECE] bg-[#243542]"
+                          : "border-[#354451] bg-[#151E27] hover:border-[#91A9BA] hover:bg-[#1D2933]"
+                      }`}
+                    >
+                      <BankLogo code={b.code} size={46} />
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-white">
+                          {b.name}
+                        </p>
+                        <p className="mt-1 text-xs text-[#A9BAC7]">
+                          {cad(b.balance)} available
+                        </p>
+                      </div>
+
+                      {bankCode === b.code && (
+                        <Check size={19} className="shrink-0 text-[#D0E3EE]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-5 rounded-xl border border-[#34414C] bg-[#151D25] p-4">
+                  <p className="text-xs leading-relaxed text-[#9DAAB7]">
+                    Simulated banking environment. Selecting a bank changes
+                    your demo funding source. No real bank connection or
+                    money transfer occurs.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
 
         <footer className="border-t border-[#2B3641] pt-5 text-xs text-[#8294A3]">
           RUSSELL WEALTH · FICTIONAL FINTECH PORTFOLIO · SIMULATED FUNDS ONLY
