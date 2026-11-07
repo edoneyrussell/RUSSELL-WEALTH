@@ -3654,224 +3654,217 @@ html {
 }
 /* RW DESKTOP IMAGE FIT END */
 
-/* RW PREMIUM MOBILE DRAWER */
+/* RW ISOLATED FULL SCREEN MOBILE NAVIGATION */
 @media (max-width: 767px) {
   .rw-unified-mobile-nav {
     position: fixed;
     top: max(14px, env(safe-area-inset-top));
     right: 16px;
-    z-index: 9999;
+    z-index: 10000;
   }
 
-  .rw-mobile-menu-trigger {
-    width: 54px;
-    height: 54px;
+  .rw-mobile-fullnav-trigger {
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid #303b49;
-    border-radius: 17px;
+    border-radius: 14px;
     background: #14171c;
     color: #e6ebf2;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(0,0,0,.24);
-    transition: background .2s ease, border-color .2s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,.28);
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .rw-mobile-menu-trigger:active {
-    background: #202833;
+  .rw-mobile-trigger-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .rw-mobile-nav-backdrop {
+  .rw-mobile-trigger-lines span {
+    display: block;
+    width: 19px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .rw-mobile-trigger-close {
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 300;
+  }
+
+  .rw-mobile-fullnav-backdrop {
     position: fixed;
     inset: 0;
     z-index: 1;
     width: 100%;
     height: 100%;
     border: 0;
-    background: rgba(0,0,0,.68);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    animation: rw-mobile-backdrop-in .22s ease both;
+    background: rgba(0,0,0,.76);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
   }
 
-  .rw-mobile-nav-drawer {
+  .rw-mobile-fullnav-panel {
     position: fixed;
     z-index: 2;
-    top: max(8px, env(safe-area-inset-top));
-    right: 8px;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    width: min(390px, calc(100vw - 16px));
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    padding: 22px 23px 17px;
-    border: 1px solid #303b49;
-    border-radius: 26px;
-    background: #0b0e13;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding:
+      max(25px, env(safe-area-inset-top))
+      25px
+      max(22px, env(safe-area-inset-bottom));
+    background: #090c11;
     color: #e7ebf1;
-    box-shadow: 0 24px 75px rgba(0,0,0,.58);
-    animation: rw-mobile-drawer-in .32s cubic-bezier(.22,1,.36,1) both;
+    animation: rw-fullnav-enter .26s cubic-bezier(.22,1,.36,1) both;
   }
 
-  .rw-mobile-nav-header {
+  .rw-mobile-fullnav-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    flex-shrink: 0;
-    padding-bottom: 23px;
+    gap: 15px;
+    padding: 8px 0 27px;
   }
 
-  .rw-mobile-nav-brand {
-    color: #e9edf3;
-    font-size: 20px;
+  .rw-mobile-fullnav-brand {
+    font-size: 21px;
     font-weight: 600;
-    letter-spacing: .035em;
+    letter-spacing: .045em;
   }
 
-  .rw-mobile-nav-subtitle {
-    margin-top: 5px;
+  .rw-mobile-fullnav-subtitle {
+    margin-top: 6px;
     color: #8995a5;
-    font-size: 12px;
-    letter-spacing: .07em;
+    font-size: 11px;
+    letter-spacing: .12em;
   }
 
-  .rw-mobile-nav-close {
-    width: 43px;
-    height: 43px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .rw-mobile-fullnav-close {
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: #cbd4df;
-    font-size: 34px;
+    border: 1px solid #303b49;
+    border-radius: 13px;
+    background: #14171c;
+    color: #e7ebf1;
+    font-size: 30px;
     font-weight: 300;
     cursor: pointer;
   }
 
-  .rw-mobile-nav-divider {
+  .rw-mobile-fullnav-divider {
     height: 1px;
     flex-shrink: 0;
     background: #303b49;
   }
 
-  .rw-mobile-nav-section {
-    flex-shrink: 0;
-    padding: 25px 0 13px;
+  .rw-mobile-fullnav-section {
+    margin: 27px 0 12px;
     color: #8995a5;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: .055em;
+    letter-spacing: .14em;
   }
 
-  .rw-mobile-nav-items {
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: none;
+  .rw-mobile-fullnav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .rw-mobile-nav-items::-webkit-scrollbar {
-    display: none;
-  }
-
-  .rw-mobile-nav-item {
-    position: relative;
-    min-height: 66px;
+  .rw-mobile-fullnav-item {
+    min-height: 59px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px 12px;
-    margin: 2px 0;
+    gap: 17px;
+    padding: 12px 15px;
     border: 1px solid transparent;
     border-radius: 12px;
-    color: #d4dbe5;
-    font-size: 16px;
-    font-weight: 400;
+    color: #cbd3df;
+    font-size: 15px;
+    font-weight: 450;
     text-decoration: none;
-    transition: background .18s ease, color .18s ease;
+    transition: background .18s ease, border-color .18s ease;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .rw-mobile-nav-item:active,
-  .rw-mobile-nav-item.is-active {
+  .rw-mobile-fullnav-item.is-active {
     background: #19232f;
     border-color: #29394a;
-    color: #f5f7fa;
+    color: #ffffff;
   }
 
-  .rw-mobile-nav-item-icon {
+  .rw-mobile-fullnav-icon {
     width: 27px;
-    height: 27px;
     display: flex;
-    align-items: center;
     justify-content: center;
-    flex-shrink: 0;
     color: #a7b5c7;
+    font-size: 21px;
   }
 
-  .rw-mobile-nav-item.is-active .rw-mobile-nav-item-icon {
-    color: #d9e4f0;
+  .rw-mobile-fullnav-item.is-active .rw-mobile-fullnav-icon {
+    color: #e0e9f4;
   }
 
-  .rw-mobile-nav-active-indicator {
-    width: 6px;
-    height: 6px;
-    margin-left: auto;
-    border-radius: 50%;
-    background: #c4d2e2;
-  }
-
-  .rw-mobile-nav-item.is-funding {
+  .rw-mobile-fullnav-item.is-funding {
     color: #d9e6e1;
   }
 
-  .rw-mobile-nav-lower-divider {
-    margin-top: 14px;
+  .rw-mobile-fullnav-arrow {
+    margin-left: auto;
+    color: #68778a;
+    font-size: 23px;
   }
 
-  .rw-mobile-nav-help {
-    flex-shrink: 0;
-    margin-top: 9px;
-  }
-
-  .rw-mobile-nav-footer {
-    min-height: 49px;
+  .rw-mobile-fullnav-help {
+    min-height: 55px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
-    margin-top: auto;
-    padding-top: 14px;
+    margin-top: 22px;
+    padding: 0 15px;
     border-top: 1px solid #303b49;
-    color: #8995a5;
-    font-size: 13px;
+    color: #cbd3df;
+    font-size: 14px;
+    text-decoration: none;
   }
 
-  .rw-mobile-nav-version {
+  .rw-mobile-fullnav-help span {
     color: #8995a5;
+    font-size: 22px;
+  }
+
+  .rw-mobile-fullnav-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 25px;
+    color: #788597;
     font-size: 12px;
   }
 }
 
-@keyframes rw-mobile-drawer-in {
+@keyframes rw-fullnav-enter {
   from {
-    opacity: .7;
-    transform: translateX(35px);
+    opacity: 0;
+    transform: translateY(9px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
-}
-
-@keyframes rw-mobile-backdrop-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 @media (min-width: 768px) {
@@ -3879,4 +3872,339 @@ html {
     display: none !important;
   }
 }
-/* END RW PREMIUM MOBILE DRAWER */
+/* END RW ISOLATED FULL SCREEN MOBILE NAVIGATION */
+
+
+/* SETTINGS PAGE: PLACE MOBILE MENU BELOW LOG OUT */
+@media (max-width: 767px) {
+  .rw-unified-mobile-nav.is-settings-placement {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+    z-index: 10;
+  }
+}
+/* END SETTINGS PAGE MOBILE MENU */
+
+
+/* MOBILE SETTINGS LOGOUT AT BOTTOM */
+@media (max-width: 767px) {
+  .rw-settings-logout {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-top: auto !important;
+    padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
+    background: #080a0d;
+  }
+}
+/* END MOBILE SETTINGS LOGOUT */
+
+
+
+/* RW SOC MOBILE FIT V2 */
+@media (max-width: 700px) {
+
+  .soc-dashboard,
+  .soc-dashboard > *,
+  .soc-dashboard [data-name="Security analytics"],
+  .soc-dashboard [data-name="Dashboard overview"],
+  .soc-dashboard [data-name="Security metrics"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Prevent fixed-width chart containers */
+  .soc-dashboard [data-rw-chart] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 160px !important;
+    flex: 1 1 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .soc-dashboard [data-rw-chart] > *,
+  .soc-dashboard [data-rw-chart] .recharts-responsive-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Make chart labels readable */
+  .soc-dashboard .recharts-cartesian-axis-tick text {
+    font-size: 10px !important;
+  }
+
+  /* Keep dashboard content inside the phone */
+  .soc-dashboard [data-name="Security analytics"] > *,
+  .soc-dashboard [data-name="Dashboard overview"] > *,
+  .soc-dashboard [data-name="Security metrics"] > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Allow headings and descriptions to wrap */
+  .soc-dashboard h1,
+  .soc-dashboard h2,
+  .soc-dashboard h3,
+  .soc-dashboard p,
+  .soc-dashboard span {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  .soc-dashboard [data-name="Dashboard introduction"] p {
+    font-size: clamp(19px, 5.5vw, 25px) !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Keep metric cards from forcing desktop widths */
+  .soc-dashboard [data-name*="Card"],
+  .soc-dashboard [data-name*="Panel"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Keep charts and their surrounding panels responsive */
+  .soc-dashboard [data-name*="Chart"],
+  .soc-dashboard [data-name*="chart"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .soc-dashboard svg.recharts-surface {
+    max-width: 100% !important;
+  }
+
+  .soc-dashboard {
+    overflow-x: clip !important;
+  }
+}
+/* END RW SOC MOBILE FIT V2 */
+
+/* RW SOC MOBILE ALERTS AND INCIDENTS FIT */
+@media screen and (max-width: 700px) {
+
+  /* Keep the dashboard's top content within the viewport */
+  .soc-dashboard [data-name="Dashboard header"],
+  .soc-dashboard [data-name="Header tools"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Incident and alert summary cards */
+  .soc-dashboard [data-name="Security metrics"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .soc-dashboard [data-name="Security metrics"] > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 112px !important;
+    padding: 13px !important;
+    gap: 10px !important;
+  }
+
+  .soc-dashboard [data-name="Security metrics"] > * img {
+    max-width: 26px !important;
+    max-height: 26px !important;
+  }
+
+  /* Real-time alerts and global activity stack vertically */
+  .soc-dashboard [data-name="Live alerts and global activity"] {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    gap: 12px !important;
+    overflow: visible !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"],
+  .soc-dashboard [data-name="Global threat activity"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 14px !important;
+    overflow: hidden !important;
+  }
+
+  /* Alerts heading and toolbar */
+  .soc-dashboard [data-name="Real-time alerts"] > div:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 8px !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"] > div:first-child p {
+    font-size: 17px !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"] > div:nth-child(2) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"] select {
+    max-width: 100% !important;
+  }
+
+  /* Remove the desktop table's fixed 880px width */
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Hide desktop column headings */
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div > div:first-child {
+    display: none !important;
+  }
+
+  /* Present each alert as a compact mobile row */
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div > div > button {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 7px 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 11px 4px !important;
+    align-items: center !important;
+  }
+
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div > div > button > span {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    flex: initial !important;
+    font-size: 11px !important;
+  }
+
+  /* Alert description gets its own full-width line */
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div > div > button > span:nth-child(4) {
+    grid-column: 1 / -1 !important;
+    font-size: 12px !important;
+  }
+
+  /* Keep expanded alert details inside the screen */
+  .soc-dashboard [data-name="Real-time alerts"] .overflow-x-auto > div > div > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Incident analytics and overview */
+  .soc-dashboard [data-name="Incident analytics"] {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .soc-dashboard [data-name="Incident analytics"] > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+
+  .soc-dashboard [data-name="Incident overview"] > div:nth-child(2) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 16px !important;
+  }
+
+  .soc-dashboard [data-name="Incident overview"] > div:nth-child(2) > div {
+    max-width: 100% !important;
+  }
+
+  /* Prevent charts from extending past mobile width */
+  .soc-dashboard [data-rw-chart="true"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .soc-dashboard [data-name="Threat trends"] {
+    overflow: hidden !important;
+  }
+
+  .soc-dashboard [data-name="Threat trends"] > div:last-child {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .soc-dashboard [data-name="Threat trends"] [data-rw-chart="true"] {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* END RW SOC MOBILE ALERTS AND INCIDENTS FIT */
+
+
+
+/* RW SOC NAVIGATION MOTION RESTORE V1 */
+.rw-soc-shared-sidebar .rw-soc-nav-entry {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease,
+    opacity 180ms ease !important;
+  transform: none !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry:hover {
+  background-color: #1a1d22 !important;
+  color: #f5f5f5 !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry.rw-soc-nav-active {
+  background-color: #292e36 !important;
+  color: #f5f5f5 !important;
+  font-weight: 600 !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry:focus-visible {
+  outline: 1px solid #64748b !important;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-soc-shared-sidebar .rw-soc-nav-entry {
+    transition: none !important;
+  }
+}
+/* END RW SOC NAVIGATION MOTION RESTORE V1 */

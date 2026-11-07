@@ -355,8 +355,19 @@ function SocSidebar() {
       setActivePanel(detail?.panel ?? null);
     };
 
+    const handleRouteChange = () => {
+      if (window.location.pathname !== "/security") {
+        setActivePanel(null);
+      }
+    };
+
     window.addEventListener("rw-soc-active-panel", update);
-    return () => window.removeEventListener("rw-soc-active-panel", update);
+    window.addEventListener("popstate", handleRouteChange);
+
+    return () => {
+      window.removeEventListener("rw-soc-active-panel", update);
+      window.removeEventListener("popstate", handleRouteChange);
+    };
   }, []);
 
   const path = window.location.pathname;
