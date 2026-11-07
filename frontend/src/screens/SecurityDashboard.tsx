@@ -104,6 +104,81 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
   const [showSecurityLogs, setShowSecurityLogs] = useState(false);
   const [showSecurityAlerts, setShowSecurityAlerts] = useState(false);
 
+  useEffect(() => {
+    const panel = showSecurityLogs
+      ? "Logs"
+      : showSecurityAlerts
+        ? "Alerts"
+        : null;
+
+    window.dispatchEvent(
+      new CustomEvent("rw-soc-active-panel", {
+        detail: { panel }
+      })
+    );
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("rw-soc-active-panel", {
+          detail: { panel: null }
+        })
+      );
+    };
+  }, [showSecurityLogs, showSecurityAlerts]);
+
+  useEffect(() => {
+    const openLogs = () => {
+      sessionStorage.removeItem("rw-soc-pending-action");
+      setShowSecurityAlerts(false);
+      setShowSecurityLogs(true);
+    };
+
+    window.addEventListener("rw-open-security-logs", openLogs);
+
+    if (
+      sessionStorage.getItem("rw-soc-pending-action") ===
+      "Logs"
+    ) {
+      openLogs();
+    }
+
+    return () => {
+      window.removeEventListener("rw-open-security-logs", openLogs);
+    };
+  }, []);
+
+  useEffect(() => {
+    const openAlerts = () => {
+      sessionStorage.removeItem("rw-soc-pending-action");
+      setShowSecurityLogs(false);
+      setShowSecurityAlerts(true);
+    };
+
+    window.addEventListener("rw-open-security-alerts", openAlerts);
+
+    if (sessionStorage.getItem("rw-soc-pending-action") === "Alerts") {
+      openAlerts();
+    }
+
+    return () => {
+      window.removeEventListener("rw-open-security-alerts", openAlerts);
+    };
+  }, []);
+
+
+  useEffect(() => {
+    const closePanels = () => {
+      setShowSecurityAlerts(false);
+      setShowSecurityLogs(false);
+    };
+
+    window.addEventListener("rw-close-security-panels", closePanels);
+
+    return () => {
+      window.removeEventListener("rw-close-security-panels", closePanels);
+    };
+  }, []);
+
   const [activeAlertCount, setActiveAlertCount] = useState(0);
   const [investigationEventId, setInvestigationEventId] = useState<number | null>(null);
 
@@ -173,7 +248,23 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         <AllSecurityLogs onClose={() => setShowSecurityLogs(false)} />
       )}
       {showSecurityAlerts && (
-        <SecurityAlerts onClose={() => setShowSecurityAlerts(false)} />
+        <SecurityAlerts
+          onClose={() => {
+            setShowSecurityAlerts(false);
+            setShowSecurityLogs(false);
+
+            if (window.location.pathname !== "/security") {
+              window.history.pushState({}, "", "/security");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }
+
+            window.dispatchEvent(
+              new CustomEvent("rw-soc-active-panel", {
+                detail: { panel: null }
+              })
+            );
+          }}
+        />
       )}
     <div className="soc-dashboard bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] items-start min-h-[1080px] overflow-clip pb-[24px] pt-[27px] px-[24px] relative shrink-0 w-[324px]" data-node-id="15:2924" data-name="Sidebar">
@@ -237,7 +328,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3391" data-name="list">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgList} />
                 </div>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Medium'] font-medium leading-[normal] min-w-px not-italic relative text-[#b4b8c0] text-[15px]" data-node-id="15:2950">{`Logs & Telemetry`}</p>
+                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Medium'] font-medium leading-[normal] min-w-px not-italic relative text-[#b4b8c0] text-[15px]" data-node-id="15:2950">{`Logs`}</p>
               </div>
               <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2951" data-name="Navigation item">
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3394" data-name="radar">

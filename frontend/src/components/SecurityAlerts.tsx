@@ -157,8 +157,8 @@ export default function SecurityAlerts({ onClose }: Props) {
   }, [page, severity]);
 
   return (
-    <div className="fixed inset-0 z-[5000] bg-[#080a0d] overflow-y-auto p-6 md:p-10">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+    <div className="w-full min-w-0 min-h-screen bg-[#080a0d] overflow-x-hidden p-5 md:p-8">
+      <div className="w-full max-w-none space-y-6">
 
         <div className="flex items-center justify-between gap-4">
           <div>

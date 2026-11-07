@@ -1,19 +1,52 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 
-const customerItems = [
-  { label: "Dashboard", href: "/dashboard", icon: "50fa9.svg" },
-  { label: "Portfolio", href: "/portfolio", icon: "70fb9.svg" },
-  { label: "Trade", href: "/markets", icon: "74de4.svg" },
-  { label: "Watchlist", href: "/dashboard#watchlist", icon: "18ed1.svg" },
-  { label: "Transactions", href: "/transactions", icon: "ca3db.svg" },
-  { label: "Add Funds", href: "/deposit", icon: "add-funds-money.svg" },
+type NavItem = {
+  label: string;
+  href: string;
+  action?: "Alerts" | "Logs";
+};
+
+const customerItems: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Portfolio", href: "/portfolio" },
+  { label: "Trade", href: "/markets" },
+  { label: "Watchlist", href: "/dashboard#watchlist" },
+  { label: "Transactions", href: "/transactions" },
+  { label: "Add Funds", href: "/deposit" },
 ];
 
-const securityLinks = [
+const securityItems: NavItem[] = [
   { label: "SOC Dashboard", href: "/security" },
-  { label: "Incidents", href: "/security/incidents/INC-2026-0142" },
+  { label: "Alerts", href: "/security", action: "Alerts" },
+  { label: "Incidents", href: "/security/incidents" },
+  { label: "Investigations", href: "/security/investigations" },
+  { label: "Logs", href: "/security", action: "Logs" },
+  { label: "Network", href: "/security/network" },
+  { label: "Cloud Security", href: "/security/cloud" },
   { label: "Admin Settings", href: "/admin/settings" },
 ];
+
+const wrapperStyle: CSSProperties = {
+  position: "fixed",
+  top: "max(14px, env(safe-area-inset-top))",
+  right: 16,
+  zIndex: 9999,
+};
+
+const buttonStyle: CSSProperties = {
+  width: 46,
+  height: 46,
+  borderRadius: 10,
+  border: "1px solid #30343b",
+  background: "#14171c",
+  color: "#f5f5f5",
+  fontSize: 23,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
 
 export default function UnifiedMobileNav({
   security = false,
@@ -28,43 +61,29 @@ export default function UnifiedMobileNav({
   useEffect(() => {
     const update = () => {
       setCurrent(window.location.pathname + window.location.hash);
+      setOpen(false);
     };
 
     window.addEventListener("popstate", update);
-    return () => window.removeEventListener("popstate", update);
+    window.addEventListener("hashchange", update);
+
+    return () => {
+      window.removeEventListener("popstate", update);
+      window.removeEventListener("hashchange", update);
+    };
   }, []);
 
   useEffect(() => {
-    let lastY = window.scrollY;
-    let frame = 0;
-
-    const updateScroll = () => {
-      if (frame) return;
-
-      frame = requestAnimationFrame(() => {
-        const currentY = window.scrollY;
-        const nav = document.querySelector(".rw-mobile-bottom-navigation");
-
-        if (nav && Math.abs(currentY - lastY) > 3) {
-          nav.classList.toggle("rw-nav-scrolling-down", currentY > lastY);
-          nav.classList.toggle("rw-nav-scrolling-up", currentY < lastY);
-        }
-
-        lastY = currentY;
-        frame = 0;
-      });
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
     };
 
-    window.addEventListener("scroll", updateScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", updateScroll);
-      cancelAnimationFrame(frame);
-    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
   }, []);
 
   const navigate = (
-    event: React.MouseEvent<HTMLAnchorElement>,
+    event: MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
     if (
@@ -77,149 +96,160 @@ export default function UnifiedMobileNav({
 
     event.preventDefault();
 
-    if (
-      window.location.pathname !== href.split("#")[0] ||
-      window.location.pathname + window.location.hash !== href
-    ) {
+    if (window.location.pathname + window.location.hash !== href) {
       window.history.pushState({}, "", href);
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
     setCurrent(href);
+    setOpen(false);
 
-    if (href === "/deposit") {
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-
-    const hash = href.split("#")[1];
-
-    if (hash) {
+    if (!href.includes("#")) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    } else {
+      const id = href.split("#")[1];
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          document.getElementById(hash)?.scrollIntoView({
-            behavior: "smooth"
-          });
+        document.getElementById(id)?.scrollIntoView({
+          behavior: "smooth",
         });
       });
-    } else {
-      window.scrollTo({ top: 0, behavior: "instant" });
     }
   };
 
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return current === "/dashboard" ||
-        current.startsWith("/dashboard#");
-    }
-    return current.split("#")[0] === href;
-  };
-
-  if (security) {
-    return (
-      <div
-        className="rw-unified-mobile-nav"
-        style={{
-          position: "fixed",
-          right: 16,
-          top: 64,
-          zIndex: 9999,
-          fontFamily: "Inter, sans-serif",
-        }}
-      >
-        <button
-          type="button"
-          aria-label="Open security navigation"
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-          style={{
-            background: "#14171c",
-            color: "#f5f5f5",
-            border: "1px solid #30343b",
-            borderRadius: 10,
-            padding: "11px 15px",
-            fontSize: 18,
-            cursor: "pointer",
-          }}
-        >
-          {open ? "✕" : "☰"}
-        </button>
-
-        {open && (
-          <nav
-            aria-label="Security mobile navigation"
-            style={{
-              position: "absolute",
-              right: 0,
-              top: 52,
-              width: 230,
-              background: "#14171c",
-              border: "1px solid #30343b",
-              borderRadius: 12,
-              padding: 8,
-              boxShadow: "0 16px 40px rgba(0,0,0,.55)",
-            }}
-          >
-            {securityLinks.map(link => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={e => navigate(e, link.href)}
-                style={{
-                  display: "block",
-                  padding: "13px 14px",
-                  borderRadius: 8,
-                  color: isActive(link.href) ? "#fff" : "#b4b8c0",
-                  background: isActive(link.href)
-                    ? "#252a31"
-                    : "transparent",
-                  fontSize: 13,
-                  textDecoration: "none",
-                }}
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        )}
-      </div>
-    );
-  }
+  const items: NavItem[] = security ? securityItems : customerItems;
 
   return (
-    <div className="rw-mobile-bottom-navigation">
-      <nav
-        aria-label="Customer mobile navigation"
-        className="rw-mobile-bottom-pill"
-      >
-        {customerItems.map(item => {
-          const active = isActive(item.href);
+    <div className="rw-unified-mobile-nav" style={wrapperStyle}>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            background: "transparent",
+            border: 0,
+            zIndex: 0,
+          }}
+        />
+      )}
 
-          return (
-            <a
-              key={item.label}
-              href={item.href}
-              aria-label={item.label}
-              aria-current={active ? "page" : undefined}
-              onClick={event => navigate(event, item.href)}
-              className={
-                "rw-mobile-bottom-item" +
-                (active ? " is-active" : "")
-              }
-            >
-              <span className="rw-mobile-bottom-active">
-                <img
-                  src={`/assets/${item.icon}`}
-                  alt=""
-                  className="rw-mobile-bottom-icon"
-                />
-              </span>
-              <span className="rw-mobile-bottom-label">
+      <button
+        type="button"
+        aria-label="Toggle navigation"
+        aria-expanded={open}
+        onClick={() => setOpen(value => !value)}
+        style={{ ...buttonStyle, position: "relative", zIndex: 2 }}
+      >
+        {open ? "×" : "☰"}
+      </button>
+
+      {open && (
+        <nav
+          aria-label={security ? "SOC navigation" : "Customer navigation"}
+          style={{
+            position: "absolute",
+            zIndex: 2,
+            top: 55,
+            right: 0,
+            width: 255,
+            maxWidth: "calc(100vw - 32px)",
+            maxHeight: "75dvh",
+            overflowY: "auto",
+            padding: 10,
+            border: "1px solid #303b49",
+            borderRadius: 14,
+            background: "#10151d",
+            boxShadow: "0 18px 45px rgba(0,0,0,.6)",
+          }}
+        >
+          <p style={{
+            color: "#8795a6",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            fontWeight: 600,
+            padding: "10px 12px",
+          }}>
+            RUSSELL WEALTH
+          </p>
+
+          {items.map(item => {
+            const selected = item.href === "/dashboard"
+              ? current.split("#")[0] === "/dashboard"
+              : current.split("#")[0] === item.href;
+
+            const funding = item.label === "Add Funds";
+
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                aria-current={selected ? "page" : undefined}
+                onClick={event => {
+                  if (item.action) {
+                    event.preventDefault();
+
+                    if (window.location.pathname !== "/security") {
+                      sessionStorage.setItem(
+                        "rw-soc-pending-action",
+                        item.action
+                      );
+                      window.history.pushState({}, "", "/security");
+                      window.dispatchEvent(new PopStateEvent("popstate"));
+                    } else {
+                      sessionStorage.removeItem("rw-soc-pending-action");
+                      window.dispatchEvent(
+                        new Event(
+                          item.action === "Alerts"
+                            ? "rw-open-security-alerts"
+                            : "rw-open-security-logs"
+                        )
+                      );
+                    }
+
+                    setOpen(false);
+                    return;
+                  }
+
+                  navigate(event, item.href);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  minHeight: 48,
+                  padding: "12px 13px",
+                  marginBottom: 3,
+                  borderRadius: 9,
+                  textDecoration: "none",
+                  color: selected || funding ? "#ffffff" : "#b4c0ce",
+                  background: selected
+                    ? "#243345"
+                    : funding ? "#172b28" : "transparent",
+                  border: selected
+                    ? "1px solid #344b63"
+                    : "1px solid transparent",
+                  fontSize: 13,
+                  fontWeight: selected || funding ? 600 : 500,
+                }}
+              >
                 {item.label}
-              </span>
-            </a>
-          );
-        })}
-      </nav>
+                {selected && (
+                  <span style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#e5edf6",
+                  }} />
+                )}
+              </a>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

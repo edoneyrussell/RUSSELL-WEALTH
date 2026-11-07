@@ -3276,3 +3276,380 @@ button {
     transform: translate(-50%, -3px) !important;
   }
 }
+
+
+/* RW SOC FIXED SIDEBAR GEOMETRY */
+
+.rw-soc-shared-sidebar {
+  box-sizing: border-box !important;
+  position: sticky !important;
+  top: 0 !important;
+  align-self: flex-start !important;
+
+  width: 208px !important;
+  min-width: 208px !important;
+  max-width: 208px !important;
+
+  height: 100vh !important;
+  height: 100dvh !important;
+
+  flex: 0 0 208px !important;
+  overflow: hidden !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-scroll-nav {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-gutter: stable !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 38px !important;
+  border-width: 1px !important;
+  transform: none !important;
+  scale: 1 !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry:hover,
+.rw-soc-shared-sidebar .rw-soc-nav-active,
+.rw-soc-shared-sidebar .rw-soc-nav-highlight {
+  transform: none !important;
+  scale: 1 !important;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* SOC SIDEBAR — REMOVE TAB OUTLINES */
+.rw-soc-shared-sidebar .rw-soc-nav-entry,
+.rw-soc-shared-sidebar .rw-soc-nav-entry:hover,
+.rw-soc-shared-sidebar .rw-soc-nav-entry:focus,
+.rw-soc-shared-sidebar .rw-soc-nav-entry:focus-visible,
+.rw-soc-shared-sidebar .rw-soc-nav-active,
+.rw-soc-shared-sidebar .rw-soc-nav-highlight {
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
+
+/* RW SOC INSTANT NAVIGATION FIX */
+
+.rw-soc-shared-sidebar,
+.rw-soc-shared-sidebar *,
+.rw-soc-shared-sidebar *::before,
+.rw-soc-shared-sidebar *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+.rw-soc-shared-sidebar {
+  width: 208px !important;
+  min-width: 208px !important;
+  max-width: 208px !important;
+  flex: 0 0 208px !important;
+  transform: none !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-nav-entry,
+.rw-soc-shared-sidebar .rw-soc-nav-entry:hover,
+.rw-soc-shared-sidebar .rw-soc-nav-active,
+.rw-soc-shared-sidebar .rw-soc-nav-highlight {
+  transform: none !important;
+  scale: 1 !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.rw-soc-shared-sidebar .rw-soc-scroll-nav {
+  scrollbar-gutter: stable !important;
+}
+
+
+
+/* RW SOC RESPONSIVE FIX V1 */
+
+@media (max-width: 700px) {
+
+  html,
+  body,
+  #root,
+  .screen-shell,
+  .screen-shell:not(.mobile-experience) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
+  }
+
+  .rw-page-transition,
+  .rw-page-transition > *,
+  .rw-unified-customer-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* SOC dashboard: use the shared mobile navigation */
+  .soc-dashboard {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .soc-dashboard > [data-name="Sidebar"] {
+    display: none !important;
+  }
+
+  .soc-dashboard > [data-name="Security analytics"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    padding: 16px !important;
+    overflow: visible !important;
+  }
+
+  .soc-dashboard [data-name="Dashboard overview"],
+  .soc-dashboard [data-name="Security metrics"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .soc-dashboard [data-name="Dashboard header"] {
+    height: auto !important;
+    min-height: 0 !important;
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+    padding: 0 !important;
+  }
+
+  .soc-dashboard [data-name="Dashboard introduction"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+  }
+
+  .soc-dashboard [data-name="Dashboard introduction"] p {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    font-size: clamp(20px, 6vw, 28px) !important;
+  }
+
+  .soc-dashboard [data-name="Header tools"] {
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+
+  .soc-dashboard [data-name="Security analytics"] > *,
+  .soc-dashboard [data-name="Dashboard overview"] > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .soc-dashboard [data-name*="Card"],
+  .soc-dashboard [data-name*="Panel"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Shared mobile content sizing */
+  .soc-dashboard *,
+  .rw-page-transition * {
+    box-sizing: border-box;
+  }
+
+  /* Network and cloud */
+  .rw-page-transition main {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Incident and investigation layouts */
+  .rw-page-transition main > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rw-page-transition table {
+    min-width: 650px;
+  }
+
+  .rw-page-transition .overflow-x-auto {
+    max-width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Alerts and logs overlays */
+  .rw-page-transition .fixed.inset-0 {
+    padding: 14px !important;
+  }
+
+  /* Consistent spacing */
+  .rw-page-transition h1 {
+    font-size: clamp(22px, 6vw, 30px);
+    overflow-wrap: anywhere;
+  }
+
+  .rw-page-transition section,
+  .rw-page-transition article {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Preserve bottom navigation and content clearance */
+  .rw-mobile-bottom-navigation {
+    z-index: 10000 !important;
+  }
+
+  body:has(.rw-mobile-bottom-navigation) {
+    padding-bottom: 95px !important;
+  }
+}
+
+/* Tablet sizing */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .screen-shell,
+  .screen-shell:not(.mobile-experience) {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .soc-dashboard {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .soc-dashboard > [data-name="Sidebar"] {
+    width: 208px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .soc-dashboard > [data-name="Security analytics"] {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+  }
+
+  .rw-page-transition main {
+    min-width: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+/* END RW SOC RESPONSIVE FIX V1 */
+
+
+/* RW DESKTOP LANDING IMAGE ALIGNMENT START */
+@media screen and (min-width: 1024px) {
+
+  /* Large silver RW logo: right side */
+  [data-name="Russell Wealth landing page"]
+  [data-name="Landing hero"]
+  [data-name="Silver monogram"] {
+    left: auto !important;
+    right: 0 !important;
+  }
+
+  /* Customer dashboard: right-aligned and responsive */
+  [data-name="Russell Wealth landing page"]
+  [data-name="Customer dashboard on laptop"] {
+    left: auto !important;
+    right: 0 !important;
+    width: max(786px, 54.583vw) !important;
+    max-width: 100% !important;
+  }
+
+  /* Security dashboard: right-aligned and responsive */
+  [data-name="Russell Wealth landing page"]
+  [data-name="Security operations monitor"] {
+    left: auto !important;
+    right: 0 !important;
+    width: max(828px, 57.5vw) !important;
+    max-width: 100% !important;
+  }
+
+  /* Preserve image proportions */
+  [data-name="Russell Wealth landing page"]
+  :is(
+    [data-name="Silver monogram"],
+    [data-name="Customer dashboard on laptop"],
+    [data-name="Security operations monitor"]
+  ) img {
+    object-fit: cover;
+  }
+}
+/* RW DESKTOP LANDING IMAGE ALIGNMENT END */
+
+
+/* RW DESKTOP IMAGE FIT START */
+@media screen and (min-width: 1024px) {
+
+  /* Both dashboard image containers */
+  [data-name="Russell Wealth landing page"]
+  :is(
+    [data-name="Customer dashboard on laptop"],
+    [data-name="Security operations monitor"]
+  ) {
+    left: 44% !important;
+    right: 0 !important;
+    width: 56% !important;
+    max-width: none !important;
+    transform: none !important;
+    overflow: hidden !important;
+  }
+
+  /* Fit the original images into their desktop areas */
+  [data-name="Russell Wealth landing page"]
+  :is(
+    [data-name="Customer dashboard on laptop"],
+    [data-name="Security operations monitor"]
+  ) > [data-name="Original imagery"] {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+  }
+
+  /* Preserve proportions and fill the available space */
+  [data-name="Russell Wealth landing page"]
+  :is(
+    [data-name="Customer dashboard on laptop"],
+    [data-name="Security operations monitor"]
+  ) > [data-name="Original imagery"] img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: right center !important;
+  }
+
+  /* Keep image transitions inside their containers */
+  [data-name="Russell Wealth landing page"]
+  :is(
+    [data-name="Customer dashboard on laptop"],
+    [data-name="Security operations monitor"]
+  ) > [data-name="Image transition"] {
+    max-width: 100% !important;
+  }
+}
+/* RW DESKTOP IMAGE FIT END */

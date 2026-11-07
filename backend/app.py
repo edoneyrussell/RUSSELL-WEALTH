@@ -947,5 +947,118 @@ def api_profile_photo():
         db.close()
 
 
+# Russell Wealth SOC infrastructure health monitoring
+@app.route("/api/security/infrastructure", methods=["GET"])
+@role_required("SOC_ADMIN")
+def api_security_infrastructure():
+    from datetime import datetime, timezone
+    from time import perf_counter
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError, URLError
+    from urllib.parse import urlparse
+    from postgres_connection import get_postgres_connection
+
+    def check_http(name, environment_variable):
+        url = os.environ.get(environment_variable, "").strip()
+
+        if not url:
+            return {
+                "name": name,
+                "status": "unconfigured",
+                "latency_ms": None,
+                "http_status": None,
+                "detail": "Production URL not configured"
+            }
+
+        parsed = urlparse(url)
+
+        if parsed.scheme != "https" or not parsed.hostname:
+            return {
+                "name": name,
+                "status": "unconfigured",
+                "latency_ms": None,
+                "http_status": None,
+                "detail": "Invalid production URL configuration"
+            }
+
+        started = perf_counter()
+
+        try:
+            request_obj = Request(
+                url,
+                headers={"User-Agent": "RussellWealth-Monitor/1.0"}
+            )
+
+            with urlopen(request_obj, timeout=8) as response:
+                code = response.status
+
+            return {
+                "name": name,
+                "status": "online" if 200 <= code < 400 else "degraded",
+                "latency_ms": round((perf_counter() - started) * 1000),
+                "http_status": code,
+                "detail": "HTTP endpoint responding"
+            }
+
+        except HTTPError as exc:
+            return {
+                "name": name,
+                "status": "degraded",
+                "latency_ms": round((perf_counter() - started) * 1000),
+                "http_status": exc.code,
+                "detail": "HTTP endpoint returned an error"
+            }
+
+        except (URLError, TimeoutError, OSError):
+            return {
+                "name": name,
+                "status": "offline",
+                "latency_ms": round((perf_counter() - started) * 1000),
+                "http_status": None,
+                "detail": "Endpoint unreachable"
+            }
+
+    render = check_http("Render", "RW_RENDER_HEALTH_URL")
+    vercel = check_http("Vercel", "RW_VERCEL_URL")
+
+    started = perf_counter()
+
+    if not os.environ.get("DATABASE_URL"):
+        neon = {
+            "name": "Neon",
+            "status": "unconfigured",
+            "latency_ms": None,
+            "http_status": None,
+            "detail": "PostgreSQL connection not configured"
+        }
+    else:
+        try:
+            with get_postgres_connection() as connection:
+                connection.execute("SELECT 1").fetchone()
+
+            neon = {
+                "name": "Neon",
+                "status": "online",
+                "latency_ms": round((perf_counter() - started) * 1000),
+                "http_status": None,
+                "detail": "PostgreSQL query successful"
+            }
+
+        except Exception:
+            neon = {
+                "name": "Neon",
+                "status": "offline",
+                "latency_ms": round((perf_counter() - started) * 1000),
+                "http_status": None,
+                "detail": "PostgreSQL connection or query failed"
+            }
+
+    return jsonify({
+        "success": True,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "services": [render, neon, vercel]
+    })
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

@@ -14,6 +14,7 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import ForgotPassword from './screens/ForgotPassword'
 import Dashboard from './screens/Dashboard'
 import Incident from './screens/Incident'
+import Investigations from './screens/Investigations'
 import Landing from './screens/Landing'
 import MobileDashboard from './screens/MobileDashboard'
 import MobileLanding from './screens/MobileLanding'
@@ -21,6 +22,8 @@ import MobileLogin from './screens/MobileLogin'
 import Portfolio from './screens/PortfolioExperience'
 import Transactions from './screens/Transactions'
 import SecurityDashboard from './screens/SecurityDashboard'
+import NetworkInfrastructure from './screens/NetworkInfrastructure'
+import CloudSecurity from './screens/CloudSecurity'
 
 const routes = {
   '/help': HelpSupport,
@@ -35,6 +38,10 @@ const routes = {
   '/withdraw': DemoBanking,
   '/markets': Markets,
   '/security': SecurityDashboard,
+  '/security/network': NetworkInfrastructure,
+  '/security/cloud': CloudSecurity,
+  '/security/incidents': Incident,
+  '/security/investigations': Investigations,
   '/security/incidents/INC-2026-0142': Incident,
   '/admin/settings': AdminSettings,
   '/customer/settings': CustomerSettings,
@@ -49,7 +56,9 @@ const navigationByLabel: Record<string, string> = {
   Transactions: '/transactions',
   Markets: '/markets',
   'SOC Dashboard': '/security',
-  Incidents: '/security/incidents/INC-2026-0142',
+  'Cloud Security': '/security/cloud',
+  Incidents: '/security/incidents',
+  Investigations: '/security/investigations',
   'View Dashboard': '/dashboard',
   'Explore the Platform': '/dashboard',
   'Explore Platform': '/dashboard',
@@ -90,7 +99,8 @@ export default function App() {
     isMobile &&
     (
       ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
-       '/customer/settings', '/security', '/admin/settings'].includes(path) ||
+       '/customer/settings', '/security', '/security/incidents', '/security/investigations',
+       '/security/network', '/security/cloud', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
     )
 
@@ -168,6 +178,10 @@ export default function App() {
   const securityRoutes = [
     '/admin/settings',
     '/security',
+    '/security/network',
+    '/security/cloud',
+    '/security/incidents',
+    '/security/investigations',
     '/security/incidents/INC-2026-0142',
   ]
 
@@ -178,8 +192,59 @@ export default function App() {
   if (auth === null && isProtectedRoute) {
     return (
       <main className="screen-shell">
-        <div className="min-h-screen bg-[#08090a] flex items-center justify-center text-[#c5cad2]">
-          Verifying access...
+        <div
+          role="status"
+          aria-live="polite"
+          className="min-h-screen w-full flex flex-col items-center justify-center bg-[#080a0d] px-6"
+        >
+          <style>{`
+            @keyframes rw-loading-pulse {
+              0%, 100% { opacity: .35; transform: scaleX(.25); }
+              50% { opacity: 1; transform: scaleX(1); }
+            }
+            @keyframes rw-loading-glow {
+              0%, 100% { opacity: .55; }
+              50% { opacity: 1; }
+            }
+            .rw-loading-bar {
+              animation: rw-loading-pulse 1.8s ease-in-out infinite;
+              transform-origin: center;
+            }
+            .rw-loading-logo {
+              animation: rw-loading-glow 2.5s ease-in-out infinite;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .rw-loading-bar, .rw-loading-logo {
+                animation: none;
+              }
+            }
+          `}</style>
+
+          <div className="flex flex-col items-center w-full max-w-sm text-center">
+            <img
+              src="/assets/c8aca.png"
+              alt="Russell Wealth"
+              className="rw-loading-logo object-contain max-w-[240px] max-h-[110px] mb-5"
+            />
+
+            <p className="text-[#a9b0bb] text-[10px] tracking-[0.28em] font-semibold mb-10">
+              YOUR FINANCIAL PLATFORM
+            </p>
+
+            <div className="w-12 h-[2px] bg-[#c5a875] rounded-full mb-7 rw-loading-bar" />
+
+            <h1 className="text-white text-xl font-semibold tracking-wide">
+              Currently loading...
+            </h1>
+
+            <p className="text-[#929ba8] text-sm mt-3">
+              Connecting to Russell Wealth services
+            </p>
+
+            <p className="text-[#626d7b] text-xs mt-8">
+              Securely verifying your account
+            </p>
+          </div>
         </div>
       </main>
     )

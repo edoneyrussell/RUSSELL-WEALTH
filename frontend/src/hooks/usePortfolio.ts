@@ -1,65 +1,101 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-type Portfolio = {
+export type Portfolio = {
   account_name: string;
   currency: string;
   cash_balance: string;
   invested_value: string;
   total_value: string;
   holdings: Array<{
-  symbol: string;
-  name: string;
-  asset_type: string;
-  quantity: string;
-  price: string;
-  market_value: string;
-}>;
+    symbol: string;
+    name: string;
+    asset_type: string;
+    quantity: string;
+    price: string;
+    market_value: string;
+  }>;
 };
 
 export function usePortfolio() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [error, setError] = useState(false);
 
+  const refresh = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const response = await fetch('/api/customer/portfolio', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Portfolio request failed');
+      }
+
+      const data: Portfolio = await response.json();
+
+      if (
+        !data ||
+        !Array.isArray(data.holdings) ||
+        data.cash_balance === undefined ||
+        data.total_value === undefined
+      ) {
+        throw new Error('Invalid portfolio response');
+      }
+
+      setPortfolio(data);
+      setError(false);
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setError(true);
+    }
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
 
-    fetch('/api/customer/portfolio', {
-      credentials: 'same-origin',
-      signal: controller.signal,
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Portfolio request failed');
-        return response.json();
-      })
-      .then(setPortfolio)
-      .catch(error => {
-        if (error.name !== 'AbortError') setError(true);
-      });
+    void refresh(controller.signal);
 
-    const refresh = () => {
-      fetch('/api/customer/portfolio', {
-        credentials: 'same-origin',
-      })
-        .then(response => {
-          if (!response.ok) throw new Error('Portfolio refresh failed');
-          return response.json();
-        })
-        .then(data => {
-          setPortfolio(data);
-          setError(false);
-        })
-        .catch(() => setError(true));
+    // Keep account data synchronized across dashboard sessions.
+    const interval = window.setInterval(() => {
+      void refresh();
+    }, 10000);
+
+    const onPortfolioUpdated = () => {
+      void refresh();
     };
 
-    window.addEventListener('portfolio-updated', refresh);
-    window.addEventListener('rw:portfolio-updated', refresh);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh();
+      }
+    };
+
+    window.addEventListener('portfolio-updated', onPortfolioUpdated);
+    window.addEventListener('rw:portfolio-updated', onPortfolioUpdated);
+    window.addEventListener('focus', onVisibilityChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Synchronize other tabs on the same browser.
+    const channel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('rw-portfolio-sync')
+      : null;
+
+    channel?.addEventListener('message', onPortfolioUpdated);
 
     return () => {
       controller.abort();
-      window.removeEventListener('portfolio-updated', refresh);
-      window.removeEventListener('rw:portfolio-updated', refresh);
+      window.clearInterval(interval);
+
+      window.removeEventListener('portfolio-updated', onPortfolioUpdated);
+      window.removeEventListener('rw:portfolio-updated', onPortfolioUpdated);
+      window.removeEventListener('focus', onVisibilityChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+
+      channel?.removeEventListener('message', onPortfolioUpdated);
+      channel?.close();
     };
-  }, []);
+  }, [refresh]);
 
   return { portfolio, error };
 }
