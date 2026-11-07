@@ -63,6 +63,8 @@ export default function TradeExplore() {
 
   const [category, setCategory] = useState<Category>("All");
   const [search, setSearch] = useState("");
+  const [marketResults, setMarketResults] = useState<Asset[]>([]);
+  const [marketSearching, setMarketSearching] = useState(false);
   const [selected, setSelected] = useState("AAPL");
   const [assets, setAssets] = useState<Asset[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -127,17 +129,85 @@ export default function TradeExplore() {
     };
   }, []);
 
+  useEffect(() => {
+    const query = search.trim();
+
+    if (query.length < 1) {
+      setMarketResults([]);
+      setMarketSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    setMarketSearching(true);
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/market/search?q=${encodeURIComponent(query)}`,
+          {
+            credentials: "same-origin",
+            signal: controller.signal,
+          }
+        );
+
+        if (!response.ok) throw new Error("Market search unavailable");
+
+        const data = await response.json();
+
+        const results: Asset[] = (data.results || []).map(
+          (item: {
+            symbol: string;
+            name?: string;
+            currency?: string;
+            type?: string;
+          }) => ({
+            symbol: item.symbol,
+            name: item.name || item.symbol,
+            type: item.type || (
+              /ETF|exchange.traded fund/i.test(item.name || "")
+                ? "ETF"
+                : "STOCK"
+            ),
+            currency: item.currency || (
+              item.symbol.endsWith(".TO") ? "CAD" : "USD"
+            ),
+            price: "",
+          })
+        );
+
+        setMarketResults(results);
+      } catch (error) {
+        if (!(error instanceof Error && error.name === "AbortError")) {
+          setMarketResults([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setMarketSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [search]);
+
   const allAssets = useMemo(() => {
     const merged = new Map<string, Asset>();
 
     for (const asset of catalog) merged.set(asset.symbol.toUpperCase(), asset);
+
+    for (const asset of marketResults) {
+      merged.set(asset.symbol.toUpperCase(), asset);
+    }
 
     for (const asset of assets) {
       merged.set(asset.symbol.toUpperCase(), asset);
     }
 
     return Array.from(merged.values());
-  }, [assets]);
+  }, [assets, marketResults]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -171,8 +241,8 @@ export default function TradeExplore() {
   );
 
   const canSubmit =
-    isBackendListed &&
     isSupportedType &&
+    (isBackendListed || trade.direction === "BUY") &&
     trade.symbol === current.symbol &&
     !trade.submitting;
 
@@ -182,8 +252,8 @@ export default function TradeExplore() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080B0F] px-4 py-6 text-[#F2F2F3] sm:px-7 lg:px-10">
-      <div className="mx-auto max-w-[1500px]">
+    <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-[#080B0F] px-3 py-4 text-[#F2F2F3] sm:px-7 sm:py-6 lg:px-10">
+      <div className="mx-auto w-full min-w-0 max-w-[1500px]">
         <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#8F9BAA]">
@@ -250,13 +320,13 @@ export default function TradeExplore() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
           <section className="min-w-0 rounded-3xl border border-[#2D3642] bg-[#10151C] p-4 sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold">Explore Assets</h2>
                 <p className="mt-1 text-xs text-[#8895A5]">
-                  {filtered.length} investments · Select one to inspect
+                  {marketSearching ? "Searching markets..." : `${filtered.length} investments · Select one to inspect`}
                 </p>
               </div>
               <span className="rounded-lg bg-[#242D38] px-3 py-1.5 text-[10px] uppercase tracking-wider text-[#B5C0CE]">
@@ -274,7 +344,7 @@ export default function TradeExplore() {
               <p className="mb-4 text-xs text-[#9BA8B8]">Loading market assets...</p>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
               {filtered.map(asset => {
                 const active = current.symbol === asset.symbol;
                 const listed = assets.some(
@@ -434,8 +504,8 @@ export default function TradeExplore() {
 
               {!isBackendListed && (
                 <p className="mb-4 text-xs leading-5 text-[#D5B58F]">
-                  This asset is a discovery preview. Trading becomes available
-                  when it is supported by your existing asset catalog.
+                  New asset. Buying requires a valid stored market quote.
+                  Selling requires an existing position.
                 </p>
               )}
 

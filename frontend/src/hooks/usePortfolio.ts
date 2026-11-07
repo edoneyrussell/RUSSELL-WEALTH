@@ -52,10 +52,12 @@ export function usePortfolio() {
     };
 
     window.addEventListener('portfolio-updated', refresh);
+    window.addEventListener('rw:portfolio-updated', refresh);
 
     return () => {
       controller.abort();
       window.removeEventListener('portfolio-updated', refresh);
+      window.removeEventListener('rw:portfolio-updated', refresh);
     };
   }, []);
 

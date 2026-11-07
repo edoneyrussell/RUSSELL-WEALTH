@@ -123,10 +123,12 @@ export default function PortfolioExperience() {
 
     const refresh = () => { void load(); };
     window.addEventListener("portfolio-updated", refresh);
+    window.addEventListener("rw:portfolio-updated", refresh);
 
     return () => {
       active = false;
       window.removeEventListener("portfolio-updated", refresh);
+      window.removeEventListener("rw:portfolio-updated", refresh);
     };
   }, [refreshKey]);
 
