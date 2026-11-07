@@ -3653,3 +3653,230 @@ html {
   }
 }
 /* RW DESKTOP IMAGE FIT END */
+
+/* RW PREMIUM MOBILE DRAWER */
+@media (max-width: 767px) {
+  .rw-unified-mobile-nav {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    right: 16px;
+    z-index: 9999;
+  }
+
+  .rw-mobile-menu-trigger {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #303b49;
+    border-radius: 17px;
+    background: #14171c;
+    color: #e6ebf2;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,.24);
+    transition: background .2s ease, border-color .2s ease;
+  }
+
+  .rw-mobile-menu-trigger:active {
+    background: #202833;
+  }
+
+  .rw-mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(0,0,0,.68);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    animation: rw-mobile-backdrop-in .22s ease both;
+  }
+
+  .rw-mobile-nav-drawer {
+    position: fixed;
+    z-index: 2;
+    top: max(8px, env(safe-area-inset-top));
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: min(390px, calc(100vw - 16px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 22px 23px 17px;
+    border: 1px solid #303b49;
+    border-radius: 26px;
+    background: #0b0e13;
+    color: #e7ebf1;
+    box-shadow: 0 24px 75px rgba(0,0,0,.58);
+    animation: rw-mobile-drawer-in .32s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  .rw-mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    padding-bottom: 23px;
+  }
+
+  .rw-mobile-nav-brand {
+    color: #e9edf3;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: .035em;
+  }
+
+  .rw-mobile-nav-subtitle {
+    margin-top: 5px;
+    color: #8995a5;
+    font-size: 12px;
+    letter-spacing: .07em;
+  }
+
+  .rw-mobile-nav-close {
+    width: 43px;
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #cbd4df;
+    font-size: 34px;
+    font-weight: 300;
+    cursor: pointer;
+  }
+
+  .rw-mobile-nav-divider {
+    height: 1px;
+    flex-shrink: 0;
+    background: #303b49;
+  }
+
+  .rw-mobile-nav-section {
+    flex-shrink: 0;
+    padding: 25px 0 13px;
+    color: #8995a5;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .055em;
+  }
+
+  .rw-mobile-nav-items {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .rw-mobile-nav-items::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rw-mobile-nav-item {
+    position: relative;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px;
+    margin: 2px 0;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #d4dbe5;
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: background .18s ease, color .18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .rw-mobile-nav-item:active,
+  .rw-mobile-nav-item.is-active {
+    background: #19232f;
+    border-color: #29394a;
+    color: #f5f7fa;
+  }
+
+  .rw-mobile-nav-item-icon {
+    width: 27px;
+    height: 27px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #a7b5c7;
+  }
+
+  .rw-mobile-nav-item.is-active .rw-mobile-nav-item-icon {
+    color: #d9e4f0;
+  }
+
+  .rw-mobile-nav-active-indicator {
+    width: 6px;
+    height: 6px;
+    margin-left: auto;
+    border-radius: 50%;
+    background: #c4d2e2;
+  }
+
+  .rw-mobile-nav-item.is-funding {
+    color: #d9e6e1;
+  }
+
+  .rw-mobile-nav-lower-divider {
+    margin-top: 14px;
+  }
+
+  .rw-mobile-nav-help {
+    flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  .rw-mobile-nav-footer {
+    min-height: 49px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid #303b49;
+    color: #8995a5;
+    font-size: 13px;
+  }
+
+  .rw-mobile-nav-version {
+    color: #8995a5;
+    font-size: 12px;
+  }
+}
+
+@keyframes rw-mobile-drawer-in {
+  from {
+    opacity: .7;
+    transform: translateX(35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes rw-mobile-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .rw-unified-mobile-nav {
+    display: none !important;
+  }
+}
+/* END RW PREMIUM MOBILE DRAWER */
