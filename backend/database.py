@@ -1,9 +1,20 @@
+from pathlib import Path
+import os
 import sqlite3
 
-DATABASE = "russellwealth.db"
+DATABASE = str(Path(__file__).resolve().parent.parent / "russellwealth.db")
 
 
 def get_db_connection():
+    engine = os.environ.get("RW_DB_ENGINE", "sqlite").lower()
+
+    if engine == "postgres":
+        from postgres_adapter import get_postgres_adapter
+        return get_postgres_adapter()
+
+    if engine != "sqlite":
+        raise ValueError(f"Unsupported database engine: {engine}")
+
     connection = sqlite3.connect(DATABASE)
     connection.row_factory = sqlite3.Row
     return connection

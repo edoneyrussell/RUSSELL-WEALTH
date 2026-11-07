@@ -1,7 +1,10 @@
 from database import get_db_connection
+import os
 
 
 def initialize_investments():
+    if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres":
+        return
     conn = get_db_connection()
 
     conn.executescript("""

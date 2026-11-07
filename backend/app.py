@@ -1,5 +1,6 @@
 
 from datetime import timedelta
+import os
 from market_search_api import market_search_bp
 from trading_api import trading_bp
 from portfolio_api import portfolio_bp
@@ -205,7 +206,12 @@ def api_me():
     try:
         columns = {
             row["name"] for row in
-            db.execute("PRAGMA table_info(users)").fetchall()
+            db.execute(
+                "SELECT column_name AS name FROM information_schema.columns "
+                "WHERE table_schema = current_schema() AND table_name = 'users'"
+                if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+                else "PRAGMA table_info(users)"
+            ).fetchall()
         }
 
         photo = None
@@ -427,15 +433,25 @@ def api_security_overview():
             FROM security_incidents
         """).fetchone()
 
-        trends = connection.execute("""
+        trend_hour = (
+            "to_char(date_trunc('hour', created_at), 'YYYY-MM-DD\"T\"HH24:00:00\"Z\"')"
+            if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+            else "strftime('%Y-%m-%dT%H:00:00Z', created_at)"
+        )
+        trend_recent = (
+            "created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'"
+            if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+            else "datetime(created_at) >= datetime('now', '-24 hours')"
+        )
+        trends = connection.execute(f"""
             SELECT
-                strftime('%Y-%m-%dT%H:00:00Z', created_at) AS hour,
+                {trend_hour} AS hour,
                 COUNT(*) AS total,
                 SUM(CASE WHEN event_type = 'LOGIN_FAILED' THEN 1 ELSE 0 END) AS failed,
                 SUM(CASE WHEN event_type = 'LOGIN_SUCCESS' THEN 1 ELSE 0 END) AS successful
             FROM security_events
-            WHERE datetime(created_at) >= datetime('now', '-24 hours')
-            GROUP BY strftime('%Y-%m-%dT%H:00:00Z', created_at)
+            WHERE {trend_recent}
+            GROUP BY {trend_hour}
             ORDER BY hour
         """).fetchall()
 
@@ -502,9 +518,9 @@ def api_security_logs():
 
     try:
         total = connection.execute(
-            f"SELECT COUNT(*) FROM security_events e {where_clause}",
+            f"SELECT COUNT(*) AS total FROM security_events e {where_clause}",
             parameters
-        ).fetchone()[0]
+        ).fetchone()["total"]
 
         offset = (page - 1) * per_page
 
@@ -582,14 +598,14 @@ def api_security_alerts():
         )
 
         total = connection.execute(
-            f"SELECT COUNT(*) FROM security_alerts {where_clause}",
+            f"SELECT COUNT(*) AS total FROM security_alerts {where_clause}",
             parameters
-        ).fetchone()[0]
+        ).fetchone()["total"]
 
         active_count = connection.execute("""
-            SELECT COUNT(*) FROM security_alerts
+            SELECT COUNT(*) AS total FROM security_alerts
             WHERE status = 'ACTIVE'
-        """).fetchone()[0]
+        """).fetchone()["total"]
 
         rows = connection.execute(f"""
             SELECT id, event_id, alert_type, title, description,
@@ -693,13 +709,17 @@ def api_security_clear_alerts():
 def api_incident_list():
     connection = get_db_connection()
     try:
-        incidents = connection.execute("""
+        related_recent = (
+            "e.created_at >= i.created_at - INTERVAL '5 minutes'"
+            if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+            else "datetime(e.created_at) >= datetime(i.created_at, '-5 minutes')"
+        )
+        incidents = connection.execute(f"""
             SELECT i.*,
                 (SELECT COUNT(*)
                  FROM security_events e
                  WHERE e.source_ip = i.source_ip
-                   AND datetime(e.created_at) >=
-                       datetime(i.created_at, '-5 minutes')
+                   AND {related_recent}
                 ) AS related_event_count
             FROM security_incidents i
             ORDER BY i.created_at DESC, i.id DESC
@@ -727,15 +747,19 @@ def api_incident_detail(incident_id):
         if not incident:
             return jsonify({"error": "Incident not found"}), 404
 
-        events = connection.execute("""
+        event_recent = (
+            "e.created_at >= CAST(? AS timestamp) - INTERVAL '5 minutes'"
+            if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+            else "datetime(e.created_at) >= datetime(?, '-5 minutes')"
+        )
+        events = connection.execute(f"""
             SELECT e.id, e.user_id, u.email,
                    e.event_type, e.source_ip,
                    e.severity, e.details, e.created_at
             FROM security_events e
             LEFT JOIN users u ON u.id = e.user_id
             WHERE e.source_ip = ?
-              AND datetime(e.created_at) >=
-                  datetime(?, '-5 minutes')
+              AND {event_recent}
             ORDER BY e.created_at DESC, e.id DESC
             LIMIT 100
         """, (
@@ -821,21 +845,24 @@ def api_incident_add_note(incident_id):
         if not incident:
             return jsonify({"error": "Incident not found"}), 404
 
-        cursor = connection.execute("""
+        postgres = os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+        note_sql = """
             INSERT INTO incident_notes
             (incident_id, analyst_id, note)
             VALUES (?, ?, ?)
-        """, (
+        """ + (" RETURNING id" if postgres else "")
+        cursor = connection.execute(note_sql, (
             incident_id,
             session["user_id"],
             note.strip()
         ))
 
+        note_id = cursor.fetchone()["id"] if postgres else cursor.lastrowid
         connection.commit()
 
         return jsonify({
             "success": True,
-            "note_id": cursor.lastrowid
+            "note_id": note_id
         }), 201
     finally:
         connection.close()
@@ -857,7 +884,12 @@ def api_profile_photo():
     try:
         columns = {
             row["name"] for row in
-            db.execute("PRAGMA table_info(users)").fetchall()
+            db.execute(
+                "SELECT column_name AS name FROM information_schema.columns "
+                "WHERE table_schema = current_schema() AND table_name = 'users'"
+                if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+                else "PRAGMA table_info(users)"
+            ).fetchall()
         }
 
         if "profile_photo_data" not in columns:

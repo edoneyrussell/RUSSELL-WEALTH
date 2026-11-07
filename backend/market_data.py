@@ -8,14 +8,36 @@ from pathlib import Path
 
 import certifi
 
-ENV_FILE = Path(__file__).resolve().parent / ".env"
+ROOT_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+BACKEND_ENV_FILE = Path(__file__).resolve().parent / ".env"
+
 CACHE = {}
 CACHE_SECONDS = 900
 
 def api_key(name):
-    for line in ENV_FILE.read_text().splitlines():
-        if line.startswith(name + "="):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    import os
+
+    value = os.environ.get(name)
+    if value:
+        return value.strip()
+
+    for env_file in (ROOT_ENV_FILE, BACKEND_ENV_FILE):
+        if not env_file.is_file():
+            continue
+
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+
+            if key.strip() == name:
+                value = value.strip().strip('"').strip("'")
+                if value:
+                    return value
+
     raise RuntimeError(f"Missing {name}")
 
 def request_json(url, params):
@@ -41,7 +63,7 @@ def request_json(url, params):
     CACHE[cache_key] = (time.time(), data)
     return data
 
-def get_quote(symbol):
+def fetch_quote(symbol):
     symbol = symbol.strip().upper()
 
     if not symbol or len(symbol) > 25:
@@ -62,7 +84,7 @@ def get_quote(symbol):
         if not isinstance(data, list) or not data:
             raise RuntimeError("No Canadian market data")
 
-        latest = data[-1]
+        latest = max(data, key=lambda row: str(row.get('date', '')))
         return {
             "symbol": symbol,
             "price": latest["close"],
@@ -93,7 +115,7 @@ def get_quote(symbol):
         "price_type": "provider_quote"
     }
 
-def get_history(symbol):
+def fetch_history(symbol):
     symbol = symbol.strip().upper()
 
     if not symbol or len(symbol) > 25:
@@ -110,10 +132,12 @@ def get_history(symbol):
         )
         if not isinstance(data, list):
             raise RuntimeError("Historical data unavailable")
-        return [
+        history = [
             {"date": row["date"], "close": row["close"]}
             for row in data
+            if row.get("date") is not None and row.get("close") is not None
         ]
+        return sorted(history, key=lambda row: row["date"])
 
     data = request_json(
         "https://financialmodelingprep.com/stable/historical-price-eod/light",
@@ -125,14 +149,16 @@ def get_history(symbol):
     if not isinstance(data, list):
         raise RuntimeError("Historical data unavailable")
 
-    return [
+    history = [
         {"date": row["date"], "close": row["price"]}
         for row in data
+        if row.get("date") is not None and row.get("price") is not None
     ]
+    return sorted(history, key=lambda row: row["date"])
 
 
 
-def get_usd_cad_rate():
+def fetch_usd_cad_rate():
     """Get a recent USD-to-CAD exchange rate."""
     from decimal import Decimal
     from datetime import date
@@ -154,3 +180,24 @@ def get_usd_cad_rate():
         raise RuntimeError("USD/CAD exchange rate is stale")
 
     return Decimal(str(rate))
+
+
+# ---------------------------------------------------------
+# RUSSELL WEALTH — PERSISTENT MONTHLY MARKET DATA
+# Customer-facing functions read SQLite only.
+# External requests are isolated in fetch_* functions.
+# ---------------------------------------------------------
+
+def get_quote(symbol):
+    from market_cache import read_quote
+    return read_quote(symbol.strip().upper())
+
+
+def get_history(symbol):
+    from market_cache import read_history
+    return read_history(symbol.strip().upper())
+
+
+def get_usd_cad_rate():
+    from market_cache import read_fx_rate
+    return read_fx_rate()

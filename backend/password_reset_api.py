@@ -18,6 +18,9 @@ COOLDOWN = 60
 MAX_ATTEMPTS = 5
 
 def setup():
+    import os
+    if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres":
+        return
     db = get_db_connection()
     try:
         db.execute("""
@@ -79,7 +82,12 @@ def request_reset():
             )
         else:
             db.execute(
-                "INSERT OR REPLACE INTO password_reset_limits VALUES (?, ?, 1)",
+                """INSERT INTO password_reset_limits
+            (source_ip, window_start, requests)
+            VALUES (?, ?, 1)
+            ON CONFLICT(source_ip) DO UPDATE SET
+                window_start=excluded.window_start,
+                requests=1""",
                 (ip, now)
             )
 

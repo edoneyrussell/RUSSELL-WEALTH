@@ -1,4 +1,5 @@
 from database import get_db_connection
+import os
 
 
 def log_security_event(user_id, event_type, source_ip, severity, details):
@@ -27,12 +28,18 @@ def detect_failed_login_attack(source_ip):
     connection = get_db_connection()
 
     try:
-        row = connection.execute("""
+        recent_condition = (
+            "created_at >= CURRENT_TIMESTAMP - INTERVAL '60 seconds'"
+            if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
+            else "datetime(created_at) >= datetime('now', '-60 seconds')"
+        )
+
+        row = connection.execute(f"""
             SELECT COUNT(*) AS attempts
             FROM security_events
             WHERE event_type = 'LOGIN_FAILED'
               AND source_ip = ?
-              AND datetime(created_at) >= datetime('now', '-60 seconds')
+              AND {recent_condition}
         """, (source_ip,)).fetchone()
 
         attempts = row["attempts"]
@@ -40,12 +47,12 @@ def detect_failed_login_attack(source_ip):
         if attempts < 5:
             return False
 
-        existing = connection.execute("""
+        existing = connection.execute(f"""
             SELECT COUNT(*) AS count
             FROM security_events
             WHERE event_type = 'POSSIBLE_CREDENTIAL_ATTACK'
               AND source_ip = ?
-              AND datetime(created_at) >= datetime('now', '-60 seconds')
+              AND {recent_condition}
         """, (source_ip,)).fetchone()
 
         if existing["count"] > 0:

@@ -4,6 +4,7 @@ from authorization import role_required
 from database import get_db_connection
 from decimal import Decimal, InvalidOperation
 import sqlite3
+import psycopg
 import uuid
 
 banking_bp = Blueprint("rw_banking", __name__)
@@ -21,11 +22,33 @@ BANKS = [
     ("EQ", "EQ Bank", "EQ Bank"),
     ("ATB", "ATB Financial", "ATB"),
     ("LAURENTIAN", "Laurentian Bank", "Laurentian"),
+    ("WEALTHSIMPLE", "Wealthsimple", "Wealthsimple"),
+    ("MOTIVE", "Motive Financial", "Motive"),
+    ("MANULIFE", "Manulife Bank", "Manulife"),
+    ("COASTCAPITAL", "Coast Capital Savings", "Coast Capital"),
+    ("VANCITY", "Vancity Credit Union", "Vancity"),
+    ("MERIDIAN", "Meridian Credit Union", "Meridian"),
+    ("DUCA", "DUCA Credit Union", "DUCA"),
+    ("FIRSTONTARIO", "FirstOntario Credit Union", "FirstOntario"),
+    ("CONEXUS", "Conexus Credit Union", "Conexus"),
+    ("AFFINITY", "Affinity Credit Union", "Affinity"),
+    ("SERVUS", "Servus Credit Union", "Servus"),
+    ("CONNECTFIRST", "connectFirst Credit Union", "connectFirst"),
+    ("CAMBRIAN", "Cambrian Credit Union", "Cambrian"),
+    ("ASSINIBOINE", "Assiniboine Credit Union", "Assiniboine"),
+    ("STEINBACH", "Steinbach Credit Union", "Steinbach"),
+    ("ICICI", "ICICI Bank Canada", "ICICI"),
+    ("HSBC", "HSBC Bank Canada (Historical)", "HSBC"),
+    ("CANADIANWESTERN", "Canadian Western Bank (Historical)", "CWB"),
 ]
 
 INITIAL_CENTS = 100000000
 
 def initialize(conn):
+    if hasattr(conn, "connection"):
+        # PostgreSQL tables already exist through Neon migrations.
+        return
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS rw_demo_bank_accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,26 +95,41 @@ def customer_id():
 
 def ensure_banks(conn, uid):
     for code, _, _ in BANKS:
-        conn.execute("""
-            INSERT OR IGNORE INTO rw_demo_bank_accounts
-            (user_id, bank_code, balance_cents)
-            VALUES (?, ?, ?)
-        """, (uid, code, INITIAL_CENTS))
+        if hasattr(conn, "connection"):
+            conn.execute("""
+                INSERT INTO rw_demo_bank_accounts
+                (user_id, bank_code, balance_cents)
+                VALUES (?, ?, ?)
+                ON CONFLICT (user_id, bank_code) DO NOTHING
+            """, (uid, code, INITIAL_CENTS))
+        else:
+            conn.execute("""
+                INSERT OR IGNORE INTO rw_demo_bank_accounts
+                (user_id, bank_code, balance_cents)
+                VALUES (?, ?, ?)
+            """, (uid, code, INITIAL_CENTS))
 
 def get_account(conn, uid):
-    return conn.execute("""
+    postgres = hasattr(conn, "connection")
+
+    query = """
         SELECT id, cash_balance_cents
         FROM investment_accounts
         WHERE user_id = ?
         ORDER BY id
         LIMIT 1
-    """, (uid,)).fetchone()
+    """
+
+    if postgres:
+        query += " FOR UPDATE"
+
+    return conn.execute(query, (uid,)).fetchone()
 
 def money(cents):
     return str(Decimal(cents) / Decimal(100))
 
 @banking_bp.route("/api/customer/demo-banking", methods=["GET"])
-@role_required("CUSTOMER")
+@role_required("CUSTOMER", "SOC_ADMIN")
 def demo_banking_status():
     uid = customer_id()
     conn = get_db_connection()
@@ -154,7 +192,7 @@ def demo_banking_status():
         conn.close()
 
 @banking_bp.route("/api/customer/demo-banking/transfer", methods=["POST"])
-@role_required("CUSTOMER")
+@role_required("CUSTOMER", "SOC_ADMIN")
 def demo_banking_transfer():
     data = request.get_json(silent=True) or {}
     code = data.get("bank_code")
@@ -191,6 +229,14 @@ def demo_banking_transfer():
     try:
         conn.execute("BEGIN IMMEDIATE")
         initialize(conn)
+
+        # Serialize transfers for this investment account on PostgreSQL.
+        account = get_account(conn, uid)
+
+        if account is None:
+            conn.rollback()
+            return jsonify(error="Account unavailable"), 404
+
         ensure_banks(conn, uid)
 
         previous = conn.execute("""
@@ -218,7 +264,6 @@ def demo_banking_transfer():
                 "message": "Simulated transfer already completed"
             })
 
-        account = get_account(conn, uid)
         bank = conn.execute("""
             SELECT id, balance_cents
             FROM rw_demo_bank_accounts
@@ -230,24 +275,33 @@ def demo_banking_transfer():
             return jsonify(error="Account unavailable"), 404
 
         if direction == "DEPOSIT":
-            if bank["balance_cents"] < cents:
-                conn.rollback()
-                return jsonify(error="Insufficient simulated bank funds"), 400
-            bank_delta = -cents
+            # Demo funding: add simulated investment cash
+            # without deducting the selected bank balance.
+            bank_delta = 0
             cash_delta = cents
         else:
-            if account["cash_balance_cents"] < cents:
+            if cents > account["cash_balance_cents"]:
                 conn.rollback()
-                return jsonify(error="Insufficient investment cash"), 400
+                return jsonify(error="Insufficient investment cash"), 409
+
             bank_delta = cents
             cash_delta = -cents
 
-        updated_bank = conn.execute("""
-            UPDATE rw_demo_bank_accounts
-            SET balance_cents = balance_cents + ?
-            WHERE id = ? AND user_id = ?
-              AND balance_cents + ? >= 0
-        """, (bank_delta, bank["id"], uid, bank_delta))
+        if False:
+            conn.rollback()
+            return jsonify(error="Maximum bank balance is $900,000 CAD"), 400
+
+        if direction == "DEPOSIT":
+            # Demo funding does not change the simulated bank balance.
+            updated_bank_count = 1
+        else:
+            updated_bank = conn.execute("""
+                UPDATE rw_demo_bank_accounts
+                SET balance_cents = balance_cents + ?
+                WHERE id = ? AND user_id = ?
+                  AND balance_cents + ? >= 0
+            """, (bank_delta, bank["id"], uid, bank_delta))
+            updated_bank_count = updated_bank.rowcount
 
         updated_cash = conn.execute("""
             UPDATE investment_accounts
@@ -256,7 +310,7 @@ def demo_banking_transfer():
               AND cash_balance_cents + ? >= 0
         """, (cash_delta, account["id"], uid, cash_delta))
 
-        if updated_bank.rowcount != 1 or updated_cash.rowcount != 1:
+        if updated_bank_count != 1 or updated_cash.rowcount != 1:
             conn.rollback()
             return jsonify(error="Transfer could not be completed"), 409
 
@@ -278,7 +332,7 @@ def demo_banking_transfer():
             "amount": money(cents),
             "message": "Simulated transfer completed"
         })
-    except sqlite3.Error:
+    except (sqlite3.Error, psycopg.Error):
         conn.rollback()
         return jsonify(error="Database transfer failed"), 500
     finally:

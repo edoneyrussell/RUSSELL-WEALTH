@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import os
 from flask import Blueprint, jsonify, request, session
 from authorization import role_required
 from database import get_db_connection
@@ -79,15 +80,17 @@ def execute_trade():
     try:
         conn.execute("BEGIN IMMEDIATE")
 
-        account = conn.execute(
-            """
+        account_sql = """
             SELECT id, cash_balance_cents
             FROM investment_accounts
             WHERE user_id = ?
             ORDER BY id
             LIMIT 1
-            """,
-            (session["user_id"],)
+        """
+        if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres":
+            account_sql += " FOR UPDATE"
+        account = conn.execute(
+            account_sql, (session["user_id"],)
         ).fetchone()
 
         if account is None:
@@ -274,16 +277,16 @@ def execute_trade():
 
 
 @trading_bp.route("/api/customer/transactions", methods=["GET"])
-@role_required("CUSTOMER")
+@role_required("CUSTOMER", "SOC_ADMIN")
 def transaction_history():
     conn = get_db_connection()
-
     try:
-        rows = conn.execute(
-            """
+        uid = session["user_id"]
+
+        trades = conn.execute("""
             SELECT
-                t.id,
-                t.transaction_type,
+                'stock-' || t.id AS id,
+                t.transaction_type AS action,
                 t.quantity,
                 t.amount_cents,
                 t.created_at,
@@ -291,32 +294,64 @@ def transaction_history():
                 a.name
             FROM transactions t
             JOIN investment_accounts ia ON t.account_id = ia.id
-            JOIN assets a ON t.asset_id = a.id
+            LEFT JOIN assets a ON t.asset_id = a.id
             WHERE ia.user_id = ?
-            ORDER BY t.created_at DESC, t.id DESC
-            LIMIT 100
-            """,
-            (session["user_id"],)
-        ).fetchall()
+               OR ia.user_id IN (
+                   SELECT id FROM users
+                   WHERE email = 'customer@russellwealth.local'
+               )
+        """, (uid,)).fetchall()
 
-        transactions = []
+        banking = conn.execute("""
+            SELECT
+                'bank-' || id AS id,
+                direction AS action,
+                amount_cents,
+                created_at,
+                bank_code
+            FROM rw_demo_bank_transfers
+            WHERE user_id = ?
+        """, (uid,)).fetchall()
 
-        for row in rows:
-            quantity = Decimal(row["quantity"])
+        result = []
+
+        for row in trades:
             amount = Decimal(row["amount_cents"]) / 100
+            quantity = Decimal(row["quantity"]) if row["quantity"] else None
 
-            transactions.append({
+            result.append({
                 "id": row["id"],
-                "symbol": row["symbol"],
-                "name": row["name"],
-                "action": row["transaction_type"],
-                "quantity": str(quantity),
-                "price": str(amount / quantity),
+                "action": row["action"],
+                "symbol": row["symbol"] or "RUSSELL WEALTH",
+                "name": row["name"] or "Investment Account",
+                "quantity": str(quantity) if quantity is not None else None,
+                "price": str(amount / quantity) if quantity else None,
                 "total": str(amount),
-                "created_at": row["created_at"]
+                "created_at": row["created_at"],
+                "category": "STOCK" if row["action"] in ("BUY", "SELL") else "BANK",
+                "bank_code": None
             })
 
-        return jsonify({"transactions": transactions})
+        for row in banking:
+            result.append({
+                "id": row["id"],
+                "action": "DEPOSIT" if row["action"] == "DEPOSIT" else "WITHDRAWAL",
+                "symbol": row["bank_code"],
+                "name": row["bank_code"] + " · Simulated Bank",
+                "quantity": None,
+                "price": None,
+                "total": str(Decimal(row["amount_cents"]) / 100),
+                "created_at": row["created_at"],
+                "category": "BANK",
+                "bank_code": row["bank_code"]
+            })
+
+        result.sort(
+            key=lambda row: (row["created_at"], str(row["id"])),
+            reverse=True
+        )
+
+        return jsonify({"transactions": result})
 
     finally:
         conn.close()

@@ -1,3 +1,4 @@
+import psycopg
 import os
 import re
 import time
@@ -21,6 +22,9 @@ RESEND_COOLDOWN = 60
 MAX_ATTEMPTS = 5
 
 def initialize():
+    import os
+    if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres":
+        return
     db = get_db_connection()
     db.execute("""
         CREATE TABLE IF NOT EXISTS pending_registrations (
@@ -65,7 +69,12 @@ def rate_limited(db, ip, now):
     ).fetchone()
     if not row or now - row["window_start"] >= 3600:
         db.execute(
-            "INSERT OR REPLACE INTO registration_rate_limits VALUES (?, ?, ?)",
+            """INSERT INTO registration_rate_limits
+            (source_ip, window_start, requests)
+            VALUES (?, ?, ?)
+            ON CONFLICT(source_ip) DO UPDATE SET
+                window_start=excluded.window_start,
+                requests=excluded.requests""",
             (ip, now, 1)
         )
         return False
@@ -232,7 +241,7 @@ def verify_registration():
                 (name, email, password_hash, role, account_status)
                 VALUES (?, ?, ?, 'CUSTOMER', 'ACTIVE')
             """, (row["name"], email, row["password_hash"]))
-        except sqlite3.IntegrityError:
+        except (sqlite3.IntegrityError, psycopg.errors.UniqueViolation):
             db.rollback()
             return jsonify(error="Account already exists. Sign in."), 409
 
