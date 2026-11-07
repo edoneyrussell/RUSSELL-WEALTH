@@ -347,7 +347,7 @@ def transaction_history():
             })
 
         result.sort(
-            key=lambda row: (row["created_at"], str(row["id"])),
+            key=lambda row: (str(row["created_at"]), str(row["id"])),
             reverse=True
         )
 
