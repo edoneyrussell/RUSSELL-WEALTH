@@ -92,22 +92,33 @@ def prepare_registration_database():
 @registration_bp.post("/api/register/start")
 def start_registration():
     data = request.get_json(silent=True)
+
     if not isinstance(data, dict):
         return jsonify(error="Invalid request"), 400
 
-    first = str(data.get("firstName", "")).strip()
-    last = str(data.get("lastName", "")).strip()
-    email = str(data.get("email", "")).strip().lower()
+    first = data.get("firstName", "")
+    last = data.get("lastName", "")
+    email = data.get("email", "")
     password = data.get("password", "")
+
+    if not all(isinstance(v, str) for v in (first, last, email, password)):
+        return jsonify(error="Invalid registration details"), 400
+
+    first = first.strip()
+    last = last.strip()
+    email = email.strip().lower()
 
     if not first or not last or len(first) > 80 or len(last) > 80:
         return jsonify(error="Enter your first and last name"), 400
 
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) or len(email) > 254:
+    if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", email) or len(email) > 254:
         return jsonify(error="Enter a valid email address"), 400
 
-    if not isinstance(password, str) or len(password) < 12 or len(password) > 128:
+    if len(password) < 12 or len(password) > 128:
         return jsonify(error="Password must contain 12–128 characters"), 400
+
+    if data.get("acceptedTerms") is not True:
+        return jsonify(error="You must accept the agreement to continue"), 400
 
     now = int(time.time())
     ip = request.remote_addr or "unknown"
@@ -122,79 +133,43 @@ def start_registration():
             "SELECT id FROM users WHERE lower(email)=?",
             (email,)
         ).fetchone()
+
         if existing:
             db.commit()
-            return jsonify(error="This email is already registered. Sign in instead."), 409
+            return jsonify(
+                error="This email is already registered. Sign in instead."
+            ), 409
 
-        pending = db.execute(
-            "SELECT last_sent_at FROM pending_registrations WHERE email=?",
-            (email,)
-        ).fetchone()
-        if pending and now - pending["last_sent_at"] < RESEND_COOLDOWN:
-            db.commit()
-            return jsonify(error="Wait 60 seconds before requesting another code"), 429
-
-        code = f"{secrets.randbelow(1000000):06d}"
         password_hash = generate_password_hash(password)
-        digest = code_digest(email, code)
 
-        api_key = os.getenv("RW_RESEND_API_KEY")
-        if not api_key:
-            db.commit()
-            return jsonify(error="Email delivery is not configured"), 503
+        try:
+            db.execute("""
+                INSERT INTO users
+                (name, email, password_hash, role, account_status)
+                VALUES (?, ?, ?, 'CUSTOMER', 'ACTIVE')
+            """, (first + " " + last, email, password_hash))
 
-        os.environ["SSL_CERT_FILE"] = certifi.where()
-        resend.api_key = api_key
+        except (sqlite3.IntegrityError, psycopg.errors.UniqueViolation):
+            db.rollback()
+            return jsonify(error="Account already exists. Sign in."), 409
 
-        sender = os.getenv(
-            "RW_VERIFICATION_FROM",
-            "Russell Wealth <onboarding@resend.dev>"
-        )
-
-        result = resend.Emails.send({
-            "from": sender,
-            "to": [email],
-            "subject": "Russell Wealth | Verify your email",
-            "html": (
-                "<div style='font-family:Arial,sans-serif;background:#101216;"
-                "color:#f5f5f5;padding:32px'>"
-                "<h2>Russell Wealth</h2>"
-                "<p>Your email verification code is:</p>"
-                "<p style='font-size:34px;letter-spacing:8px;font-weight:bold'>"
-                + escape(code) +
-                "</p><p>This code expires in 10 minutes.</p>"
-                "<p>If you did not request this, ignore this email.</p>"
-                "<small>Fictional fintech portfolio project.</small></div>"
-            )
-        })
-
-        if not result:
-            raise RuntimeError("Email provider did not confirm delivery request")
-
-        db.execute("""
-            INSERT INTO pending_registrations
-            (email, name, password_hash, code_hash, expires_at, last_sent_at, attempts)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
-            ON CONFLICT(email) DO UPDATE SET
-                name=excluded.name,
-                password_hash=excluded.password_hash,
-                code_hash=excluded.code_hash,
-                expires_at=excluded.expires_at,
-                last_sent_at=excluded.last_sent_at,
-                attempts=0
-        """, (email, first + " " + last, password_hash,
-              digest, now + CODE_LIFETIME, now))
         db.commit()
-        return jsonify(message="Verification code sent", email=email), 200
+
+        return jsonify(
+            message="Account created successfully"
+        ), 201
 
     except Exception:
         db.rollback()
-        registration_bp.logger if False else None
         import logging
-        logging.getLogger(__name__).exception("Registration email failed")
-        return jsonify(error="Could not send verification email. Check email configuration."), 502
+        logging.getLogger(__name__).exception(
+            "Direct customer registration failed"
+        )
+        return jsonify(error="Unable to create account. Please try again."), 500
+
     finally:
         db.close()
+
 
 @registration_bp.post("/api/register/verify")
 def verify_registration():

@@ -55,12 +55,16 @@ export default function RegistrationForm({ mobile = false }: Props) {
     setBusy(true);
     try {
       await post("/api/register/start", {
-        firstName, lastName, email, password
+        firstName,
+        lastName,
+        email,
+        password,
+        acceptedTerms: agreed
       });
       setPassword("");
       setConfirm("");
-      setStep("verify");
-      setMessage("Check your email for your six-digit verification code.");
+      setStep("done");
+      setMessage("Your account has been created successfully.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -109,7 +113,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
           <p className="mt-2 text-center text-[13px] text-[#b4b8c0]">
             {step === "form" ? "Begin your journey with Russell Wealth" :
              step === "verify" ? `We sent a code to ${email}` :
-             "Your email has been verified successfully"}
+             "Your customer account has been created successfully"}
           </p>
 
           {error && (
@@ -171,7 +175,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
 
               <div className="mt-2 flex justify-center">
                 <button className={buttonClass} type="submit" disabled={busy}>
-                  {busy ? "Sending Code..." : "Create Account →"}
+                  {busy ? "Creating Account..." : "Create Account →"}
                 </button>
               </div>
             </form>
