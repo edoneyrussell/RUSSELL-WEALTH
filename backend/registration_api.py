@@ -89,6 +89,47 @@ def rate_limited(db, ip, now):
 def prepare_registration_database():
     initialize()
 
+from flask import session
+
+def _login_registered_customer(db, email):
+    user = db.execute(
+        "SELECT id, name, role FROM users WHERE lower(email)=?",
+        (email,)
+    ).fetchone()
+
+    if user is None:
+        raise RuntimeError("Newly registered customer not found")
+
+    session.clear()
+    session["user_id"] = user["id"]
+    session["name"] = user["name"]
+    session["role"] = user["role"]
+
+
+
+
+def _ensure_investment_account(db, email):
+    """Provision one empty portfolio for a registered customer."""
+    user = db.execute(
+        "SELECT id FROM users WHERE lower(email)=?",
+        (email,)
+    ).fetchone()
+
+    if user is None:
+        raise RuntimeError("Registered customer not found")
+
+    user_id = user["id"]
+
+    db.execute("""
+        INSERT INTO investment_accounts
+            (user_id, account_name, cash_balance_cents)
+        SELECT ?, 'Investment Portfolio', 0
+        WHERE NOT EXISTS (
+            SELECT 1 FROM investment_accounts WHERE user_id=?
+        )
+    """, (user_id, user_id))
+
+
 @registration_bp.post("/api/register/start")
 def start_registration():
     data = request.get_json(silent=True)
@@ -111,7 +152,7 @@ def start_registration():
     if not first or not last or len(first) > 80 or len(last) > 80:
         return jsonify(error="Enter your first and last name"), 400
 
-    if not re.fullmatch(r"[^@\\s]+@[^@\\s]+\\.[^@\\s]+", email) or len(email) > 254:
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email) or len(email) > 254:
         return jsonify(error="Enter a valid email address"), 400
 
     if len(password) < 12 or len(password) > 128:
@@ -153,7 +194,9 @@ def start_registration():
             db.rollback()
             return jsonify(error="Account already exists. Sign in."), 409
 
+        _ensure_investment_account(db, email)
         db.commit()
+        _login_registered_customer(db, email)
 
         return jsonify(
             message="Account created successfully"
@@ -224,7 +267,9 @@ def verify_registration():
             "DELETE FROM pending_registrations WHERE email=?",
             (email,)
         )
+        _ensure_investment_account(db, email)
         db.commit()
+        _login_registered_customer(db, email)
         return jsonify(message="Account created successfully"), 201
 
     except Exception:

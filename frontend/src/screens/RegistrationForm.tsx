@@ -63,8 +63,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
       });
       setPassword("");
       setConfirm("");
-      setStep("done");
-      setMessage("Your account has been created successfully.");
+      window.location.assign("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -78,7 +77,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
     setError("");
     try {
       await post("/api/register/verify", { email, code });
-      setStep("done");
+      window.location.assign("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {
