@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
+import "./PortfolioColors.css";
+// RW_PORTFOLIO_COLOR_V1
 import AssetLogo from "./../components/AssetLogo";
 import MarketSearch from '../components/MarketSearch'
-import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
+import { usePortfolio } from '../hooks/usePortfolio';
 const assetPathPrefix = "/assets";
 const imgOriginalLogoArtwork = `${assetPathPrefix}/c8aca.png`;
 const imgLayoutDashboard = `${assetPathPrefix}/8bb5a.svg`;
@@ -29,6 +32,62 @@ const imgEllipsis = `${assetPathPrefix}/0bf90.svg`;
 const imgWallet1 = `${assetPathPrefix}/9032a.svg`;
 
 export default function RussellWealthPortfolioHoldings() {
+  // RW_PORTFOLIO_CURRENCY_V1
+  const [displayCurrency, setDisplayCurrency] =
+    useState<"CAD" | "USD" | "BSD">("CAD");
+
+  const [cadToUsd, setCadToUsd] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("https://open.er-api.com/v6/latest/CAD")
+      .then(response => {
+        if (!response.ok) throw new Error("FX unavailable");
+        return response.json();
+      })
+      .then(data => {
+        const rate = Number(data?.rates?.USD);
+        if (!Number.isFinite(rate) || rate <= 0) {
+          throw new Error("Invalid FX rate");
+        }
+        if (active) setCadToUsd(rate);
+      })
+      .catch(() => {
+        if (active) setCadToUsd(null);
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  const formatPortfolioMoney = (value: string | number) => {
+    const rate = displayCurrency === "CAD" ? 1 : cadToUsd;
+
+    if (rate === null) return "FX unavailable";
+
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: displayCurrency,
+    }).format(Number(value) * rate);
+  };
+
+  const currencySelector = (
+    <select
+      aria-label="Portfolio display currency"
+      value={displayCurrency}
+      onChange={event =>
+        setDisplayCurrency(
+          event.target.value as "CAD" | "USD" | "BSD"
+        )
+      }
+      className="cursor-pointer rounded-lg border border-[#405064] bg-[#141b24] px-2 py-1.5 text-xs font-semibold text-[#dce7f2] outline-none"
+    >
+      <option value="CAD">🇨🇦 CAD</option>
+      <option value="USD" disabled={cadToUsd === null}>🇺🇸 USD</option>
+      <option value="BSD" disabled={cadToUsd === null}>🇧🇸 BSD</option>
+    </select>
+  );
+
   const { portfolio, error } = usePortfolio();
 
   const allocation = {
@@ -48,7 +107,7 @@ export default function RussellWealthPortfolioHoldings() {
       : '0.00';
 
   return (
-    <div className="bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="38:1427" data-name="Russell Wealth Portfolio Holdings">
+    <div className="rw-colorful-portfolio bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="38:1427" data-name="Russell Wealth Portfolio Holdings">
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] h-[1080px] items-start overflow-clip pb-[24px] pt-[26px] px-[16px] relative shrink-0 w-[208px]" data-node-id="38:1428" data-name="Sidebar">
         <div className="h-[64px] overflow-clip relative shrink-0 w-[176px]" data-node-id="38:1429" data-name="Russell Wealth logo">
           <div className="absolute h-[86.7px] left-[-20.2px] top-[-17.3px] w-[216.4px]" data-node-id="38:1430" data-name="Original logo artwork">
@@ -115,6 +174,19 @@ export default function RussellWealthPortfolioHoldings() {
           </div>
         </div>
         <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[18px] items-start overflow-clip p-[12px] relative rounded-[12px] shrink-0 w-full" data-node-id="38:1462" data-name="Member profile">
+          <a
+            href="/customer/account-settings"
+            aria-label="Open Account Settings"
+            className="flex w-full items-center justify-between rounded-lg border border-[#344454] bg-[#1B2530] px-3 py-2.5 text-[#DCE7F2] transition-colors hover:border-[#559CFA] hover:bg-[#25364A]"
+          >
+            <span className="flex items-center gap-2 text-[12px] font-semibold">
+              <img src={imgSettings} alt="" className="h-[16px] w-[16px]" />
+              Account Settings
+            </span>
+            <span aria-hidden="true" className="text-[#8FA9C4]">›</span>
+          </a>
+          <div className="h-px w-full bg-[#30343b]" />
+
           <div className="content-stretch flex gap-[10px] items-center overflow-clip relative shrink-0" data-node-id="38:1463" data-name="Member">
             <div className="bg-[#252a31] content-stretch flex items-center justify-center overflow-clip relative rounded-[100px] shrink-0 size-[32px]" data-node-id="38:1464" data-name="Avatar">
               <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#c5cad2] text-[11px] whitespace-nowrap" data-node-id="38:1465">
@@ -181,6 +253,7 @@ export default function RussellWealthPortfolioHoldings() {
                 <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[14px] whitespace-nowrap" data-node-id="38:1491">
                   Portfolio Value
                 </p>
+                {currencySelector}
                 <div className="relative shrink-0 size-[13px]" data-node-id="38:1492" data-name="info">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgInfo} />
                 </div>
@@ -190,7 +263,7 @@ export default function RussellWealthPortfolioHoldings() {
               </div>
             </div>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[28px] tracking-[-0.7px] whitespace-nowrap" data-node-id="38:1496">
-              {portfolio ? formatCAD(portfolio.total_value) : 'Loading...'}
+              {portfolio ? formatPortfolioMoney(portfolio.total_value) : 'Loading...'}
             </p>
             <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#39e58c] text-[13px] whitespace-nowrap" data-node-id="38:1497">
               Simulated portfolio value
@@ -251,7 +324,7 @@ export default function RussellWealthPortfolioHoldings() {
               </div>
             </div>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[28px] tracking-[-0.7px] whitespace-nowrap" data-node-id="38:1526">
-              {portfolio ? formatCAD(portfolio.cash_balance) : 'Loading...'}
+              {portfolio ? formatPortfolioMoney(portfolio.cash_balance) : 'Loading...'}
             </p>
           </div>
         </div>
@@ -338,18 +411,18 @@ export default function RussellWealthPortfolioHoldings() {
             <div className="content-stretch flex gap-[3px] h-[10px] items-start overflow-clip relative rounded-[3px] shrink-0 w-full" data-node-id="38:1560" data-name="Allocation bar">
               <div className="bg-[#c5cad2] h-[10px] relative shrink-0 " data-node-id="38:1561" data-name="Stocks" style={{ width: `${allocationPercent(allocation.stocks)}%` }} />
               <div className="bg-[#727b88] h-[10px] relative shrink-0 " data-node-id="38:1562" data-name="ETFs" style={{ width: `${allocationPercent(allocation.etfs)}%` }} />
-              <div className="bg-[#353c46]  h-[10px]  relative" data-node-id="38:1563" data-name="Cash" style={{ width: `${allocationPercent(allocation.cash)}%` }} />
+              <div className="bg-[#E5B65C] h-[10px] relative" data-node-id="38:1563" data-name="Cash" style={{ width: `${allocationPercent(allocation.cash)}%` }} />
             </div>
             <div className="content-stretch flex gap-[16px] items-start overflow-clip relative shrink-0 w-full" data-node-id="38:1564" data-name="Allocation breakdown">
               <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px overflow-clip relative" data-node-id="38:1565" data-name="Asset class">
                 <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="38:1566" data-name="Legend">
-                  <div className="bg-[#c5cad2] relative rounded-[2px] shrink-0 size-[7px]" data-node-id="38:1567" data-name="Marker" />
+                  <div className="bg-[#38C6A0] relative rounded-[2px] shrink-0 size-[7px] shadow-[0_0_8px_#38C6A055]" data-node-id="38:1567" data-name="Marker" />
                   <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[11px] whitespace-nowrap" data-node-id="38:1568">
                     Stocks
                   </p>
                 </div>
                 <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[15px] whitespace-nowrap" data-node-id="38:1569">
-                  {formatCAD(String(allocation.stocks))}
+                  {formatPortfolioMoney(String(allocation.stocks))}
                 </p>
                 <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#8c929c] text-[11px] whitespace-nowrap" data-node-id="38:1570">
                   {allocationPercent(allocation.stocks)}%
@@ -357,13 +430,13 @@ export default function RussellWealthPortfolioHoldings() {
               </div>
               <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px overflow-clip relative" data-node-id="38:1571" data-name="Asset class">
                 <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="38:1572" data-name="Legend">
-                  <div className="bg-[#727b88] relative rounded-[2px] shrink-0 size-[7px]" data-node-id="38:1573" data-name="Marker" />
+                  <div className="bg-[#559CFA] relative rounded-[2px] shrink-0 size-[7px] shadow-[0_0_8px_#559CFA55]" data-node-id="38:1573" data-name="Marker" />
                   <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[11px] whitespace-nowrap" data-node-id="38:1574">
                     ETFs
                   </p>
                 </div>
                 <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[15px] whitespace-nowrap" data-node-id="38:1575">
-                  {formatCAD(String(allocation.etfs))}
+                  {formatPortfolioMoney(String(allocation.etfs))}
                 </p>
                 <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#8c929c] text-[11px] whitespace-nowrap" data-node-id="38:1576">
                   {allocationPercent(allocation.etfs)}%
@@ -371,13 +444,13 @@ export default function RussellWealthPortfolioHoldings() {
               </div>
               <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px overflow-clip relative" data-node-id="38:1577" data-name="Asset class">
                 <div className="content-stretch flex gap-[6px] items-center overflow-clip relative shrink-0" data-node-id="38:1578" data-name="Legend">
-                  <div className="bg-[#353c46] relative rounded-[2px] shrink-0 size-[7px]" data-node-id="38:1579" data-name="Marker" />
+                  <div className="bg-[#E5B65C] relative rounded-[2px] shrink-0 size-[7px] shadow-[0_0_8px_#E5B65C55]" data-node-id="38:1579" data-name="Marker" />
                   <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b4b8c0] text-[11px] whitespace-nowrap" data-node-id="38:1580">
                     Cash
                   </p>
                 </div>
                 <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[15px] whitespace-nowrap" data-node-id="38:1581">
-                  {formatCAD(String(allocation.cash))}
+                  {formatPortfolioMoney(String(allocation.cash))}
                 </p>
                 <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#8c929c] text-[11px] whitespace-nowrap" data-node-id="38:1582">
                   {allocationPercent(allocation.cash)}%
@@ -507,22 +580,22 @@ export default function RussellWealthPortfolioHoldings() {
             {!portfolio && !error && <p className="text-[#8c929c] text-[12px] py-4">Loading holdings...</p>}
             {portfolio?.holdings.length === 0 && <p className="text-[#8c929c] text-[12px] py-4">No investments yet.</p>}
             {portfolio?.holdings.map((holding) => (
-              <div key={holding.symbol} className="border-[#30343b] border-b border-solid content-stretch flex gap-[14px] h-[64px] items-center overflow-clip relative shrink-0 w-full">
+              <div key={holding.symbol} className="group border-[#30343b] border-b border-solid content-stretch flex gap-[14px] h-[64px] items-center overflow-clip relative shrink-0 w-full transition-colors duration-200 hover:bg-[#1C2936] odd:bg-[#171C24]/40">
                 <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-[300px]">
                   <div className="content-stretch flex flex-[1_0_0] flex-col gap-[4px] items-start min-w-px overflow-clip whitespace-nowrap">
                     <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[13px]">{holding.symbol}</p>
                     <p className="font-['Inter:Regular'] text-[#b4b8c0] text-[11px]">{holding.name}</p></div></div>
                   </div>
                   <div className="bg-[#1a1d22] px-[6px] py-[3px] rounded-[4px]">
-                    <p className="text-[#8c929c] text-[9px]">{holding.asset_type}</p>
+                    <p className={`text-[9px] font-semibold ${holding.asset_type?.toLowerCase().includes("etf") ? "text-[#559CFA]" : "text-[#38C6A0]"}`}>{holding.asset_type}</p>
                   </div>
                 </div>
                 <p className="text-[#b4b8c0] text-[12px] text-right w-[78px]">{holding.quantity}</p>
                 <p className="text-[#8c929c] text-[12px] text-right w-[94px]">—</p>
-                <p className="text-[#b4b8c0] text-[12px] text-right w-[102px]">{formatCAD(holding.price)}</p>
+                <p className="text-[#b4b8c0] text-[12px] text-right w-[102px]">{formatPortfolioMoney(holding.price)}</p>
                 <p className="text-[#8c929c] text-[12px] text-right w-[98px]">—</p>
                 <p className="text-[#8c929c] text-[12px] text-right w-[102px]">—</p>
-                <p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[12px] text-right w-[130px]">{formatCAD(holding.market_value)}</p>
+                <p className="font-['Inter:Semi_Bold'] font-semibold text-[#f5f5f5] text-[12px] text-right w-[130px]">{formatPortfolioMoney(holding.market_value)}</p>
                 <p className="text-[#b4b8c0] text-[12px] text-right w-[82px]">
                   {portfolio && Number(portfolio.total_value) > 0
                     ? `${(Number(holding.market_value) / Number(portfolio.total_value) * 100).toFixed(2)}%`
@@ -546,7 +619,7 @@ export default function RussellWealthPortfolioHoldings() {
             </div>
             <div className="[word-break:break-word] content-stretch flex gap-[14px] items-start leading-[normal] not-italic overflow-clip pr-[44px] relative shrink-0 text-[12px] text-right" data-node-id="38:1714" data-name="Cash value and allocation">
               <p className="font-['Inter:Semi_Bold'] font-semibold relative shrink-0 text-[#f5f5f5] w-[130px]" data-node-id="38:1715">
-              {portfolio ? formatCAD(portfolio.cash_balance) : 'Loading...'}
+              {portfolio ? formatPortfolioMoney(portfolio.cash_balance) : 'Loading...'}
             </p>
               <p className="font-['Inter:Regular'] font-normal relative shrink-0 text-[#b4b8c0] w-[82px]" data-node-id="38:1716">
               {portfolio && Number(portfolio.total_value) > 0 ? `${(Number(portfolio.cash_balance) / Number(portfolio.total_value) * 100).toFixed(2)}%` : '0.00%'}
@@ -558,7 +631,7 @@ export default function RussellWealthPortfolioHoldings() {
               Showing all {portfolio?.holdings.length ?? 0} holdings
             </p>
             <p className="relative shrink-0" data-node-id="38:1719">
-              Weights based on {portfolio ? formatCAD(portfolio.total_value) : 'Loading...'} total portfolio value, including cash.
+              Weights based on {portfolio ? formatPortfolioMoney(portfolio.total_value) : 'Loading...'} total portfolio value, including cash.
             </p>
           </div>
         </div>

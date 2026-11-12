@@ -1,6 +1,11 @@
 import AssetLogo from "./../components/AssetLogo";
 import { useEffect, useMemo, useState } from "react";
 import { useTrading } from "../hooks/useTrading";
+import { Star } from "lucide-react";
+import {
+  getWatchlist,
+  toggleWatchlist
+} from "../utils/watchlist";
 
 type Asset = {
   symbol: string;
@@ -25,18 +30,18 @@ const categories = ["All", "Stocks", "ETFs", "REITs", "Bonds", "Crypto"] as cons
 type Category = (typeof categories)[number];
 
 const catalog: Asset[] = [
-  { symbol: "AAPL", name: "Apple Inc.", type: "STOCK", currency: "USD", price: "" },
-  { symbol: "NVDA", name: "NVIDIA Corporation", type: "STOCK", currency: "USD", price: "" },
-  { symbol: "MSFT", name: "Microsoft Corporation", type: "STOCK", currency: "USD", price: "" },
-  { symbol: "XEQT.TO", name: "iShares Core Equity ETF", type: "ETF", currency: "CAD", price: "" },
-  { symbol: "VFV.TO", name: "Vanguard S&P 500 ETF", type: "ETF", currency: "CAD", price: "" },
-  { symbol: "VDY.TO", name: "Vanguard Canadian High Dividend ETF", type: "ETF", currency: "CAD", price: "" },
-  { symbol: "ZRE.TO", name: "BMO Equal Weight REITs ETF", type: "REIT", currency: "CAD", price: "" },
-  { symbol: "XRE.TO", name: "iShares S&P/TSX Capped REIT ETF", type: "REIT", currency: "CAD", price: "" },
-  { symbol: "XBB.TO", name: "iShares Canadian Universe Bond ETF", type: "BOND", currency: "CAD", price: "" },
-  { symbol: "ZAG.TO", name: "BMO Aggregate Bond ETF", type: "BOND", currency: "CAD", price: "" },
-  { symbol: "BTC", name: "Bitcoin", type: "CRYPTO", currency: "USD", price: "" },
-  { symbol: "ETH", name: "Ethereum", type: "CRYPTO", currency: "USD", price: "" },
+  { symbol: "AAPL", name: "Apple Inc.", type: "STOCK", currency: "USD", price: "100.00" },
+  { symbol: "NVDA", name: "NVIDIA Corporation", type: "STOCK", currency: "USD", price: "100.00" },
+  { symbol: "MSFT", name: "Microsoft Corporation", type: "STOCK", currency: "USD", price: "100.00" },
+  { symbol: "XEQT.TO", name: "iShares Core Equity ETF", type: "ETF", currency: "CAD", price: "100.00" },
+  { symbol: "VFV.TO", name: "Vanguard S&P 500 ETF", type: "ETF", currency: "CAD", price: "100.00" },
+  { symbol: "VDY.TO", name: "Vanguard Canadian High Dividend ETF", type: "ETF", currency: "CAD", price: "100.00" },
+  { symbol: "ZRE.TO", name: "BMO Equal Weight REITs ETF", type: "REIT", currency: "CAD", price: "100.00" },
+  { symbol: "XRE.TO", name: "iShares S&P/TSX Capped REIT ETF", type: "REIT", currency: "CAD", price: "100.00" },
+  { symbol: "XBB.TO", name: "iShares Canadian Universe Bond ETF", type: "BOND", currency: "CAD", price: "100.00" },
+  { symbol: "ZAG.TO", name: "BMO Aggregate Bond ETF", type: "BOND", currency: "CAD", price: "100.00" },
+  { symbol: "BTC", name: "Bitcoin", type: "CRYPTO", currency: "USD", price: "100.00" },
+  { symbol: "ETH", name: "Ethereum", type: "CRYPTO", currency: "USD", price: "100.00" },
 ];
 
 function categoryOf(asset: Asset): Category {
@@ -65,7 +70,10 @@ export default function TradeExplore() {
   const [search, setSearch] = useState("");
   const [marketResults, setMarketResults] = useState<Asset[]>([]);
   const [marketSearching, setMarketSearching] = useState(false);
-  const [selected, setSelected] = useState("AAPL");
+  const [selected, setSelected] = useState(() =>
+    new URLSearchParams(window.location.search).get("symbol")?.toUpperCase() || "AAPL"
+  );
+  const [starred, setStarred] = useState<string[]>(getWatchlist);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [assetError, setAssetError] = useState("");
@@ -173,7 +181,7 @@ export default function TradeExplore() {
             currency: item.currency || (
               item.symbol.endsWith(".TO") ? "CAD" : "USD"
             ),
-            price: "",
+            price: "100.00",
           })
         );
 
@@ -193,21 +201,64 @@ export default function TradeExplore() {
     };
   }, [search]);
 
+  useEffect(() => {
+    const syncWatchlist = () => setStarred(getWatchlist());
+    window.addEventListener("russellwealth:watchlist-updated", syncWatchlist);
+    window.addEventListener("storage", syncWatchlist);
+    return () => {
+      window.removeEventListener("russellwealth:watchlist-updated", syncWatchlist);
+      window.removeEventListener("storage", syncWatchlist);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncSymbol = () => {
+      const symbol = new URLSearchParams(window.location.search)
+        .get("symbol")?.trim().toUpperCase();
+
+      if (symbol && /^[A-Z0-9.^-]{1,20}$/.test(symbol)) {
+        setSelected(symbol);
+        trade.setSymbol(symbol);
+        setSearch(symbol);
+        setCategory("All");
+      }
+    };
+
+    syncSymbol();
+    window.addEventListener("popstate", syncSymbol);
+    window.addEventListener(
+      "russellwealth:market-symbol-change",
+      syncSymbol
+    );
+
+    return () => {
+      window.removeEventListener("popstate", syncSymbol);
+      window.removeEventListener(
+        "russellwealth:market-symbol-change",
+        syncSymbol
+      );
+    };
+  }, []);
+
   const allAssets = useMemo(() => {
     const merged = new Map<string, Asset>();
 
-    for (const asset of catalog) merged.set(asset.symbol.toUpperCase(), asset);
-
-    for (const asset of marketResults) {
-      merged.set(asset.symbol.toUpperCase(), asset);
+    if (!search.trim()) {
+      for (const asset of catalog) {
+        merged.set(asset.symbol.toUpperCase(), asset);
+      }
     }
 
     for (const asset of assets) {
       merged.set(asset.symbol.toUpperCase(), asset);
     }
 
+    for (const asset of marketResults) {
+      merged.set(asset.symbol.toUpperCase(), asset);
+    }
+
     return Array.from(merged.values());
-  }, [assets, marketResults]);
+  }, [assets, marketResults, search]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -226,7 +277,17 @@ export default function TradeExplore() {
 
   const current = allAssets.find(
     asset => asset.symbol.toUpperCase() === selected.toUpperCase()
-  ) || catalog[0];
+  ) || (
+    selected !== "AAPL"
+      ? {
+          symbol: selected,
+          name: selected,
+          type: "STOCK",
+          currency: selected.endsWith(".TO") ? "CAD" : "USD",
+          price: "100.00"
+        }
+      : catalog[0]
+  );
 
   const isBackendListed = assets.some(
     asset => asset.symbol.toUpperCase() === current.symbol.toUpperCase()
@@ -352,12 +413,15 @@ export default function TradeExplore() {
                 );
 
                 return (
-                  <button
+                  <div
                     key={asset.symbol}
+                    className="relative min-w-0"
+                  >
+                  <button
                     type="button"
                     onClick={() => selectAsset(asset.symbol)}
                     className={
-                      "flex min-w-0 items-center gap-3 rounded-2xl border p-4 text-left transition-all " +
+                      "flex w-full min-w-0 items-center gap-3 rounded-2xl border p-4 pr-14 text-left transition-all " +
                       (active
                         ? "border-[#9AABBE] bg-[#283340]"
                         : "border-[#29323D] bg-[#171D26] hover:border-[#66778B] hover:bg-[#202936]")
@@ -382,6 +446,30 @@ export default function TradeExplore() {
 
                     <span className="text-[#B3BECC]">›</span>
                   </button>
+                  <button
+                    type="button"
+                    aria-label={
+                      starred.includes(asset.symbol.toUpperCase())
+                        ? `Remove ${asset.symbol} from watchlist`
+                        : `Add ${asset.symbol} to watchlist`
+                    }
+                    aria-pressed={starred.includes(asset.symbol.toUpperCase())}
+                    onClick={() => {
+                      const next = toggleWatchlist(asset.symbol);
+                      setStarred(next);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-[#455262] bg-[#222C38] p-2 text-[#D8E0EA] hover:bg-[#344356]"
+                  >
+                    <Star
+                      size={19}
+                      fill={
+                        starred.includes(asset.symbol.toUpperCase())
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
+                  </div>
                 );
               })}
             </div>

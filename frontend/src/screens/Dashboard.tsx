@@ -1,7 +1,9 @@
+import GlobalMarketsClock from "../components/GlobalMarketsClock";
 import WatchlistOverlay from "../components/WatchlistOverlay";
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart";
 import AssetLogo from "./../components/AssetLogo";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { logout } from "../auth";
 import {
   ArrowUpRight,
@@ -18,7 +20,7 @@ import {
 import MarketSearch from "../components/MarketSearch";
 import HoldingsList from "../components/HoldingsList";
 import { useTrading } from "../hooks/useTrading";
-import { usePortfolio, formatCAD } from "../hooks/usePortfolio";
+import { usePortfolio } from "../hooks/usePortfolio";
 
 function navigate(path: string) {
   window.history.pushState({}, "", path);
@@ -53,6 +55,7 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState(getGreeting);
 
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState("");
 
   useEffect(() => {
     const loadProfilePhoto = async () => {
@@ -65,6 +68,7 @@ export default function Dashboard() {
 
         const data = await response.json();
         setProfilePhoto(data.profile_photo ?? null);
+        setProfileName(typeof data.name === "string" ? data.name.trim() : "");
       } catch (error) {
         console.error("Profile photo loading failed:", error);
       }
@@ -87,8 +91,43 @@ export default function Dashboard() {
     return () => window.clearInterval(interval);
   }, []);
 
+  const [displayCurrency, setDisplayCurrency] = useState<"CAD" | "USD" | "BSD">("CAD");
+  const [cadToUsd, setCadToUsd] = useState<number | null>(null);
+  const [fxError, setFxError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("https://open.er-api.com/v6/latest/CAD")
+      .then(response => {
+        if (!response.ok) throw new Error("Exchange rate unavailable");
+        return response.json();
+      })
+      .then(data => {
+        const rate = Number(data?.rates?.USD);
+        if (!Number.isFinite(rate) || rate <= 0) {
+          throw new Error("Invalid exchange rate");
+        }
+        if (active) {
+          setCadToUsd(rate);
+          setFxError(false);
+        }
+      })
+      .catch(() => {
+        if (active) setFxError(true);
+      });
+    return () => { active = false; };
+  }, []);
+
   const money = (value: string | number) =>
-    showBalances ? formatCAD(String(value)) : "••••••";
+    showBalances
+      ? new Intl.NumberFormat("en-CA", {
+          style: "currency",
+          currency: displayCurrency,
+        }).format(
+          Number(value) *
+          (displayCurrency !== "CAD" ? (cadToUsd ?? 1) : 1)
+        )
+      : "••••••";
 
   const holdings = portfolio?.holdings ?? [];
 
@@ -124,7 +163,7 @@ export default function Dashboard() {
                 {profilePhoto ? (
                   <img
                     src={profilePhoto}
-                    alt="Edoney Russell"
+                    alt={profileName || "Profile"}
                     className="size-full object-cover"
                   />
                 ) : (
@@ -137,7 +176,7 @@ export default function Dashboard() {
               <h1 className="font-['Lora'] text-[34px] font-semibold tracking-[-0.04em] sm:text-[48px]">
                 {greeting},{" "}
                 <span className="italic text-[#B8C6D5]">
-                  Edoney.
+                  {profileName ? profileName.trim().split(" ")[0] + "." : ""}
                 </span>
               </h1>
             </div>
@@ -148,13 +187,17 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={logout}
-              className="fixed right-4 top-3 z-[100] flex items-center justify-center rounded-lg border border-[#34404D] bg-[#171E27] px-3 py-1.5 text-[10px] font-semibold tracking-wide text-[#F0F3F7] shadow-lg transition hover:border-white hover:bg-[#26313D] sm:hidden"
-            >
-              Log Out
-            </button>
+            {createPortal(
+              <button
+                type="button"
+                onClick={logout}
+                className="fixed right-4 bottom-[calc(16px+env(safe-area-inset-bottom))] top-auto z-[10000] flex items-center justify-center rounded-lg border border-[#34404D] bg-[#171E27] px-3 py-1.5 text-[10px] font-semibold tracking-wide text-[#F0F3F7] shadow-lg transition hover:border-white hover:bg-[#26313D] sm:hidden"
+              >
+                Log Out
+              </button>,
+              document.body
+            )}
+            <div className="grid w-[320px] max-w-full grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() =>
@@ -168,7 +211,7 @@ export default function Dashboard() {
               Search Markets
             </button>
 
-            <MarketSearch triggerOnly />
+            <div className="hidden"><MarketSearch triggerOnly /></div>
 
             <button
               type="button"
@@ -177,6 +220,10 @@ export default function Dashboard() {
             >
               {showBalances ? "Hide Values" : "Show Values"}
             </button>
+            <div className="col-span-2 w-full">
+              <GlobalMarketsClock />
+            </div>
+            </div>
           </div>
         </header>
 
@@ -203,9 +250,37 @@ export default function Dashboard() {
                   TOTAL PORTFOLIO VALUE
                 </span>
 
-                <span className="rounded-md border border-[#405064] px-2 py-1 text-[10px] text-[#A7B7C9]">
-                  CAD
-                </span>
+                <div className="flex items-center gap-2">
+                  <select
+                    aria-label="Dashboard display currency"
+                    value={displayCurrency}
+                    onChange={event => {
+                      const next = event.target.value as "CAD" | "USD" | "BSD";
+                      if (next === "CAD" || cadToUsd !== null) {
+                        setDisplayCurrency(next);
+                      }
+                    }}
+                    className="cursor-pointer rounded-lg border border-[#405064] bg-[#141b24] px-2 py-1.5 text-xs font-semibold text-[#dce7f2] outline-none focus:border-[#b8c6d5]"
+                  >
+                    <option value="CAD">🇨🇦 CAD</option>
+                    <option value="USD" disabled={cadToUsd === null}>
+                      🇺🇸 USD
+                    </option>
+                    <option value="BSD" disabled={cadToUsd === null}>
+                      🇧🇸 BSD
+                    </option>
+                  </select>
+                  {displayCurrency !== "CAD" && cadToUsd !== null && (
+                    <span className="text-[10px] text-[#91a2b5]">
+                      1 CAD = {cadToUsd.toFixed(4)} USD
+                    </span>
+                  )}
+                  {fxError && (
+                    <span className="text-[10px] text-[#f0a6a6]">
+                      FX unavailable
+                    </span>
+                  )}
+                </div>
               </div>
 
               <p className="mt-4 break-all text-[39px] font-semibold tracking-[-0.055em] sm:text-[60px]">
@@ -392,106 +467,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* RIGHT - FULL WIDTH MARKET ACCESS */}
-          <div className="min-w-0">
-
-            {/* TRADE TICKET */}
-            <div className={`${panel} p-5 sm:p-6`}>
-              <div className="mb-5">
-                <p className={label}>MARKET ACCESS</p>
-
-                <h2 className="mt-2 font-['Lora'] text-[25px]">
-                  Trade Assets
-                </h2>
-              </div>
-
-              <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl bg-[#090C10] p-1">
-                {(["BUY", "SELL"] as const).map(direction => (
-                  <button
-                    key={direction}
-                    type="button"
-                    onClick={() => trading.setDirection(direction)}
-                    className={`rounded-lg py-3 text-xs font-semibold transition ${
-                      trading.direction === direction
-                        ? "bg-[#B8C6D5] text-[#090C10]"
-                        : "text-[#8E9BAA] hover:bg-[#1D2630]"
-                    }`}
-                  >
-                    {direction === "BUY" ? "Buy" : "Sell"}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                <label className="block">
-                  <span className={label}>ASSET SYMBOL</span>
-
-                  <input
-                    aria-label="Symbol"
-                    value={trading.symbol}
-                    onChange={e =>
-                      trading.setSymbol(e.target.value.toUpperCase())
-                    }
-                    placeholder="VDY, XEG, RY, SHOP"
-                    className={`${field} mt-2`}
-                  />
-                </label>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className={label}>ORDER TYPE</span>
-
-                    <div className={`${field} mt-2`}>
-                      Market
-                    </div>
-                  </div>
-
-                  <label>
-                    <span className={label}>QUANTITY</span>
-
-                    <input
-                      aria-label="Quantity"
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={trading.quantity}
-                      onChange={e =>
-                        trading.setQuantity(e.target.value)
-                      }
-                      className={`${field} mt-2`}
-                    />
-                  </label>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={trading.submitting}
-                  onClick={() => void trading.submitTrade()}
-                  className="w-full rounded-xl bg-[#B8C6D5] px-5 py-4 text-sm font-semibold text-[#090C10] transition hover:bg-[#D5DFEA] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {trading.submitting
-                    ? "Processing..."
-                    : trading.direction === "BUY"
-                      ? "Buy Shares"
-                      : "Sell Shares"}
-                </button>
-
-                {trading.error && (
-                  <p role="alert" className="text-xs text-[#F1A8A8]">
-                    {trading.error}
-                  </p>
-                )}
-
-                {trading.message && (
-                  <p role="status" className="text-xs text-[#A8D9BE]">
-                    {trading.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-          </div>
-        </section>
+          </section>
 
 
         {/* BOTTOM ACCOUNT & ACTION CARDS */}
@@ -608,7 +584,13 @@ export default function Dashboard() {
 
   <button
     type="button"
-    onClick={() => navigate("/deposit")}
+    onClick={() => {
+      if (window.location.pathname !== "/deposit") {
+        window.history.pushState({}, "", "/deposit");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }}
     className="mt-6 rounded-xl border border-[#405064] bg-[#263546] px-6 py-3 text-xs font-semibold text-[#E5EDF5] transition hover:bg-[#34485E]"
   >
     Deposit Funds

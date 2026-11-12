@@ -948,6 +948,226 @@ def api_profile_photo():
 
 
 # Russell Wealth SOC infrastructure health monitoring
+
+# RW CUSTOMER ACTIVITY
+@app.route("/api/customer/activity", methods=["GET"])
+def rw_customer_activity():
+    from datetime import datetime, timezone
+
+    user_id = session.get("user_id")
+    if user_id is None:
+        return jsonify({"error": "Authentication required"}), 401
+
+    connection = get_db_connection()
+    try:
+        events = connection.execute("""
+            SELECT id, event_type, source_ip, severity,
+                   details, created_at
+            FROM security_events
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT 500
+        """, (user_id,)).fetchall()
+
+        transactions = connection.execute("""
+            SELECT t.id, t.transaction_type, t.quantity,
+                   t.amount_cents, t.created_at
+            FROM transactions t
+            JOIN investment_accounts a ON a.id = t.account_id
+            WHERE a.user_id = ?
+            ORDER BY t.created_at DESC, t.id DESC
+            LIMIT 500
+        """, (user_id,)).fetchall()
+
+        items = []
+
+        for row in events:
+            kind = str(row["event_type"] or "")
+            items.append({
+                "id": "event-" + str(row["id"]),
+                "category": (
+                    "login" if kind.startswith("LOGIN_")
+                    else "account" if any(
+                        x in kind for x in
+                        ("PROFILE", "PASSWORD", "ACCOUNT", "EMAIL")
+                    )
+                    else "security"
+                ),
+                "type": kind,
+                "title": kind.replace("_", " ").title(),
+                "details": row["details"] or "",
+                "timestamp": str(row["created_at"] or ""),
+                "ip": row["source_ip"] or None,
+                "severity": row["severity"] or "INFO",
+                "amount_cents": None
+            })
+
+        for row in transactions:
+            kind = str(row["transaction_type"] or "TRANSACTION")
+            items.append({
+                "id": "transaction-" + str(row["id"]),
+                "category": "transaction",
+                "type": kind,
+                "title": kind.replace("_", " ").title(),
+                "details": (
+                    "Quantity: " + str(row["quantity"])
+                    if row["quantity"] is not None else ""
+                ),
+                "timestamp": str(row["created_at"] or ""),
+                "ip": None,
+                "severity": "INFO",
+                "amount_cents": row["amount_cents"]
+            })
+
+        def sort_time(item):
+            value = item["timestamp"].replace("Z", "+00:00")
+            try:
+                dt = datetime.fromisoformat(value)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt.timestamp()
+            except (ValueError, OverflowError):
+                return 0
+
+        items.sort(key=lambda item: (sort_time(item), item["id"]), reverse=True)
+
+        return jsonify({
+            "success": True,
+            "summary": {
+                "successful_logins": sum(
+                    e["type"] == "LOGIN_SUCCESS" for e in items
+                ),
+                "failed_logins": sum(
+                    e["type"] == "LOGIN_FAILED" for e in items
+                ),
+                "transactions": sum(
+                    e["category"] == "transaction" for e in items
+                ),
+                "account_changes": sum(
+                    e["category"] == "account" for e in items
+                )
+            },
+            "events": items,
+            "limit_per_source": 500
+        })
+    except Exception:
+        app.logger.exception("Customer activity request failed")
+        return jsonify({"error": "Unable to load account activity"}), 500
+    finally:
+        connection.close()
+# RW CUSTOMER ACTIVITY END
+
+
+# RW CUSTOMER ACCOUNT MANAGEMENT
+@app.route("/api/customer/account-management", methods=["GET", "PUT"])
+def rw_customer_account_management():
+    from werkzeug.security import check_password_hash, generate_password_hash
+    import json
+
+    uid = session.get("user_id")
+    if uid is None:
+        return jsonify(error="Authentication required"), 401
+
+    db = get_db_connection()
+    try:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS customer_preferences (
+                user_id INTEGER PRIMARY KEY,
+                preferences TEXT NOT NULL
+            )
+        """)
+
+        user = db.execute(
+            "SELECT id, name, email, password_hash, account_status "
+            "FROM users WHERE id=?", (uid,)
+        ).fetchone()
+        if user is None:
+            return jsonify(error="Account not found"), 404
+
+        stored = db.execute(
+            "SELECT preferences FROM customer_preferences WHERE user_id=?",
+            (uid,)
+        ).fetchone()
+
+        defaults = {
+            "email_notifications": True,
+            "security_notifications": True,
+            "compact_view": False
+        }
+        preferences = dict(defaults)
+        if stored:
+            saved = json.loads(stored["preferences"])
+            if isinstance(saved, dict):
+                preferences.update({
+                    key: saved[key] for key in defaults
+                    if type(saved.get(key)) is bool
+                })
+
+        if request.method == "GET":
+            return jsonify(
+                name=user["name"], email=user["email"],
+                account_status=user["account_status"],
+                preferences=preferences
+            )
+
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify(error="JSON request required"), 400
+
+        action = data.get("action")
+        if action == "preferences":
+            incoming = data.get("preferences")
+            if not isinstance(incoming, dict):
+                return jsonify(error="Invalid preferences"), 400
+            if any(key not in defaults or type(value) is not bool
+                   for key, value in incoming.items()):
+                return jsonify(error="Invalid preference values"), 400
+
+            preferences.update(incoming)
+            db.execute("""
+                INSERT INTO customer_preferences(user_id, preferences)
+                VALUES (?, ?)
+                ON CONFLICT(user_id) DO UPDATE
+                SET preferences=excluded.preferences
+            """, (uid, json.dumps(preferences)))
+            db.commit()
+            return jsonify(success=True, preferences=preferences)
+
+        if action == "password":
+            current = data.get("current_password")
+            new = data.get("new_password")
+            if not isinstance(current, str) or not isinstance(new, str):
+                return jsonify(error="Enter both passwords"), 400
+            if not check_password_hash(user["password_hash"], current):
+                return jsonify(error="Current password is incorrect"), 400
+            if not 12 <= len(new) <= 128:
+                return jsonify(error="New password must contain 12–128 characters"), 400
+            if check_password_hash(user["password_hash"], new):
+                return jsonify(error="Choose a different password"), 400
+
+            db.execute(
+                "UPDATE users SET password_hash=? WHERE id=?",
+                (generate_password_hash(new), uid)
+            )
+            db.commit()
+            try:
+                log_security_event(
+                    uid, "PASSWORD_CHANGED", request.remote_addr,
+                    "INFO", "Customer changed account password"
+                )
+            except Exception:
+                app.logger.exception("Password change audit logging failed")
+            return jsonify(success=True, message="Password updated successfully")
+
+        return jsonify(error="Unsupported settings action"), 400
+    except Exception:
+        db.rollback()
+        app.logger.exception("Customer account management failed")
+        return jsonify(error="Unable to process account settings"), 500
+    finally:
+        db.close()
+# RW CUSTOMER ACCOUNT MANAGEMENT END
+
 @app.route("/api/security/infrastructure", methods=["GET"])
 @role_required("SOC_ADMIN")
 def api_security_infrastructure():
@@ -1062,3 +1282,110 @@ def api_security_infrastructure():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
+
+
+# RW CUSTOMER PROFILE API
+@app.route("/api/me/profile", methods=["GET", "PUT"])
+def rw_customer_profile():
+    import re
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Authentication required"}), 401
+
+    if request.method == "PUT":
+        if not request.is_json:
+            return jsonify({"error": "JSON required"}), 415
+
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "Invalid request"}), 400
+
+        name = payload.get("name")
+        email = payload.get("email")
+
+        if name is None and email is None:
+            return jsonify({"error": "No profile changes provided"}), 400
+
+        if name is not None:
+            if not isinstance(name, str):
+                return jsonify({"error": "Invalid name"}), 400
+            name = " ".join(name.strip().split())
+            if not 2 <= len(name) <= 100:
+                return jsonify({"error": "Name must be 2–100 characters"}), 400
+
+        if email is not None:
+            if not isinstance(email, str):
+                return jsonify({"error": "Invalid email"}), 400
+            email = email.strip().lower()
+            if (
+                len(email) > 254
+                or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email)
+            ):
+                return jsonify({"error": "Enter a valid email address"}), 400
+
+    db = get_db_connection()
+    try:
+        user = db.execute(
+            "SELECT id, name, email, role FROM users WHERE id=?",
+            (user_id,)
+        ).fetchone()
+
+        if not user:
+            return jsonify({"error": "Account not found"}), 404
+
+        if request.method == "PUT":
+            updated_name = name if name is not None else user["name"]
+            updated_email = email if email is not None else user["email"]
+
+            if email is not None:
+                duplicate = db.execute(
+                    "SELECT id FROM users WHERE LOWER(email)=? AND id<>?",
+                    (updated_email, user_id)
+                ).fetchone()
+
+                if duplicate:
+                    return jsonify({"error": "Email already in use"}), 409
+
+            db.execute(
+                "UPDATE users SET name=?, email=? WHERE id=?",
+                (updated_name, updated_email, user_id)
+            )
+            db.commit()
+
+            session["name"] = updated_name
+
+            if updated_name != user["name"]:
+                log_security_event(
+                    user_id, "PROFILE_NAME_CHANGED",
+                    request.remote_addr, "INFO",
+                    "Customer updated full name"
+                )
+
+            if updated_email != user["email"]:
+                log_security_event(
+                    user_id, "PROFILE_EMAIL_CHANGED",
+                    request.remote_addr, "INFO",
+                    "Customer updated email address"
+                )
+
+            return jsonify({
+                "success": True,
+                "name": updated_name,
+                "email": updated_email,
+                "role": user["role"]
+            })
+
+        return jsonify({
+            "name": user["name"],
+            "email": user["email"],
+            "role": user["role"]
+        })
+
+    except Exception:
+        db.rollback()
+        app.logger.exception("Profile request failed")
+        return jsonify({"error": "Profile request failed"}), 500
+    finally:
+        db.close()
+# RW CUSTOMER PROFILE API END

@@ -3,6 +3,8 @@ import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
 import GlobalToastHost from './components/GlobalToastHost'
 import HelpSupport from './screens/HelpSupport'
 import CustomerSettings from './screens/CustomerSettings'
+import CustomerAccountManagement from './screens/CustomerAccountManagement'
+import CustomerActivity from './screens/CustomerActivity'
 import AdminSettings from './screens/AdminSettings'
 import RegistrationForm from './screens/RegistrationForm'
 import RWPersistentNav from './components/RWPersistentNav'
@@ -24,6 +26,7 @@ import Transactions from './screens/Transactions'
 import SecurityDashboard from './screens/SecurityDashboard'
 import NetworkInfrastructure from './screens/NetworkInfrastructure'
 import CloudSecurity from './screens/CloudSecurity'
+import AccessManagement from './screens/AccessManagement'
 
 const routes = {
   '/help': HelpSupport,
@@ -40,11 +43,14 @@ const routes = {
   '/security': SecurityDashboard,
   '/security/network': NetworkInfrastructure,
   '/security/cloud': CloudSecurity,
+  '/security/access': AccessManagement,
   '/security/incidents': Incident,
   '/security/investigations': Investigations,
   '/security/incidents/INC-2026-0142': Incident,
   '/admin/settings': AdminSettings,
   '/customer/settings': CustomerSettings,
+  '/customer/account-settings': CustomerAccountManagement,
+  '/customer/activity': CustomerActivity,
 } as const
 
 const navigationByLabel: Record<string, string> = {
@@ -99,8 +105,8 @@ export default function App() {
     isMobile &&
     (
       ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
-       '/customer/settings', '/security', '/security/incidents', '/security/investigations',
-       '/security/network', '/security/cloud', '/admin/settings'].includes(path) ||
+       '/customer/settings', '/customer/activity', '/customer/account-settings', '/security', '/security/incidents', '/security/investigations',
+       '/security/network', '/security/cloud', '/security/access', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
     )
 
@@ -174,12 +180,13 @@ export default function App() {
     }
   }
 
-  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets', '/customer/settings', '/help']
+  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets', '/customer/settings', '/customer/activity', '/customer/account-settings', '/help']
   const securityRoutes = [
     '/admin/settings',
     '/security',
     '/security/network',
     '/security/cloud',
+    '/security/access',
     '/security/incidents',
     '/security/investigations',
     '/security/incidents/INC-2026-0142',
@@ -297,6 +304,7 @@ export default function App() {
             path.startsWith('/security') ||
             path === '/admin/settings'
           }
+          settingsPlacement={path === '/customer/settings'}
         />
       )}
 

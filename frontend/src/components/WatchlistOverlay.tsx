@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowDownRight, ArrowUpRight, Plus, RefreshCw, Search, Star, Trash2, X } from "lucide-react";
 import AssetLogo from "./AssetLogo";
+import { getWatchlist, saveWatchlist, toggleWatchlist } from "../utils/watchlist";
 
 type Quote = {
   symbol: string;
@@ -23,21 +24,6 @@ type StockData = {
   referenceDate?: string;
   error?: string;
 };
-
-const STORAGE_KEY = "russellwealth:watchlist:v1";
-const DEFAULT_SYMBOLS: string[] = [];
-
-function readSymbols(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_SYMBOLS;
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return DEFAULT_SYMBOLS;
-    return parsed.filter((v): v is string => typeof v === "string");
-  } catch {
-    return DEFAULT_SYMBOLS;
-  }
-}
 
 function money(value: number, currency = "USD") {
   try {
@@ -70,8 +56,14 @@ export default function WatchlistOverlay() {
   const [open, setOpen] = useState(
     () => window.location.hash === "#watchlist"
   );
-  const [symbols, setSymbols] = useState(readSymbols);
+  const [symbols, setSymbols] = useState(getWatchlist);
   const [input, setInput] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<
+    { symbol: string; name: string; currency?: string }[]
+  >([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<Record<string, StockData>>({});
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -92,22 +84,101 @@ export default function WatchlistOverlay() {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeWatchlist();
+    if (!open || !searchOpen) return;
+
+    const onPointer = (event: PointerEvent) => {
+      if (
+        searchBoxRef.current &&
+        !searchBoxRef.current.contains(event.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
     };
-    window.addEventListener("keydown", onKey);
+
+    document.addEventListener("pointerdown", onPointer);
+    return () => document.removeEventListener("pointerdown", onPointer);
+  }, [open, searchOpen]);
+
+  useEffect(() => {
+    if (!open || !searchOpen) return;
+
+    const query = input.trim();
+    if (!query) {
+      setSearchResults([
+        { symbol: "AAPL", name: "Apple Inc." },
+        { symbol: "NVDA", name: "NVIDIA Corporation" },
+        { symbol: "MSFT", name: "Microsoft Corporation" },
+        { symbol: "GOOGL", name: "Alphabet Inc." },
+        { symbol: "AMZN", name: "Amazon.com Inc." },
+        { symbol: "META", name: "Meta Platforms Inc." },
+        { symbol: "TSLA", name: "Tesla Inc." },
+        { symbol: "TTWO", name: "Take-Two Interactive Software" },
+        { symbol: "XEQT.TO", name: "iShares Core Equity ETF" },
+        { symbol: "VDY.TO", name: "Vanguard Canadian High Dividend ETF" },
+        { symbol: "VFV.TO", name: "Vanguard S&P 500 ETF" },
+        { symbol: "SHOP.TO", name: "Shopify Inc." }
+      ]);
+      setSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const response = await fetch(
+          `/api/market/search?q=${encodeURIComponent(query)}`,
+          { credentials: "same-origin", signal: controller.signal }
+        );
+        if (!response.ok) throw new Error("Search unavailable");
+
+        const payload = await response.json();
+        if (!controller.signal.aborted) {
+          setSearchResults(
+            Array.isArray(payload.results)
+              ? payload.results.filter(
+                  (item: { symbol?: string }) => !!item.symbol
+                )
+              : []
+          );
+        }
+      } catch {
+        if (!controller.signal.aborted) setSearchResults([]);
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 250);
+
     return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
+      window.clearTimeout(timer);
+      controller.abort();
     };
+  }, [open, searchOpen, input]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeWatchlist();
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(symbols));
+    saveWatchlist(symbols);
   }, [symbols]);
+
+  useEffect(() => {
+    const sync = () => setSymbols(getWatchlist());
+    window.addEventListener("russellwealth:watchlist-updated", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("russellwealth:watchlist-updated", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open || symbols.length === 0) return;
@@ -193,15 +264,6 @@ export default function WatchlistOverlay() {
     };
   }, [open, symbols, refresh]);
 
-  useEffect(() => {
-    if (!open) return;
-    const timer = window.setInterval(
-      () => setRefresh(v => v + 1),
-      60000
-    );
-    return () => window.clearInterval(timer);
-  }, [open]);
-
   async function addStock() {
     const symbol = input.trim().toUpperCase();
 
@@ -210,7 +272,7 @@ export default function WatchlistOverlay() {
       return;
     }
 
-    if (symbols.includes(symbol)) {
+    if (getWatchlist().includes(symbol)) {
       setMessage("This stock is already on your watchlist.");
       return;
     }
@@ -265,11 +327,14 @@ export default function WatchlistOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-[10000] h-[100dvh] overflow-x-hidden overflow-y-scroll overscroll-contain bg-[#090C10] text-[#F0F3F7] [-webkit-overflow-scrolling:touch]"
+      className="fixed inset-0 z-[10000] flex h-[100dvh] flex-col overflow-hidden bg-[#090C10] text-[#F0F3F7]"
       role="dialog"
       aria-modal="true"
       aria-label="My Watchlist"
     >
+      <div
+        className="h-full min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-y-contain [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
+      >
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
@@ -326,15 +391,97 @@ export default function WatchlistOverlay() {
             }}
             className="flex flex-col gap-3 sm:flex-row"
           >
-            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-[#34404D] bg-[#090C10] px-4">
-              <Search size={18} className="text-[#91A1B4]" />
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Enter symbol — AAPL, NVDA, SHOP.TO"
-                aria-label="Stock symbol"
-                className="w-full bg-transparent py-4 text-sm text-white outline-none"
-              />
+            <div ref={searchBoxRef} className="relative min-w-0 flex-1">
+              <div className="flex items-center gap-3 rounded-xl border border-[#34404D] bg-[#090C10] px-4">
+                <Search size={18} className="shrink-0 text-[#91A1B4]" />
+                <input
+                  value={input}
+                  onFocus={() => setSearchOpen(true)}
+                  onChange={e => {
+                    setInput(e.target.value);
+                    setSearchOpen(true);
+                  }}
+                  placeholder="Search stocks by name or ticker"
+                  aria-label="Search stocks"
+                  aria-expanded={searchOpen}
+                  aria-controls="watchlist-stock-results"
+                  autoComplete="off"
+                  className="w-full bg-transparent py-4 text-sm text-white outline-none"
+                />
+              </div>
+
+              {searchOpen && (
+                <div
+                  id="watchlist-stock-results"
+                  className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(45dvh,360px)] overflow-y-auto overscroll-y-contain rounded-xl border border-[#34404D] bg-[#171E27] shadow-2xl [touch-action:pan-y]"
+                >
+                  {searchLoading && (
+                    <p className="px-4 py-3 text-xs text-[#91A1B4]">
+                      Searching market...
+                    </p>
+                  )}
+
+                  {!searchLoading && searchResults.length === 0 && (
+                    <p className="px-4 py-4 text-sm text-[#91A1B4]">
+                      No matching stocks. Try another ticker or company.
+                    </p>
+                  )}
+
+                  {!searchLoading && searchResults.map(asset => {
+                    const symbol = asset.symbol.toUpperCase();
+                    const watched = symbols.includes(symbol);
+
+                    return (
+                      <div
+                        key={symbol}
+                        className="flex items-center gap-3 border-b border-[#2B333D] px-3 py-2 last:border-b-0 hover:bg-[#25303D]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInput(symbol);
+                            setSearchOpen(false);
+                          }}
+                          className="flex min-w-0 flex-1 items-center gap-3 py-2 text-left"
+                        >
+                          <AssetLogo symbol={symbol} name={asset.name || symbol} />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold">{symbol}</p>
+                            <p className="truncate text-xs text-[#91A1B4]">
+                              {asset.name || symbol}
+                            </p>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          aria-label={
+                            watched
+                              ? `Remove ${symbol} from watchlist`
+                              : `Add ${symbol} to watchlist`
+                          }
+                          aria-pressed={watched}
+                          onClick={() => {
+                            const next = toggleWatchlist(symbol);
+                            setSymbols(next);
+                            setMessage(
+                              watched
+                                ? `${symbol} removed from watchlist.`
+                                : `${symbol} added to watchlist.`
+                            );
+                          }}
+                          className="shrink-0 rounded-lg border border-[#455262] p-2 text-[#D8E0EA] hover:bg-[#344356]"
+                        >
+                          <Star
+                            size={19}
+                            fill={watched ? "currentColor" : "none"}
+                          />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <button
               type="submit"
@@ -475,6 +622,7 @@ export default function WatchlistOverlay() {
           closing prices and may not reflect the current trading session.
           Watchlist selections are saved in this browser.
         </p>
+      </div>
       </div>
     </div>
   );

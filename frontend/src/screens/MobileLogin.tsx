@@ -242,7 +242,7 @@ export default function RussellWealthMobileLogin() {
               </span>
             </label>
 
-            <a href="/" className="text-[#9da5b0] text-[10px] font-medium hover:text-white transition-colors">
+            <a href="/" className="text-[#9da5b0] text-[10px] md:text-[16px] font-medium hover:text-white transition-colors">
               ← Back
             </a>
 

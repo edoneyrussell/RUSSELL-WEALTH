@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   symbol: string;
@@ -50,6 +50,67 @@ const domains: Record<string, string> = {
   ZAG: "bmo.com",
   BTC: "bitcoin.org",
   ETH: "ethereum.org",
+  "TTWO": "take2games.com",
+  "DIS": "thewaltdisneycompany.com",
+  "UBER": "uber.com",
+  "PLTR": "palantir.com",
+  "COIN": "coinbase.com",
+  "PYPL": "paypal.com",
+  "SQ": "block.xyz",
+  "XYZ": "block.xyz",
+  "HOOD": "robinhood.com",
+  "SOFI": "sofi.com",
+  "SPOT": "spotify.com",
+  "RBLX": "roblox.com",
+  "EA": "ea.com",
+  "TTD": "thetradedesk.com",
+  "COST": "costco.com",
+  "WMT": "walmart.com",
+  "KO": "coca-cola.com",
+  "PEP": "pepsico.com",
+  "MCD": "mcdonalds.com",
+  "NKE": "nike.com",
+  "SBUX": "starbucks.com",
+  "JPM": "jpmorganchase.com",
+  "BAC": "bankofamerica.com",
+  "V": "visa.com",
+  "MA": "mastercard.com",
+  "BRK.B": "berkshirehathaway.com",
+  "SPY": "ssga.com",
+  "QQQ": "invesco.com",
+  "QQQM": "invesco.com",
+  "SCHD": "schwabassetmanagement.com",
+  "VUG": "vanguard.com",
+  "VYM": "vanguard.com",
+  "XIU": "blackrock.com",
+  "XIC": "blackrock.com",
+  "XQQ": "blackrock.com",
+  "VUN": "vanguard.ca",
+  "VCN": "vanguard.ca",
+  "VXC": "vanguard.ca",
+  "VEQT": "vanguard.ca",
+  "VGRO": "vanguard.ca",
+  "VBAL": "vanguard.ca",
+  "ZSP": "bmo.com",
+  "ZCN": "bmo.com",
+  "ZEB": "bmo.com",
+};
+
+const companyDomains: Record<string, string> = {
+  "take-two": "take2games.com",
+  "take two": "take2games.com",
+  "berkshire hathaway": "berkshirehathaway.com",
+  "alphabet": "google.com",
+  "celestica": "celestica.com",
+  "shopify": "shopify.com",
+  "royal bank": "rbc.com",
+  "bank of nova scotia": "scotiabank.com",
+  "blackrock": "blackrock.com",
+  "ishares": "blackrock.com",
+  "vanguard": "vanguard.com",
+  "bmo": "bmo.com",
+  "invesco": "invesco.com",
+  "state street": "ssga.com",
 };
 
 export default function AssetLogo({
@@ -59,9 +120,19 @@ export default function AssetLogo({
   className = "",
 }: Props) {
   const [failed, setFailed] = useState(false);
-  const clean = symbol.trim().toUpperCase().replace(/\.(TO|V|NE)$/, "");
-  const domain = domains[clean];
+  const clean = symbol.trim().toUpperCase().replace(/\\.(TO|V|NE)$/, "");
+  const normalizedName = (name || "").toLowerCase();
+
+  const domainFromName = Object.entries(companyDomains).find(
+    ([key]) => normalizedName.includes(key)
+  )?.[1];
+
+  const domain = domains[clean] || domainFromName;
   const initials = clean.slice(0, 3) || "?";
+
+  useEffect(() => {
+    setFailed(false);
+  }, [domain]);
 
   return (
     <span
@@ -72,7 +143,7 @@ export default function AssetLogo({
     >
       {domain && !failed ? (
         <img
-          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=128`}
+          src={clean === "SHOP" ? "https://www.shopify.com/favicon.ico" : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"

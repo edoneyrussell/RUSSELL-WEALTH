@@ -1,0 +1,75 @@
+
+/* RW_PORTFOLIO_COLORS_V2 */
+
+/* Allocation indicators */
+.rw-colorful-portfolio [data-name="Asset class"] {
+  transition: background 180ms ease;
+}
+
+.rw-colorful-portfolio [data-name="Asset class"]:nth-child(1) [data-name="Marker"] {
+  background: #38c6a0 !important;
+  box-shadow: 0 0 10px #38c6a055;
+}
+
+.rw-colorful-portfolio [data-name="Asset class"]:nth-child(2) [data-name="Marker"] {
+  background: #559cfa !important;
+  box-shadow: 0 0 10px #559cfa55;
+}
+
+.rw-colorful-portfolio [data-name="Asset class"]:nth-child(3) [data-name="Marker"] {
+  background: #e5b65c !important;
+  box-shadow: 0 0 10px #e5b65c55;
+}
+
+/* Allocation bars */
+.rw-colorful-portfolio [data-name="Stocks"] {
+  background: #38c6a0 !important;
+}
+
+.rw-colorful-portfolio [data-name="ETFs"] {
+  background: #559cfa !important;
+}
+
+.rw-colorful-portfolio [data-name="Cash"] {
+  background: #e5b65c !important;
+}
+
+/* Your Holdings */
+.rw-colorful-portfolio [data-name="Your holdings"] {
+  border-color: #354354 !important;
+  background: linear-gradient(145deg, #171e28, #12171e) !important;
+}
+
+.rw-colorful-portfolio [data-name="Holdings table"] > div {
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.rw-colorful-portfolio [data-name="Holdings table"] > div:hover {
+  background: #233247 !important;
+  border-color: #559cfa66 !important;
+}
+
+/* Subtle accent on holding rows */
+.rw-colorful-portfolio [data-name="Holdings table"] > div:nth-child(3n+1) {
+  border-left: 3px solid #38c6a0;
+  padding-left: 8px;
+}
+
+.rw-colorful-portfolio [data-name="Holdings table"] > div:nth-child(3n+2) {
+  border-left: 3px solid #559cfa;
+  padding-left: 8px;
+}
+
+.rw-colorful-portfolio [data-name="Holdings table"] > div:nth-child(3n) {
+  border-left: 3px solid #a78bfa;
+  padding-left: 8px;
+}
+
+/* Position breakdown accents */
+.rw-colorful-portfolio [data-name*="Position"] {
+  border-color: #344458;
+}
+
+.rw-colorful-portfolio [data-name*="Position"] [class*="rounded"] {
+  transition: background 180ms ease;
+}

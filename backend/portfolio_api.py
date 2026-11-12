@@ -1,3 +1,4 @@
+from account_access import customer_user_id
 from flask import Blueprint, jsonify, session
 from authorization import role_required
 from database import get_db_connection
@@ -12,28 +13,7 @@ def get_portfolio():
     conn = get_db_connection()
 
     try:
-        portfolio_user_id = session["user_id"]
-
-        if session.get("role") == "SOC_ADMIN":
-            linked = conn.execute(
-                """
-                SELECT l.customer_user_id
-                FROM admin_customer_links l
-                JOIN users u ON u.id = l.customer_user_id
-                WHERE l.admin_user_id = ?
-                  AND u.role = 'CUSTOMER'
-                ORDER BY l.customer_user_id
-                LIMIT 1
-                """,
-                (portfolio_user_id,)
-            ).fetchone()
-
-            if linked is None:
-                return jsonify({
-                    "error": "No authorized customer portfolio"
-                }), 403
-
-            portfolio_user_id = linked["customer_user_id"]
+        portfolio_user_id = customer_user_id(conn)
 
         account = conn.execute(
             """

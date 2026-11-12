@@ -43,7 +43,7 @@ export default function PortfolioHistoryChart({
   value: number | null;
 }) {
   const [history, setHistory] = useState<Point[]>(readHistory);
-  const [range, setRange] = useState<Range>("1M");
+  const [range, setRange] = useState<Range>("1D");
 
   useEffect(() => {
     if (value === null || !Number.isFinite(value)) return;

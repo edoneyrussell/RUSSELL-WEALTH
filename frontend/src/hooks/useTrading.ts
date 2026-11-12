@@ -33,6 +33,12 @@ export function useTrading() {
         }),
       });
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          `Trading server returned HTTP ${response.status} instead of JSON.`
+        );
+      }
       const result = await response.json();
 
       if (!response.ok) {

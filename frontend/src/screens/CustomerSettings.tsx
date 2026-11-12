@@ -18,9 +18,9 @@ const features = [
   },
   {
     title: 'Account Settings',
-    description: 'Password and account preferences',
+    description: 'Password, preferences and account management',
     icon: '⚙',
-    status: 'Coming soon',
+    href: '/customer/account-settings',
   },
   {
     title: 'Investment Accounts',
@@ -36,9 +36,9 @@ const features = [
   },
   {
     title: 'Security & Activity',
-    description: 'Account access and login history',
+    description: 'Your personal security and transaction activity',
     icon: '◇',
-    status: 'Coming soon',
+    href: '/customer/activity',
   },
   {
     title: 'Help & Support',
@@ -48,9 +48,40 @@ const features = [
   },
 ];
 
+async function readProfileResponse(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!contentType.toLowerCase().includes("application/json")) {
+    if (response.redirected) {
+      throw new Error(
+        "Your session may have expired. Sign in again."
+      );
+    }
+
+    throw new Error(
+      `Profile API returned HTTP ${response.status} instead of JSON. ` +
+      "Check that the Flask backend is running and /api/me/profile is routed correctly."
+    );
+  }
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Profile request failed (${response.status}).`);
+  }
+
+  return data;
+}
+
 export default function CustomerSettings() {
   const [account, setAccount] = useState<Account | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [photoVersion, setPhotoVersion] = useState(0);
   const photoInput = useRef<HTMLInputElement>(null);
@@ -67,6 +98,73 @@ export default function CustomerSettings() {
 
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/me/profile", {
+      credentials: "same-origin"
+    })
+      .then(readProfileResponse)
+      .then(data => {
+        if (!active) return;
+        setProfileName(data.name || "");
+        setProfileEmail(data.email || "");
+        setAccount(previous => ({
+          ...previous,
+          name: data.name,
+          email: data.email,
+          role: data.role
+        }));
+      })
+      .catch(() => {
+        if (active) setProfileError("Unable to load profile.");
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  async function saveProfileField(field: "name" | "email") {
+    setSavingProfile(true);
+    setProfileError("");
+    setProfileMessage("");
+
+    try {
+      const value = field === "name" ? profileName : profileEmail;
+
+      const response = await fetch("/api/me/profile", {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value })
+      });
+
+      const data = await readProfileResponse(response);
+
+      setAccount(previous => ({
+        ...previous,
+        name: data.name,
+        email: data.email
+      }));
+
+      setProfileName(data.name);
+      setProfileEmail(data.email);
+
+      setProfileMessage(
+        field === "name"
+          ? "Full name updated successfully."
+          : "Email updated successfully."
+      );
+
+      window.dispatchEvent(new Event("rw-profile-updated"));
+    } catch (error) {
+      setProfileError(
+        error instanceof Error ? error.message : "Save failed."
+      );
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   const name = account?.name || 'Customer';
   const initials = name
@@ -256,6 +354,96 @@ export default function CustomerSettings() {
           )}
         </section>
 
+        {profileMessage && (
+          <p role="status" className="mb-5 text-sm text-[#7DD9A8]">
+            {profileMessage}
+          </p>
+        )}
+
+        {profileError && (
+          <p role="alert" className="mb-5 text-sm text-[#F1A8A8]">
+            {profileError}
+          </p>
+        )}
+
+        {editingProfile && (
+          <section
+            id="rw-profile-editor"
+            className="mb-8 rounded-xl border border-[#526780] bg-[#14171c] p-6"
+          >
+            <h2 className="mb-5 text-xl font-semibold">
+              Edit My Profile
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="rw-profile-name"
+                  className="mb-2 block text-sm text-[#b4b8c0]">
+                  Full Name
+                </label>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    id="rw-profile-name"
+                    type="text"
+                    minLength={2}
+                    maxLength={100}
+                    autoComplete="name"
+                    value={profileName}
+                    onChange={e => setProfileName(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border border-[#455262] bg-[#090C10] px-4 py-3 text-white outline-none focus:border-[#B8C6D5]"
+                  />
+                  <button
+                    type="button"
+                    disabled={savingProfile || !profileName.trim()}
+                    onClick={() => void saveProfileField("name")}
+                    className="rounded-lg bg-[#B8C6D5] px-5 py-3 text-sm font-semibold text-[#090C10] disabled:opacity-50"
+                  >
+                    {savingProfile ? "Saving..." : "Save Name"}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="rw-profile-email"
+                  className="mb-2 block text-sm text-[#b4b8c0]">
+                  Email Address
+                </label>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    id="rw-profile-email"
+                    type="email"
+                    maxLength={254}
+                    autoComplete="email"
+                    value={profileEmail}
+                    onChange={e => setProfileEmail(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border border-[#455262] bg-[#090C10] px-4 py-3 text-white outline-none focus:border-[#B8C6D5]"
+                  />
+                  <button
+                    type="button"
+                    disabled={savingProfile || !profileEmail.trim()}
+                    onClick={() => void saveProfileField("email")}
+                    className="rounded-lg bg-[#B8C6D5] px-5 py-3 text-sm font-semibold text-[#090C10] disabled:opacity-50"
+                  >
+                    {savingProfile ? "Saving..." : "Save Email"}
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-[#8c929c]">
+                Each field saves independently to your account.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setEditingProfile(false)}
+                className="rounded-lg border border-[#455262] px-5 py-3 text-sm"
+              >
+                Close Editor
+              </button>
+            </div>
+          </section>
+        )}
+
         <h2 className="text-[16px] font-semibold mb-4">
           Customer Account Features
         </h2>
@@ -278,6 +466,34 @@ export default function CustomerSettings() {
                 </p>
               </>
             );
+
+            if (feature.title === "My Profile") {
+              return (
+                <button
+                  key={feature.title}
+                  type="button"
+                  onClick={() => {
+                    setEditingProfile(value => !value);
+                    setProfileError("");
+                    setProfileMessage("");
+                  }}
+                  className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left hover:border-[#777e89] transition-colors"
+                >
+                  <span className="flex size-[40px] items-center justify-center rounded-lg bg-[#292e36] text-[22px]">
+                    {feature.icon}
+                  </span>
+                  <h3 className="mt-5 text-sm font-semibold">
+                    My Profile
+                  </h3>
+                  <p className="mt-2 text-xs text-[#8c929c]">
+                    Edit your name, email and profile photo.
+                  </p>
+                  <p className="mt-5 text-xs text-[#B8C6D5]">
+                    {editingProfile ? "Close Profile Editor" : "Edit Profile"}
+                  </p>
+                </button>
+              );
+            }
 
             return feature.href ? (
               <a
@@ -333,7 +549,7 @@ export default function CustomerSettings() {
           )}
         </div>
 
-        <div className="border-t border-[#30343b] mt-10 pt-6 flex justify-between items-center gap-4">
+        <div className="rw-settings-logout border-t border-[#30343b] mt-10 pt-6 flex justify-between items-center gap-4">
           <span className="text-[#8c929c] text-[12px]">
             Russell Wealth · Customer
           </span>

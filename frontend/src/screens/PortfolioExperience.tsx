@@ -178,8 +178,50 @@ export default function PortfolioExperience() {
     (a, b) => Number(b.market_value) - Number(a.market_value)
   )[0];
 
-  const shownMoney = (value: number | string) =>
-    hideBalance ? "••••••" : money(value);
+
+  // RW_ACTIVE_PORTFOLIO_FX_V2
+  const [displayCurrency, setDisplayCurrency] =
+    useState<"CAD" | "USD" | "BSD">("CAD");
+
+  const [cadToUsd, setCadToUsd] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("https://open.er-api.com/v6/latest/CAD")
+      .then(response => {
+        if (!response.ok) throw new Error("FX unavailable");
+        return response.json();
+      })
+      .then(data => {
+        const rate = Number(data?.rates?.USD);
+
+        if (!Number.isFinite(rate) || rate <= 0) {
+          throw new Error("Invalid FX rate");
+        }
+
+        if (active) setCadToUsd(rate);
+      })
+      .catch(() => {
+        if (active) setCadToUsd(null);
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  const portfolioMoney = (value: number | string) => {
+    const rate = displayCurrency === "CAD" ? 1 : cadToUsd;
+
+    if (rate === null) return "FX unavailable";
+
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: displayCurrency,
+      maximumFractionDigits: 2,
+    }).format(Number(value) * rate);
+  };
+
+  const shownMoney = (value: number | string) => portfolioMoney(value);
 
   const card = "rounded-[20px] border border-[#2D3742] bg-[#161D26] p-5";
   const label = "text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8E9BAA]";
@@ -241,9 +283,18 @@ export default function PortfolioExperience() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className={label}>Total Portfolio Value</span>
-                    <span className="rounded-md border border-[#405064] px-2 py-1 text-[10px] text-[#A7B7C9]">
-                      CAD
-                    </span>
+                    <select
+                      aria-label="Portfolio display currency"
+                      value={displayCurrency}
+                      onChange={event =>
+                        setDisplayCurrency(event.target.value as "CAD" | "USD" | "BSD")
+                      }
+                      className="cursor-pointer rounded-md border border-[#405064] bg-[#141b24] px-2 py-1 text-[11px] font-semibold text-[#dce7f2] outline-none"
+                    >
+                      <option value="CAD">🇨🇦 CAD</option>
+                      <option value="USD" disabled={cadToUsd === null}>🇺🇸 USD</option>
+                      <option value="BSD" disabled={cadToUsd === null}>🇧🇸 BSD</option>
+                    </select>
                   </div>
                   <p className="mt-4 break-all text-[39px] font-semibold tracking-[-0.055em] sm:text-[60px]">
                     {shownMoney(total)}

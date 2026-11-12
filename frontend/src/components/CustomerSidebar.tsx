@@ -93,12 +93,16 @@ function NavItem({
 export default function CustomerSidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState("");
 
   useEffect(() => {
     const loadProfile = () => {
       fetch("/api/me", { credentials: "same-origin" })
         .then(r => r.ok ? r.json() : null)
-        .then(data => setProfilePhoto(data?.profile_photo ?? null))
+        .then(data => {
+          setProfilePhoto(data?.profile_photo ?? null);
+          setProfileName(typeof data?.name === "string" ? data.name.trim() : "");
+        })
         .catch(() => {});
     };
     loadProfile();
@@ -176,21 +180,29 @@ export default function CustomerSidebar() {
         <a
           href="/customer/settings"
           onClick={e => go(e, "/customer/settings")}
-          className="flex items-center gap-[10px]"
+          className="flex flex-col items-start gap-[9px]"
         >
+          {/* RW_CUSTOMER_ACCOUNT_LABEL_V1 */}
+          <span className="flex w-full items-center justify-between text-[12px] font-normal text-[#b4b8c0] transition-colors hover:text-[#f5f5f5]">
+            <span>Account Settings</span>
+            <span aria-hidden="true">›</span>
+          </span>
+          <span className="h-px w-full bg-[#30343b]" />
+          <span className="flex items-center gap-[10px]">
           <div className="flex size-[36px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#526780] bg-[#252a31] text-[11px] font-semibold text-[#c5cad2]">
             {profilePhoto ? (
               <img src={profilePhoto} alt="Profile" className="size-full object-cover" />
-            ) : "ER"}
+            ) : (profileName ? profileName.trim().split(" ").filter(Boolean).slice(0, 2).map(part => part.charAt(0)).join("").toUpperCase() : "?")}
           </div>
           <div className="flex min-w-0 flex-col gap-[4px]">
             <span className="text-[12px] font-semibold text-[#f5f5f5]">
-              Edoney Russell
+              {profileName || "Account"}
             </span>
             <span className="text-[10px] text-[#8c929c]">
               Personal account
             </span>
           </div>
+                  </span>
         </a>
 
         <button
@@ -226,6 +238,7 @@ const socGroups: { heading: string; entries: SocEntry[] }[] = [
       { label: "Logs", action: "Logs", icon: "0df54.svg" },
       { label: "Network", href: "/security/network", icon: "651b9.svg" },
       { label: "Cloud Security", href: "/security/cloud", icon: "cloud" },
+      { label: "Access", href: "/security/access", icon: "50fa9.svg" },
     ],
   },
 ];
@@ -378,6 +391,8 @@ function SocSidebar() {
       ? "Investigations"
       : path === "/security/network"
       ? "Network"
+      : path === "/security/access"
+        ? "Access"
       : (path === "/security/incidents" || path.startsWith("/security/incidents/"))
     ? "Incidents"
     : path === "/security"
@@ -503,7 +518,18 @@ function SocSidebar() {
         ))}
       </nav>
 
+      
       <div className="rw-soc-sidebar-footer">
+        {/* RW_ACCOUNT_SETTINGS_LABEL_V1 */}
+        <a
+          href="/admin/settings"
+          onClick={e => go(e, "/admin/settings")}
+          className="mb-2 flex w-full items-center justify-between rounded-lg border border-[#344454] bg-[#1B2530] px-3 py-2.5 text-[12px] font-semibold text-[#DCE7F2] transition-colors hover:border-[#559CFA] hover:bg-[#25364A]"
+        >
+          <span>Account Settings</span>
+          <span aria-hidden="true" className="text-[#8FA9C4]">›</span>
+        </a>
+
 
         <div className="flex shrink-0 flex-col gap-[18px] rounded-[12px] border border-[#30343b] bg-[#14171c] p-[12px]">
           <a
