@@ -27,6 +27,12 @@ function go(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
 
   event.preventDefault();
 
+  if (href === '/security') {
+    goToSocDashboard();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
+
   if (window.location.pathname !== href.split("#")[0] ||
       window.location.pathname + window.location.hash !== href) {
     window.history.pushState({}, "", href);
@@ -106,8 +112,15 @@ export default function CustomerSidebar() {
         .catch(() => {});
     };
     loadProfile();
+    const syncProfile = (event: StorageEvent) => { if (event.key === 'rw-profile-sync') loadProfile(); };
     window.addEventListener("rw-profile-updated", loadProfile);
-    return () => window.removeEventListener("rw-profile-updated", loadProfile);
+    window.addEventListener('focus', loadProfile);
+    window.addEventListener('storage', syncProfile);
+    return () => {
+      window.removeEventListener("rw-profile-updated", loadProfile);
+      window.removeEventListener('focus', loadProfile);
+      window.removeEventListener('storage', syncProfile);
+    };
   }, []);
 
   return (
@@ -234,11 +247,9 @@ const socGroups: { heading: string; entries: SocEntry[] }[] = [
       { label: "SOC Dashboard", href: "/security", icon: "651b9.svg" },
       { label: "Alerts", action: "Alerts", icon: "7412e.svg" },
       { label: "Incidents", href: "/security/incidents", icon: "82d8b.svg" },
-      { label: "Investigations", href: "/security/investigations", icon: "82d8b.svg" },
       { label: "Logs", action: "Logs", icon: "0df54.svg" },
-      { label: "Network", href: "/security/network", icon: "651b9.svg" },
-      { label: "Cloud Security", href: "/security/cloud", icon: "cloud" },
-      { label: "Access", href: "/security/access", icon: "50fa9.svg" },
+      { label: "Network", href: "/security/network", icon: "8a4d1.svg" },
+      { label: "Access", href: "/security/access", icon: "e2640.svg" },
     ],
   },
 ];
@@ -387,9 +398,7 @@ function SocSidebar() {
 
   const current = activePanel && path === "/security"
     ? activePanel
-    : path === "/security/investigations"
-      ? "Investigations"
-      : path === "/security/network"
+    : path === "/security/network"
       ? "Network"
       : path === "/security/access"
         ? "Access"

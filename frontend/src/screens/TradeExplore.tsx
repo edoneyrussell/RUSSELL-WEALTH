@@ -1,3 +1,4 @@
+import { useCustomerFetch } from "../demo/customerDemo";
 import AssetLogo from "./../components/AssetLogo";
 import { useEffect, useMemo, useState } from "react";
 import { useTrading } from "../hooks/useTrading";
@@ -13,6 +14,9 @@ type Asset = {
   type: string;
   currency: string;
   price: string;
+  exchange?: string;
+  listing_currency?: string;
+  price_source?: string;
 };
 
 type Holding = {
@@ -29,6 +33,7 @@ type Portfolio = {
 const categories = ["All", "Stocks", "ETFs", "REITs", "Bonds", "Crypto"] as const;
 type Category = (typeof categories)[number];
 
+const featuredSymbols = ["AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "META", "TSLA", "AMD", "AVGO", "COST", "WMT", "JPM", "V", "MA", "NFLX", "DIS", "SHOP", "UBER", "COIN", "PLTR", "KO", "PEP", "NKE", "MCD"];
 const catalog: Asset[] = [
   { symbol: "AAPL", name: "Apple Inc.", type: "STOCK", currency: "USD", price: "100.00" },
   { symbol: "NVDA", name: "NVIDIA Corporation", type: "STOCK", currency: "USD", price: "100.00" },
@@ -64,10 +69,12 @@ function formatMoney(value: string | number, currency = "CAD") {
 }
 
 export default function TradeExplore() {
+  const customerFetch = useCustomerFetch();
   const trade = useTrading();
 
   const [category, setCategory] = useState<Category>("All");
   const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(48);
   const [marketResults, setMarketResults] = useState<Asset[]>([]);
   const [marketSearching, setMarketSearching] = useState(false);
   const [selected, setSelected] = useState(() =>
@@ -85,7 +92,7 @@ export default function TradeExplore() {
 
     async function loadAssets() {
       try {
-        const response = await fetch("/api/customer/assets", {
+        const response = await customerFetch("/api/customer/assets", {
           credentials: "same-origin",
         });
         const data = await response.json();
@@ -109,7 +116,7 @@ export default function TradeExplore() {
 
     async function loadPortfolio() {
       try {
-        const response = await fetch("/api/customer/portfolio", {
+        const response = await customerFetch("/api/customer/portfolio", {
           credentials: "same-origin",
         });
         const data = await response.json();
@@ -140,7 +147,7 @@ export default function TradeExplore() {
   useEffect(() => {
     const query = search.trim();
 
-    if (query.length < 1) {
+    if (query.length < 1 || assets.some(asset => asset.symbol.toLowerCase().includes(query.toLowerCase()) || asset.name.toLowerCase().includes(query.toLowerCase()))) {
       setMarketResults([]);
       setMarketSearching(false);
       return;
@@ -152,7 +159,7 @@ export default function TradeExplore() {
 
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(
+        const response = await customerFetch(
           `/api/market/search?q=${encodeURIComponent(query)}`,
           {
             credentials: "same-origin",
@@ -178,9 +185,8 @@ export default function TradeExplore() {
                 ? "ETF"
                 : "STOCK"
             ),
-            currency: item.currency || (
-              item.symbol.endsWith(".TO") ? "CAD" : "USD"
-            ),
+            currency: 'CAD',
+            listing_currency: item.currency || (item.symbol.endsWith('.TO') ? 'CAD' : 'USD'),
             price: "100.00",
           })
         );
@@ -199,7 +205,10 @@ export default function TradeExplore() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [search]);
+  }, [search, assets]);
+
+  useEffect(() => { setVisibleCount(48); }, [search, category]);
+  useEffect(() => { trade.setSymbol(selected); }, [selected]);
 
   useEffect(() => {
     const syncWatchlist = () => setStarred(getWatchlist());
@@ -243,10 +252,8 @@ export default function TradeExplore() {
   const allAssets = useMemo(() => {
     const merged = new Map<string, Asset>();
 
-    if (!search.trim()) {
-      for (const asset of catalog) {
-        merged.set(asset.symbol.toUpperCase(), asset);
-      }
+    for (const asset of catalog) {
+      merged.set(asset.symbol.toUpperCase(), { ...asset, listing_currency: asset.currency, currency: 'CAD' });
     }
 
     for (const asset of assets) {
@@ -257,7 +264,10 @@ export default function TradeExplore() {
       merged.set(asset.symbol.toUpperCase(), asset);
     }
 
-    return Array.from(merged.values());
+    return Array.from(merged.values()).sort((a, b) => {
+      const left = featuredSymbols.indexOf(a.symbol), right = featuredSymbols.indexOf(b.symbol);
+      return (left < 0 ? 1000 : left) - (right < 0 ? 1000 : right) || a.symbol.localeCompare(b.symbol);
+    });
   }, [assets, marketResults, search]);
 
   const filtered = useMemo(() => {
@@ -283,7 +293,7 @@ export default function TradeExplore() {
           symbol: selected,
           name: selected,
           type: "STOCK",
-          currency: selected.endsWith(".TO") ? "CAD" : "USD",
+          currency: 'CAD',
           price: "100.00"
         }
       : catalog[0]
@@ -303,7 +313,7 @@ export default function TradeExplore() {
 
   const canSubmit =
     isSupportedType &&
-    (isBackendListed || trade.direction === "BUY") &&
+    (trade.direction === "BUY" || Number(owned?.quantity ?? 0) > 0) &&
     trade.symbol === current.symbol &&
     !trade.submitting;
 
@@ -313,7 +323,7 @@ export default function TradeExplore() {
   }
 
   return (
-    <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-[#080B0F] px-3 py-4 text-[#F2F2F3] sm:px-7 sm:py-6 lg:px-10">
+    <div className="rw-fintech-workspace rw-fintech-trade min-h-screen w-full min-w-0 overflow-x-hidden bg-[#080B0F] px-3 py-4 text-[#F2F2F3] sm:px-7 sm:py-6 lg:px-10">
       <div className="mx-auto w-full min-w-0 max-w-[1500px]">
         <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -387,7 +397,7 @@ export default function TradeExplore() {
               <div>
                 <h2 className="text-lg font-semibold">Explore Assets</h2>
                 <p className="mt-1 text-xs text-[#8895A5]">
-                  {marketSearching ? "Searching markets..." : `${filtered.length} investments · Select one to inspect`}
+                  {marketSearching ? "Searching markets..." : `${filtered.length.toLocaleString()} investments · Select one to inspect`}
                 </p>
               </div>
               <span className="rounded-lg bg-[#242D38] px-3 py-1.5 text-[10px] uppercase tracking-wider text-[#B5C0CE]">
@@ -397,7 +407,7 @@ export default function TradeExplore() {
 
             {assetError && (
               <p className="mb-4 rounded-xl border border-[#69513B] bg-[#2A211B] p-3 text-xs text-[#F0C89D]">
-                Live asset catalog: {assetError}. Showing the sample catalog.
+                Full catalog unavailable: {assetError}. Showing featured investments.
               </p>
             )}
 
@@ -406,7 +416,7 @@ export default function TradeExplore() {
             )}
 
             <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-              {filtered.map(asset => {
+              {filtered.slice(0, visibleCount).map(asset => {
                 const active = current.symbol === asset.symbol;
                 const listed = assets.some(
                   item => item.symbol.toUpperCase() === asset.symbol.toUpperCase()
@@ -427,10 +437,6 @@ export default function TradeExplore() {
                         : "border-[#29323D] bg-[#171D26] hover:border-[#66778B] hover:bg-[#202936]")
                     }
                   >
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-[#455262] bg-[#303B49] text-xs font-bold">
-                      {asset.symbol.slice(0, 3)}
-                    </div>
-
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={asset.symbol} name={asset.name} /><div className="min-w-0"><p className="truncate text-sm font-semibold">
                         {asset.symbol}
@@ -438,9 +444,10 @@ export default function TradeExplore() {
                       <p className="mt-1 truncate text-xs text-[#A2ADBA]">
                         {asset.name}
                       </p></div></div>
+                      <p className="mt-3 text-sm font-semibold text-[#E0E8F1]">{formatMoney(asset.price, asset.currency)}<span className="ml-2 text-[10px] font-normal text-[#8795A5]">Simulated price</span></p>
                       <p className="mt-2 text-[10px] text-[#8795A5]">
-                        {categoryOf(asset)} · {asset.currency}
-                        {!listed ? " · Preview" : ""}
+                        {categoryOf(asset)} · {asset.exchange || asset.currency}
+                        {!listed ? " · Preview" : " · Simulated"}
                       </p>
                     </div>
 
@@ -474,6 +481,8 @@ export default function TradeExplore() {
               })}
             </div>
 
+            {visibleCount < filtered.length && <div className="mt-5 text-center"><p className="mb-3 text-xs text-[#8895A5]">Showing {Math.min(visibleCount, filtered.length)} of {filtered.length.toLocaleString()} investments</p><button type="button" className="rounded-xl border border-[#526071] px-5 py-3 text-sm text-[#D7DEE7] hover:bg-[#202936]" onClick={() => setVisibleCount(count => count + 48)}>Show more investments</button></div>}
+
             {filtered.length === 0 && (
               <p className="rounded-xl border border-[#29323D] p-8 text-center text-sm text-[#A2ADBA]">
                 No matching investments.
@@ -502,12 +511,10 @@ export default function TradeExplore() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-[#151C25] p-4">
                   <p className="text-[10px] uppercase tracking-wider text-[#8492A2]">
-                    Listed Price
+                    Simulation Price
                   </p>
                   <p className="mt-2 text-lg font-semibold">
-                    {isBackendListed && current.price
-                      ? formatMoney(current.price, current.currency)
-                      : "Not available"}
+                    {formatMoney(current.price, current.currency)}
                   </p>
                 </div>
                 <div className="rounded-xl bg-[#151C25] p-4">
@@ -592,7 +599,7 @@ export default function TradeExplore() {
 
               {!isBackendListed && (
                 <p className="mb-4 text-xs leading-5 text-[#D5B58F]">
-                  New asset. Buying requires a valid stored market quote.
+                  New assets start at a simulated price of CA$100 per share.
                   Selling requires an existing position.
                 </p>
               )}
@@ -619,7 +626,7 @@ export default function TradeExplore() {
                 type="button"
                 disabled={!canSubmit}
                 onClick={() => { void trade.submitTrade(); }}
-                className="w-full rounded-xl bg-[#D7DEE7] py-3.5 text-sm font-bold text-[#10151B] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="rw-fintech-primary w-full rounded-xl bg-[#D7DEE7] py-3.5 text-sm font-bold text-[#10151B] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {trade.submitting
                   ? "Processing..."
@@ -627,8 +634,7 @@ export default function TradeExplore() {
               </button>
 
               <p className="mt-4 text-center text-[11px] leading-5 text-[#8795A5]">
-                Orders use the existing Russell Wealth trading API.
-                No real securities or cryptocurrency are purchased.
+                Prices and trades are simulated in CAD. New stocks start at CA$100 per share; existing stored prices are retained. No real securities are purchased.
               </p>
             </section>
           </aside>

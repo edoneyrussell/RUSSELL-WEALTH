@@ -1,3 +1,4 @@
+import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useRef, useState } from 'react'
 import { Search, X, ArrowUpRight, TrendingUp } from 'lucide-react'
 
@@ -16,6 +17,7 @@ export default function MarketSearch({
 }: {
   triggerOnly?: boolean
 }) {
+  const customerFetch = useCustomerFetch();
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<SearchFilter>('All')
@@ -67,7 +69,7 @@ export default function MarketSearch({
 
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(
+        const response = await customerFetch(
           `/api/market/search?q=${encodeURIComponent(searchTerm)}`,
           {
             credentials: 'same-origin',
@@ -138,6 +140,7 @@ export default function MarketSearch({
 
   function selectStock(symbol: string) {
     setOpen(false)
+    if (customerDemoNavigate('/markets')) return;
     window.location.href =
       '/markets?symbol=' + encodeURIComponent(symbol)
   }

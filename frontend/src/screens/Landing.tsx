@@ -1,3 +1,4 @@
+import LanguageSelector from "../components/LanguageSelector";
 import { landingLinks } from "../content/landingLinks";
 import { landingContent } from "../content/landingContent";
 const assetPathPrefix = "/assets";
@@ -25,7 +26,7 @@ const imgLinkedin = `${assetPathPrefix}/6fbf5.svg`;
 
 export default function RussellWealthLandingPage() {
   return (
-    <div className="bg-[#080b0e] content-stretch flex flex-col items-start relative size-full" data-node-id="51:2538" data-name="Russell Wealth landing page">
+    <div className="rw-landing-alive bg-[#080b0e] content-stretch flex flex-col items-start relative size-full" data-node-id="51:2538" data-name="Russell Wealth landing page">
       <div className="content-stretch flex flex-col items-start overflow-clip relative shrink-0 w-full" data-node-id="51:2539" data-name="Landing hero">
         <div className="absolute h-[810px] left-0 top-0 w-[1440px]" data-node-id="51:2540" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 1440 810' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(64.8 36.45 -79.2 36.45 792 445.5)'><stop stop-color='rgba(28,35,43,0.4)' offset='0'/><stop stop-color='rgba(0,0,0,0)' offset='1'/></radialGradient></defs></svg>\")" }} data-name="Ambient light" />
         <div className="absolute h-[510px] left-[786px] overflow-clip top-[95px] w-[654px]" data-node-id="51:2541" data-name="Silver monogram">
@@ -43,16 +44,8 @@ export default function RussellWealthLandingPage() {
             </div>
           </div>
           <div className="content-stretch flex gap-[24px] items-center overflow-clip relative shrink-0" data-node-id="51:2561" data-name="Account and language">
-            <div className="border border-[#555b64] border-solid content-stretch flex gap-[12px] h-[38px] items-center overflow-clip px-[18px] relative rounded-[20px] shrink-0" data-node-id="51:2562" data-name="Language selector">
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="51:2563">
-                🇨🇦 EN
-              </p>
-              <div className="bg-[#555b64] h-[18px] relative shrink-0 w-px" data-node-id="51:2564" data-name="Language divider" />
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="51:2565">
-                🇫🇷 FR
-              </p>
-            </div>
-            <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2566" data-name="Action">
+<LanguageSelector />
+            <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2566" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
               <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[16px] whitespace-nowrap" data-node-id="51:2567">
                 Sign In
               </p>
@@ -77,7 +70,7 @@ export default function RussellWealthLandingPage() {
             A modern investment experience built at the intersection of finance, business, technology, and cybersecurity.
           </p>
           <div className="content-stretch flex gap-[24px] items-start overflow-clip relative shrink-0" data-node-id="51:2577" data-name="Hero actions">
-            <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2578" data-name="Action">
+            <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2578" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
               <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[16px] whitespace-nowrap" data-node-id="51:2579">
                 Explore Platform
               </p>
@@ -85,7 +78,7 @@ export default function RussellWealthLandingPage() {
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
               </div>
             </div>
-            <div className="bg-[rgba(0,0,0,0)] border border-[#858a93] border-solid content-stretch flex h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0" data-node-id="51:2581" data-name="Action">
+            <div className="bg-[rgba(0,0,0,0)] border border-[#858a93] border-solid content-stretch flex h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0" data-node-id="51:2581" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
               <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[16px] whitespace-nowrap" data-node-id="51:2582">
                 Discover the Vision
               </p>
@@ -326,7 +319,7 @@ export default function RussellWealthLandingPage() {
           </div>
         </div>
         <div className="absolute content-stretch flex gap-[24px] items-start left-[100px] overflow-clip top-[714px]" data-node-id="51:2683" data-name="Platform actions">
-          <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2684" data-name="Action">
+          <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2684" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[16px] whitespace-nowrap" data-node-id="51:2685">
               Explore the Platform
             </p>
@@ -334,16 +327,12 @@ export default function RussellWealthLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#858a93] border-solid content-stretch flex h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0" data-node-id="51:2687" data-name="Action">
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[16px] whitespace-nowrap" data-node-id="51:2688">
-              View Dashboard
-            </p>
-          </div>
+
         </div>
       </div>
       <div data-rw-anchor="rw-security" className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[96px] pt-[84px] relative shrink-0 w-full" id="rw-security" data-node-id="51:2689" data-name="Security showcase">
         <div className="absolute content-stretch flex gap-[24px] items-start left-[96px] overflow-clip top-[720px]" data-node-id="51:2690" data-name="Security actions">
-          <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[20px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2691" data-name="Action">
+          <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[54px] items-center justify-center overflow-clip px-[20px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2691" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="51:2692">
               Explore Security Environment
             </p>
@@ -351,11 +340,7 @@ export default function RussellWealthLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#858a93] border-solid content-stretch flex h-[54px] items-center justify-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="51:2694" data-name="Action">
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="51:2695">
-              View Investigation
-            </p>
-          </div>
+
         </div>
         <div className="absolute h-[810px] left-0 top-0 w-[1440px]" data-node-id="51:2696" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 1440 810' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(64.8 36.45 -79.2 36.45 792 445.5)'><stop stop-color='rgba(28,35,43,0.4)' offset='0'/><stop stop-color='rgba(0,0,0,0)' offset='1'/></radialGradient></defs></svg>\")" }} data-name="Ambient light" />
         <div className="absolute h-[150px] left-0 top-0 w-[290px]" data-node-id="51:2697" data-name="Folded silver ribbon">

@@ -3600,59 +3600,46 @@ html {
 /* RW DESKTOP LANDING IMAGE ALIGNMENT END */
 
 
-/* RW DESKTOP IMAGE FIT START */
+/* The source artwork includes text on the left. Crop that area out so only
+   the device appears beside the live section content. */
 @media screen and (min-width: 1024px) {
-
-  /* Both dashboard image containers */
   [data-name="Russell Wealth landing page"]
-  :is(
-    [data-name="Customer dashboard on laptop"],
-    [data-name="Security operations monitor"]
-  ) {
-    left: 44% !important;
+  :is([data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"]) {
+    left: 46% !important;
     right: 0 !important;
-    width: 56% !important;
+    width: 54% !important;
     max-width: none !important;
-    transform: none !important;
     overflow: hidden !important;
   }
 
-  /* Fit the original images into their desktop areas */
   [data-name="Russell Wealth landing page"]
-  :is(
-    [data-name="Customer dashboard on laptop"],
-    [data-name="Security operations monitor"]
-  ) > [data-name="Original imagery"] {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    transform: none !important;
+  :is([data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"])
+  > [data-name="Original imagery"] {
+    left: -85.185185% !important;
+    width: 185.185185% !important;
+    height: 810px !important;
   }
 
-  /* Preserve proportions and fill the available space */
-  [data-name="Russell Wealth landing page"]
-  :is(
-    [data-name="Customer dashboard on laptop"],
-    [data-name="Security operations monitor"]
-  ) > [data-name="Original imagery"] img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: right center !important;
+  [data-name="Customer dashboard on laptop"] > [data-name="Original imagery"] {
+    top: -82px !important;
   }
 
-  /* Keep image transitions inside their containers */
+  [data-name="Security operations monitor"] > [data-name="Original imagery"] {
+    top: -64px !important;
+  }
+
   [data-name="Russell Wealth landing page"]
-  :is(
-    [data-name="Customer dashboard on laptop"],
-    [data-name="Security operations monitor"]
-  ) > [data-name="Image transition"] {
+  :is([data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"]) img {
+    object-fit: fill !important;
+  }
+
+  [data-name="Russell Wealth landing page"]
+  :is([data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"])
+  > [data-name="Image transition"] {
     max-width: 100% !important;
   }
 }
-/* RW DESKTOP IMAGE FIT END */
+
 
 /* RW ISOLATED FULL SCREEN MOBILE NAVIGATION */
 @media (max-width: 767px) {
@@ -4212,3 +4199,469 @@ html {
 
 
 
+
+/* Language selection is visual only until translations are available. */
+.rw-language-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #555b64;
+  border-radius: 24px;
+  flex-shrink: 0;
+}
+.rw-language-selector button {
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: transparent;
+  color: #b9bdc4;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+.rw-language-selector button[aria-pressed="true"] {
+  background: #d4d7dd;
+  color: #11151a;
+}
+.rw-language-selector button:hover { background: #30363f; color: #fff; }
+.rw-language-selector button:focus-visible { outline: 2px solid #f2f2f3; outline-offset: 2px; }
+
+/* Give dashboard holdings a readable, labeled layout on mobile. */
+@media (max-width: 700px) {
+  .rw-dashboard-holding {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-block: 18px;
+  }
+  .rw-dashboard-holding .rw-holding-identity { width: 100%; flex: none; margin-bottom: 4px; }
+  .rw-dashboard-holding .rw-holding-identity p:first-child { font-size: 14px; white-space: nowrap; }
+  .rw-dashboard-holding .rw-holding-identity p:last-child {
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .rw-dashboard-holding .rw-holding-detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    width: 100%;
+  }
+  .rw-dashboard-holding .rw-holding-label { display: block; flex-shrink: 0; font-size: 12px; }
+  .rw-dashboard-holding .rw-holding-detail p { font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+}
+
+@media (max-width: 700px) {
+  .rw-watchlist-asset {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px 12px;
+  }
+  .rw-watchlist-identity { grid-column: 1; grid-row: 1; }
+  .rw-watchlist-identity p:first-child { white-space: nowrap; }
+  .rw-watchlist-identity p:last-child { overflow-wrap: anywhere; line-height: 1.5; }
+  .rw-watchlist-remove { grid-column: 2; grid-row: 1; min-width: 44px; min-height: 44px; }
+  .rw-watchlist-price, .rw-watchlist-change {
+    grid-column: 1 / -1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 16px;
+    align-items: baseline;
+  }
+  .rw-watchlist-label {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / 3;
+    text-align: left;
+    font-size: 12px;
+    color: #91a1b4;
+  }
+  .rw-watchlist-price p, .rw-watchlist-change > p, .rw-watchlist-change > div { grid-column: 2; white-space: nowrap; }
+  .rw-watchlist-quote { grid-column: 1 / -1; text-align: left; overflow-wrap: anywhere; line-height: 1.6; }
+}
+
+/* Security logs use labeled event cards on small screens. */
+@media (max-width: 700px) {
+  .rw-security-logs { overflow-x: hidden; overscroll-behavior-y: contain; }
+  .rw-security-logs-header { flex-direction: column; align-items: stretch; gap: 16px; }
+  .rw-security-logs-header > div { min-width: 0; }
+  .rw-security-logs-header h1 { font-size: 26px; line-height: 1.25; }
+  .rw-security-logs-header p { line-height: 1.6; }
+  .rw-security-logs-header > button { align-self: flex-start; min-height: 44px; }
+  .rw-security-logs-panel { padding: 14px; min-width: 0; }
+  .rw-security-logs-filters { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .rw-security-logs-filters input, .rw-security-logs-filters select { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; }
+  .rw-security-logs-table { display: none; }
+  .rw-security-log-cards { display: grid; gap: 14px; }
+  .rw-security-log-card { min-width: 0; padding: 16px; border: 1px solid #343b46; border-radius: 12px; background: #10141a; }
+  .rw-security-log-card-heading { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .rw-security-log-card-heading h2 { font-size: 15px; font-weight: 600; text-transform: capitalize; color: #f5f5f5; overflow-wrap: anywhere; }
+  .rw-security-log-card-heading > span { font-size: 11px; font-weight: 600; }
+  .rw-security-log-card dl { display: grid; gap: 12px; margin: 0; }
+  .rw-security-log-card dt { color: #91a1b4; font-size: 11px; margin-bottom: 3px; }
+  .rw-security-log-card dd { margin: 0; color: #f0f3f7; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+  .rw-security-log-card small { display: block; color: #91a1b4; font-size: 11px; margin-top: 3px; }
+  .rw-security-log-card details { margin-top: 16px; border-top: 1px solid #30343b; color: #b4b8c0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+  .rw-security-log-card summary { cursor: pointer; min-height: 44px; padding-top: 12px; color: #d2dce7; }
+  .rw-security-log-card details p { margin-top: 6px; }
+  .rw-security-logs-pagination { flex-direction: column; align-items: stretch; gap: 14px; }
+  .rw-security-logs-pagination > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rw-security-logs-pagination button { min-height: 44px; }
+}
+
+@media (max-width: 700px) {
+  .rw-access-heading { align-items: flex-start; gap: 12px; }
+  .rw-access-heading > div:first-child { flex-shrink: 0; padding: 10px; }
+  .rw-access-heading > div:last-child { min-width: 0; }
+  .rw-access-heading h1 { font-size: 25px; line-height: 1.25; }
+  .rw-access-heading p { line-height: 1.6; }
+  .rw-access-search { width: 100%; min-width: 0; }
+  .rw-access-search label { width: 100%; min-width: 0; min-height: 44px; }
+  .rw-access-search label svg { flex-shrink: 0; }
+  .rw-access-search input { width: 100%; min-width: 0; font-size: 16px; }
+  .rw-access-search button { min-height: 44px; }
+  .rw-access-management .rw-access-directory {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+  .rw-access-directory thead { display: none; }
+  .rw-access-directory tbody { display: grid; gap: 14px; padding: 0 14px 14px; }
+  .rw-access-directory tr {
+    display: block;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #34404d !important;
+    border-radius: 12px;
+    background: #10141a;
+  }
+  .rw-access-directory td { display: block; padding: 8px 0; overflow-wrap: anywhere; line-height: 1.6; }
+  .rw-access-directory td::before { content: attr(data-label); display: block; margin-bottom: 5px; color: #91a1b4; font-size: 11px; }
+  .rw-access-directory td:first-child { padding-top: 0; }
+  .rw-access-directory td:first-child::before { display: none; }
+  .rw-access-directory td:first-child button { font-size: 16px; overflow-wrap: anywhere; }
+  .rw-access-directory td:first-child p { margin-top: 6px; }
+  .rw-access-directory td select { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; }
+  .rw-access-directory td:last-child > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .rw-access-directory td:last-child button { min-height: 44px; padding-inline: 8px; }
+  .rw-access-management [role="dialog"] { max-height: calc(100dvh - 32px); overflow-y: auto; padding: 18px; overflow-wrap: anywhere; }
+  .rw-access-management [role="dialog"] dl { grid-template-columns: minmax(0, 1fr); }
+  .rw-access-management [role="dialog"] button { min-height: 44px; }
+  .rw-access-management [role="dialog"] input { font-size: 16px; min-width: 0; }
+  .rw-access-management [role="status"], .rw-access-management [role="alert"] { overflow-wrap: anywhere; }
+}
+
+.rw-access-directory .rw-account-toggle-cell { display: none; }
+@media (max-width: 700px) {
+  .rw-access-directory tr { padding-block: 0; }
+  .rw-access-directory tr:not(.rw-account-expanded) td { display: none; }
+  .rw-access-directory tr .rw-account-toggle-cell,
+  .rw-access-directory tr:not(.rw-account-expanded) .rw-account-toggle-cell { display: block; padding: 0; }
+  .rw-access-directory .rw-account-toggle-cell::before { display: none; }
+  .rw-access-directory .rw-account-toggle-cell button { display: block; width: 100%; min-height: 56px; padding-block: 16px; text-align: left; font-size: 16px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+  .rw-access-directory .rw-account-expanded .rw-account-toggle-cell { border-bottom: 1px solid #30343b; margin-bottom: 8px; }
+  .rw-access-directory .rw-account-expanded td:last-child { padding-bottom: 16px; }
+}
+
+/* Russell Wealth customer overview: a focused trading workspace. */
+.rw-fintech-dashboard {
+  background: #0c1011 !important;
+  background-image: none !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  padding-top: 34px;
+  color: #ecf1ed;
+}
+.rw-fintech-dashboard *, .rw-fintech-dashboard button, .rw-fintech-dashboard input, .rw-fintech-dashboard select {
+  font-family: inherit !important;
+}
+.rw-fintech-dashboard > div { max-width: 1360px; }
+.rw-fintech-dashboard header { padding-bottom: 4px; }
+.rw-fintech-dashboard header h1 { font-size: clamp(26px, 2.5vw, 36px) !important; font-weight: 500; line-height: 1.2; letter-spacing: -.04em; }
+.rw-fintech-dashboard header h1 span { font-style: normal; color: #ecf1ed; }
+.rw-fintech-dashboard header > div:first-child > p:first-child { color: #87a094; letter-spacing: .14em; font-size: 10px; }
+.rw-fintech-dashboard header .size-11 { width: 42px; height: 42px; border: 1px solid #3b4941; }
+.rw-fintech-dashboard h2 { font-family: inherit !important; font-size: 20px; font-weight: 500; letter-spacing: -.025em; }
+.rw-fintech-dashboard .rw-fintech-panel {
+  background: #13191a !important;
+  border: 1px solid #283332 !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.rw-fintech-dashboard .rw-fintech-panel:hover { transform: none !important; }
+.rw-fintech-dashboard .rw-fintech-overview {
+  background: linear-gradient(120deg, #182421 0%, #131b1a 60%, #14201c 100%) !important;
+}
+.rw-fintech-overview > .pointer-events-none { display: none; }
+.rw-fintech-overview .rw-fintech-balance > div:first-child > p {
+  font-size: clamp(38px, 4.3vw, 62px);
+  font-weight: 500;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin-top: 20px;
+}
+.rw-fintech-overview .rw-fintech-balance > div:first-child > div:last-child > span:first-child { background: #253b32; border-color: #3b5547; color: #c7e2d3; }
+.rw-fintech-overview > div:last-child { border-color: #2c3d35; }
+.rw-fintech-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.rw-fintech-dashboard .rw-fintech-primary, .rw-fintech-dashboard .rw-fintech-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 44px; padding: 11px 20px; border-radius: 30px;
+  font-size: 13px; font-weight: 600; transition: background .15s;
+}
+.rw-fintech-dashboard .rw-fintech-primary { background: #c2edce; border: 1px solid #c2edce; color: #14251a; }
+.rw-fintech-dashboard .rw-fintech-primary:hover { background: #dcf8e3; }
+.rw-fintech-dashboard .rw-fintech-secondary { background: #1b2923; border: 1px solid #476153; color: #d9e9df; }
+.rw-fintech-dashboard .rw-fintech-secondary:hover { background: #293d32; }
+.rw-fintech-text-action { display: flex; align-items: center; gap: 4px; padding: 12px 6px; color: #b4cbbd; font-size: 12px; }
+.rw-fintech-dashboard .rw-fintech-metric { background: #13191a !important; border: 1px solid #283332 !important; border-radius: 14px !important; padding: 22px 24px; transform: none !important; }
+.rw-fintech-dashboard .rw-fintech-metric > p:first-of-type { font-size: 29px; font-weight: 500; margin-top: 14px; font-variant-numeric: tabular-nums; }
+.rw-fintech-dashboard .rw-fintech-metric svg { color: #a4cfb5; width: 17px; }
+.rw-fintech-dashboard .rw-fintech-metric > div > span, .rw-fintech-dashboard .rw-fintech-panel > div > p:first-child { letter-spacing: .09em; }
+.rw-fintech-dashboard .rw-dashboard-holding { padding-block: 18px; border-color: #283332; }
+.rw-fintech-dashboard .rw-dashboard-holding p:first-child { font-size: 13px; }
+.rw-fintech-dashboard .rw-dashboard-holding .rw-holding-identity p:last-child { font-size: 11px; margin-top: 4px; }
+.rw-fintech-dashboard footer { border-color: #283332; letter-spacing: .06em; }
+.rw-fintech-dashboard button:focus-visible { outline: 2px solid #c2edce; outline-offset: 3px; }
+@media (min-width: 1100px) {
+  .rw-fintech-dashboard .rw-fintech-investments { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+  .rw-fintech-dashboard .rw-fintech-investments > * { margin: 0; min-width: 0; }
+  .rw-fintech-dashboard .rw-fintech-holdings { padding: 24px; }
+  .rw-fintech-dashboard .rw-dashboard-holding { gap: 12px; }
+  .rw-fintech-dashboard .rw-holding-identity { flex-basis: 100px; }
+  .rw-fintech-dashboard .rw-dashboard-holding > div:not(:first-child) { width: auto; min-width: 50px; flex-shrink: 0; }
+  .rw-fintech-dashboard .rw-dashboard-holding > div:last-child { min-width: 76px; }
+}
+@media (max-width: 700px) {
+  .rw-fintech-dashboard { padding-top: 26px; }
+  .rw-fintech-dashboard .rw-fintech-balance { gap: 24px; }
+  .rw-fintech-hero-actions { width: 100%; }
+  .rw-fintech-dashboard .rw-fintech-primary, .rw-fintech-dashboard .rw-fintech-secondary { flex: 1; }
+  .rw-fintech-text-action { width: 100%; justify-content: center; }
+  .rw-fintech-dashboard .rw-dashboard-holding p:first-child { font-size: 14px; }
+  .rw-fintech-dashboard .rw-dashboard-holding .rw-holding-identity p:last-child { font-size: 12px; }
+}
+/* Keep the shared logo and refine customer navigation when the overview is open. */
+body:has(.rw-fintech-dashboard) .rw-unified-sidebar:not(.rw-soc-shared-sidebar) { background: #0e1412; border-right-color: #283332; }
+body:has(.rw-fintech-dashboard) .rw-unified-sidebar nav a { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important; }
+
+.rw-holdings-column-labels { display: none; }
+.rw-fintech-dashboard .rw-portfolio-chart-canvas { height: 210px; }
+.rw-fintech-dashboard .recharts-area-curve { stroke: #a9dbb9; }
+.rw-fintech-dashboard #rwPortfolioGradient stop { stop-color: #a9dbb9; }
+.rw-fintech-dashboard .rw-fintech-allocation .h-\[5px\] > div { background: #81ae91; }
+@media (min-width: 701px) {
+  .rw-fintech-dashboard .rw-holdings-column-labels { display: flex; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #283332; color: #91a498; font-size: 10px; }
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:first-child { flex: 1; }
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:not(:first-child) { width: 50px; text-align: right; }
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:last-child { width: 76px; }
+}
+@media (min-width: 701px) and (max-width: 1099px) {
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:nth-child(2) { width: 70px; }
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:nth-child(3) { width: 80px; }
+  .rw-fintech-dashboard .rw-holdings-column-labels > span:last-child { width: 90px; }
+}
+
+/* Shared customer workspace, matching the dashboard design. */
+.rw-fintech-workspace {
+  background: #0c1011 !important;
+  background-image: none !important;
+  color: #ecf1ed;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+.rw-fintech-workspace *, .rw-fintech-workspace button, .rw-fintech-workspace input, .rw-fintech-workspace select { font-family: inherit !important; }
+.rw-fintech-workspace h1 { font-size: clamp(28px, 2.5vw, 36px) !important; font-weight: 500 !important; line-height: 1.2; letter-spacing: -.04em; }
+.rw-fintech-workspace h1 .italic { font-style: normal; color: #ecf1ed; }
+.rw-fintech-workspace h2 { font-size: 20px; font-weight: 500; letter-spacing: -.025em; }
+.rw-fintech-workspace h3 { letter-spacing: -.015em; }
+.rw-fintech-workspace header p, .rw-fintech-workspace dd { line-height: 1.6; }
+.rw-fintech-workspace > div { max-width: 1360px; }
+.rw-fintech-workspace > .mx-auto { padding-top: 6px; }
+.rw-fintech-workspace .pointer-events-none.blur-\[100px\] { display: none; }
+.rw-fintech-workspace .rw-fintech-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 44px; padding: 11px 20px; border-radius: 30px !important;
+  font-size: 13px; font-weight: 600; background: #c2edce !important; border: 1px solid #c2edce !important; color: #14251a !important;
+}
+.rw-fintech-workspace .rw-fintech-primary:hover { background: #dcf8e3 !important; }
+.rw-fintech-workspace button:focus-visible, .rw-fintech-workspace input:focus-visible, .rw-fintech-workspace select:focus-visible, .rw-fintech-workspace a:focus-visible { outline: 2px solid #c2edce; outline-offset: 3px; }
+.rw-fintech-workspace .rw-panel { background: #13191a !important; border-color: #283332 !important; box-shadow: none; }
+.rw-fintech-workspace .rw-card:hover { background: #1b2822 !important; border-color: #476153 !important; transform: none !important; }
+.rw-fintech-workspace [class*="rounded-"][class*="border"]:not(button):not(input):not(select) { box-shadow: none; }
+.rw-fintech-workspace table th { color: #91a498; font-size: 11px; font-weight: 500; }
+.rw-fintech-workspace .rw-watchlist-asset { border-color: #283332; }
+.rw-fintech-workspace .rw-watchlist-asset:hover { background: #1b2521; }
+.rw-fintech-workspace [class*="text-[#c3ad83]"], .rw-fintech-workspace [class*="text-[#ddcba8]"] { color: #a4cfb5 !important; }
+.rw-fintech-workspace [class*="bg-[#2a261f]"], .rw-fintech-workspace [class*="bg-[#29251e]"] { background: #253b32 !important; border-color: #3b5547 !important; }
+.rw-fintech-workspace [class*="bg-[#D7DDE5]"], .rw-fintech-workspace [class*="bg-[#D9E0E8]"] { background: #c2edce !important; color: #14251a !important; border-color: #c2edce !important; }
+.rw-fintech-workspace [class*="bg-[#283340]"] { background: #253b32 !important; border-color: #6b9a7d !important; }
+body:has(.rw-fintech-workspace) .rw-unified-sidebar:not(.rw-soc-shared-sidebar) { background: #0e1412; border-right-color: #283332; }
+body:has(.rw-fintech-workspace) .rw-unified-sidebar nav a { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important; }
+@media (min-width: 701px) {
+  .rw-fintech-workspace { padding-top: 34px; }
+  .rw-fintech-workspace .rw-portfolio-chart-canvas { height: 210px; }
+}
+@media (max-width: 700px) {
+  .rw-fintech-workspace h1 { font-size: 28px !important; }
+  .rw-fintech-workspace input, .rw-fintech-workspace select { font-size: 16px; }
+}
+
+.rw-fintech-workspace [class~="bg-[#12171E]"],
+.rw-fintech-workspace [class~="bg-[#161D26]"],
+.rw-fintech-workspace [class~="bg-[#171E27]"],
+.rw-fintech-workspace [class~="bg-[#14171c]"],
+.rw-fintech-workspace [class~="bg-[#1a1d22]"],
+.rw-fintech-workspace [class~="bg-[#151B23]"],
+.rw-fintech-workspace [class~="bg-[#111720]"],
+.rw-fintech-workspace [class~="bg-[#10151C]"],
+.rw-fintech-workspace [class~="bg-[#171D26]"],
+.rw-fintech-workspace [class~="bg-[#151C25]"],
+.rw-fintech-workspace [class~="bg-[#111821]"],
+.rw-fintech-workspace [class~="bg-[#141B24]"],
+.rw-fintech-workspace [class~="bg-[#10161C]"],
+.rw-fintech-workspace [class~="bg-[#111820]"],
+.rw-fintech-workspace [class~="bg-[#151D25]"],
+.rw-fintech-workspace [class~="bg-[#171b20]"],
+.rw-fintech-workspace [class~="bg-[#14181d]"] { background-color: #13191a !important; border-color: #283332 !important; }
+.rw-fintech-workspace [class~="bg-[#090C10]"],
+.rw-fintech-workspace [class~="bg-[#0E141C]"],
+.rw-fintech-workspace [class~="bg-[#10161D]"] { background-color: #0f1614 !important; border-color: #34483b !important; }
+
+.rw-fintech-workspace .rounded-2xl.border, .rw-fintech-workspace .rounded-3xl.border,
+.rw-fintech-workspace [class~="rounded-[22px]"].border, .rw-fintech-workspace [class~="rounded-[20px]"].border { border-radius: 18px !important; }
+.rw-fintech-workspace .rw-fintech-summary { background: linear-gradient(120deg, #182421, #131b1a 60%, #14201c) !important; border-color: #283332 !important; }
+.rw-fintech-workspace .rw-fintech-summary .blur-\[100px\] { display: none; }
+.rw-fintech-workspace .rw-fintech-summary [class*="text-[60px]"] { font-weight: 500; }
+.rw-fintech-workspace [class~="bg-[#302a20]"], .rw-fintech-workspace [class~="bg-[#20323B]"], .rw-fintech-workspace [class~="bg-[#1E2834]"] { background: #253b32 !important; border-color: #6b9a7d !important; color: #d9e9df !important; box-shadow: none !important; }
+.rw-fintech-workspace [class~="bg-[#9BB1CA]"] { background: #81ae91 !important; }
+.rw-fintech-workspace [class~="bg-[#0D1218]"] { background: #0f1614 !important; border-color: #34483b !important; }
+.rw-fintech-workspace [class~="bg-[#161D25]"], .rw-fintech-workspace [class~="bg-[#111922]"] { background: #13191a !important; border-color: #283332 !important; }
+
+/* Public SOC preview: same dashboard, isolated fictional data. */
+.rw-security-demo { background: #090c10; color: #f0f3f7; min-height: 100vh; }
+.rw-demo-banner { position: sticky; top: 0; z-index: 30000; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 14px 24px; background: #17291f; border-bottom: 1px solid #43634e; font: 12px/1.5 Inter, sans-serif; }
+.rw-demo-banner > div { display: flex; align-items: center; gap: 14px; }
+.rw-demo-banner strong { padding: 3px 9px; background: #c2edce; color: #14251a; border-radius: 5px; letter-spacing: .1em; font-size: 11px; }
+.rw-demo-banner a { color: #d2e7d9; text-decoration: underline; }
+.rw-security-demo .rw-demo-sidebar { padding: 26px 16px; width: 208px; top: 60px; height: calc(100dvh - 60px); display: flex; flex-direction: column; gap: 28px; }
+.rw-demo-sidebar > a img { width: 175px; height: 65px; object-fit: cover; }
+.rw-demo-sidebar > p { font: 9px Inter, sans-serif; letter-spacing: .12em; color: #8c929c; }
+.rw-demo-sidebar nav { display: grid; gap: 8px; }
+.rw-demo-sidebar nav button { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 12px; border-radius: 8px; text-align: left; font: 12px Inter, sans-serif; color: #b4b8c0; }
+.rw-demo-sidebar nav button[aria-current="page"] { background: #252b31; color: #fff; }
+.rw-demo-sidebar nav button:hover { background: #20272e; }
+.rw-demo-identity { margin-top: auto; padding-top: 20px; border-top: 1px solid #30343b; font-size: 12px; }
+.rw-demo-identity small { display: block; font-size: 10px; margin-top: 8px; color: #8c929c; line-height: 1.6; }
+.rw-demo-menu { display: none; }
+.rw-security-demo .rw-soc-monitoring-status { display: none; }
+.rw-security-demo .rw-security-logs { top: 60px; }
+.rw-demo-module { padding: 32px; font-family: Inter, sans-serif; }
+.rw-demo-module > p { font-size: 12px; color: #91a1b4; line-height: 1.7; }
+.rw-demo-module h1 { font-size: 30px; margin: 12px 0; }
+.rw-demo-module > div { display: grid; gap: 16px; margin-top: 28px; }
+.rw-demo-module article { padding: 22px; background: #14171c; border: 1px solid #30343b; border-radius: 14px; }
+.rw-demo-module h2 { font-size: 16px; }
+.rw-demo-module article p { font-size: 13px; margin-top: 12px; color: #91a1b4; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .rw-demo-banner { padding: 12px 16px; padding-right: 56px; }
+  .rw-demo-banner > div { align-items: flex-start; gap: 8px; }
+  .rw-demo-menu { display: block; position: fixed; right: 12px; top: 16px; z-index: 31000; padding: 8px; border: 1px solid #43634e; border-radius: 8px; background: #17291f; }
+  .rw-security-demo .rw-demo-sidebar { display: none; }
+  .rw-security-demo .rw-demo-sidebar.is-open { display: flex; position: fixed !important; top: 95px; left: 0; height: calc(100dvh - 95px); width: 240px; z-index: 25000; background: #10151a; box-shadow: 10px 0 30px #0008; }
+  .rw-security-demo .rw-security-logs { top: 95px; }
+  .rw-demo-module { padding: 22px 16px; }
+}
+
+@media (min-width: 701px) {
+  .rw-security-demo .rw-unified-soc-layout { height: calc(100dvh - 60px); min-height: 0; }
+  .rw-security-demo .rw-unified-soc-layout > .rw-demo-sidebar { display: flex !important; height: calc(100dvh - 60px) !important; overflow-y: auto !important; top: 0; }
+  .rw-security-demo .rw-unified-soc-layout .rw-unified-customer-content { height: calc(100dvh - 60px); }
+}
+
+.rw-demo-banner { min-height: 60px; box-sizing: border-box; }
+@media (min-width: 701px) {
+  .rw-security-demo .rw-security-logs { position: fixed !important; left: 208px !important; top: 60px !important; right: 0 !important; bottom: 0 !important; width: auto !important; height: auto !important; overflow-y: auto !important; }
+}
+
+/* Lively landing interactions, without changing artwork crops or layout. */
+.rw-landing-alive :is([data-name="Action"], [data-name="Sign in action"], [data-name="Social profile"], [data-name="Scroll cue"]) {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, filter 220ms ease;
+  cursor: pointer;
+}
+.rw-landing-alive :is([data-name="Platform pillar"], [data-name="Capability"], [data-name="Founder vision"]) {
+  transition: transform 260ms ease, background-color 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+}
+.rw-landing-alive :is([data-name="Silver monogram"], [data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"], [data-name="Edoney Russell portrait"]) img {
+  transition: filter 450ms ease;
+}
+.rw-landing-alive :is([data-name="Capability icon"], [data-name="Capability symbol"], [data-name="Social symbol"]) {
+  transition: filter 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+}
+.rw-landing-alive :is(h1, [data-name="Hero headline"], [data-name="Platform headline"], [data-name="Security headline"]) { transition: text-shadow 300ms ease; }
+.rw-landing-alive :is(a, button, [role="button"]):focus-visible {
+  outline: 2px solid #c2edce;
+  outline-offset: 4px;
+  box-shadow: 0 0 20px #a6dbb424;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rw-landing-alive :is([data-name="Action"], [data-name="Sign in action"]):hover {
+    transform: translateY(-3px);
+    border-color: #d2ecdb;
+    box-shadow: 0 8px 28px #a6dbb424, 0 0 0 1px #c2edce40;
+    filter: brightness(1.1);
+  }
+  .rw-landing-alive :is([data-name="Action"], [data-name="Sign in action"]):hover [data-name="arrow-right"] { transform: translateX(3px); }
+  .rw-landing-alive [data-name="arrow-right"] { transition: transform 220ms ease; }
+  .rw-landing-alive :is([data-name="Platform pillar"], [data-name="Capability"], [data-name="Founder vision"]):hover {
+    transform: translateY(-4px);
+    background-color: #16211e;
+    border-color: #618173;
+    box-shadow: 0 10px 28px #0004, inset 0 1px #c2edce18;
+    border-radius: 12px;
+  }
+  .rw-landing-alive :is([data-name="Platform pillar"], [data-name="Capability"]):hover :is([data-name="Capability icon"], [data-name="Capability symbol"]) {
+    filter: brightness(1.25) drop-shadow(0 0 8px #a6dbb44d);
+  }
+  .rw-landing-alive [data-name="Social profile"]:hover { transform: translateY(-4px); color: #d5eddf; }
+  .rw-landing-alive [data-name="Social profile"]:hover [data-name="Social symbol"] { border-color: #a6c9b5; box-shadow: 0 0 25px #a6dbb426; }
+  .rw-landing-alive :is([data-name="Silver monogram"], [data-name="Customer dashboard on laptop"], [data-name="Security operations monitor"], [data-name="Edoney Russell portrait"]):hover img { filter: brightness(1.12) contrast(1.03); }
+  .rw-landing-alive [data-name="Russell Wealth logo"]:hover img { filter: brightness(1.2) drop-shadow(0 0 9px #c2edce30); }
+  .rw-landing-alive :is(h1, [data-name="Hero headline"], [data-name="Platform headline"], [data-name="Security headline"]):hover { text-shadow: 0 0 26px #c2edce26; }
+  .rw-landing-alive [data-name="Scroll cue"]:hover { transform: translateY(4px); box-shadow: 0 0 16px #c2edce30; border-color: #c2edce; }
+  .rw-persistent-nav button:hover { background: #18231e; color: #e4f5e9; text-shadow: 0 0 15px #c2edce55; }
+}
+.rw-landing-alive :is([data-name="Action"], [data-name="Sign in action"]):active { transform: translateY(0) scale(.98); }
+@media (prefers-reduced-motion: reduce) {
+  .rw-landing-alive *, .rw-persistent-nav button { transition: none !important; animation: none !important; }
+  .rw-landing-alive :is([data-name="Action"], [data-name="Sign in action"], [data-name="Platform pillar"], [data-name="Capability"], [data-name="Founder vision"], [data-name="Social profile"], [data-name="Scroll cue"]):is(:hover, :active) { transform: none !important; }
+}
+
+.rw-customer-demo { background: #0c1011; color: #ecf1ed; min-height: 100vh; }
+.rw-customer-demo .rw-demo-sidebar { padding: 26px 16px; width: 208px; top: 60px; height: calc(100dvh - 60px); display: flex; flex-direction: column; gap: 28px; }
+.rw-demo-action-notice { padding: 14px 24px; background: #253b32; border-bottom: 1px solid #43634e; font: 13px/1.6 Inter, sans-serif; }
+.rw-customer-demo .rw-fintech-dashboard .rw-fintech-overview { min-height: 0; }
+@media (max-width: 700px) {
+  .rw-customer-demo .rw-demo-sidebar { display: none; }
+  .rw-customer-demo .rw-demo-sidebar.is-open { display: flex; position: fixed !important; top: 95px; left: 0; width: 240px; height: calc(100dvh - 95px); z-index: 25000; background: #10151a; box-shadow: 10px 0 30px #0008; }
+}
+
+.rw-profile-modal { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.rw-profile-input { display: block; margin-top: 8px; width: 100%; min-width: 0; min-height: 46px; border: 1px solid #34483b; border-radius: 10px; background: #0f1614; padding: 11px 14px; font-size: 16px; color: #ecf1ed; outline: none; }
+.rw-profile-input:focus { border-color: #c2edce; }
+.rw-profile-modal :is(button,a):focus-visible { outline: 2px solid #c2edce; outline-offset: 3px; }
+
+/* Readable authentication alert evidence and review controls. */
+.rw-alert-workspace { background:#101713; font-family:Inter, sans-serif; }
+.rw-alert-card,.rw-alert-summary { background:#19221d; border:1px solid #2d3931; border-radius:18px; padding:22px; }
+.rw-alert-summary { min-width:180px; display:flex; flex-direction:column; gap:10px; }
+.rw-alert-summary span { color:#9ba99f; font-size:12px; }
+.rw-alert-summary strong { font-size:30px; }
+.rw-alert-select { background:#202c24; border:1px solid #3a4a3f; border-radius:10px; padding:10px 12px; color:#e7eee9; min-height:42px; }
+.rw-alert-select:disabled { opacity:.45; }
+@media(max-width:600px) { .rw-alert-card { padding:16px; } .rw-alert-summary { min-width:0; flex:1; } }

@@ -1,8 +1,8 @@
+import { CustomerDemoContext, useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import GlobalMarketsClock from "../components/GlobalMarketsClock";
-import WatchlistOverlay from "../components/WatchlistOverlay";
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart";
 import AssetLogo from "./../components/AssetLogo";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { logout } from "../auth";
 import {
@@ -23,16 +23,17 @@ import { useTrading } from "../hooks/useTrading";
 import { usePortfolio } from "../hooks/usePortfolio";
 
 function navigate(path: string) {
+  if (customerDemoNavigate(path)) return;
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 const panel =
-  "rounded-[22px] border border-[#2B333D] bg-[#12171E]";
+  "rw-fintech-panel rounded-[22px] border border-[#2B333D] bg-[#12171E]";
 
 const card =
-  "rounded-[20px] border border-[#2D3742] bg-[#161D26] p-5";
+  "rw-fintech-metric rounded-[20px] border border-[#2D3742] bg-[#161D26] p-5";
 
 const label =
   "text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8E9BAA]";
@@ -41,6 +42,8 @@ const field =
   "w-full rounded-xl border border-[#34404D] bg-[#090C10] px-4 py-3 text-sm text-[#F0F3F7] outline-none focus:border-[#7998BA]";
 
 export default function Dashboard() {
+  const customerFetch = useCustomerFetch();
+  const demo = useContext(CustomerDemoContext);
   const { portfolio, error } = usePortfolio();
   const trading = useTrading();
   const [showBalances, setShowBalances] = useState(true);
@@ -60,7 +63,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadProfilePhoto = async () => {
       try {
-        const response = await fetch("/api/me", {
+        const response = await customerFetch("/api/me", {
           credentials: "same-origin"
         });
 
@@ -75,10 +78,15 @@ export default function Dashboard() {
     };
 
     loadProfilePhoto();
+    const syncProfile = (event: StorageEvent) => { if (event.key === 'rw-profile-sync') void loadProfilePhoto(); };
     window.addEventListener("rw-profile-updated", loadProfilePhoto);
+    window.addEventListener('focus', loadProfilePhoto);
+    window.addEventListener('storage', syncProfile);
 
     return () => {
       window.removeEventListener("rw-profile-updated", loadProfilePhoto);
+      window.removeEventListener('focus', loadProfilePhoto);
+      window.removeEventListener('storage', syncProfile);
     };
   }, []);
 
@@ -97,7 +105,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     let active = true;
-    fetch("https://open.er-api.com/v6/latest/CAD")
+    customerFetch("https://open.er-api.com/v6/latest/CAD")
       .then(response => {
         if (!response.ok) throw new Error("Exchange rate unavailable");
         return response.json();
@@ -147,7 +155,7 @@ export default function Dashboard() {
   return (
     <main
       data-name="Modern Russell Wealth Dashboard"
-      className="min-h-screen bg-[#090C10] px-4 pb-24 pt-7 font-['Inter'] text-[#F0F3F7] sm:px-7 lg:px-10"
+      className="rw-fintech-dashboard min-h-screen bg-[#090C10] px-4 pb-24 pt-7 font-['Inter'] text-[#F0F3F7] sm:px-7 lg:px-10"
     >
       <div className="mx-auto max-w-[1480px] space-y-6">
 
@@ -155,7 +163,7 @@ export default function Dashboard() {
         <header className="flex flex-wrap items-start justify-between gap-5">
           <div>
             <p className={label}>
-              RUSSELL WEALTH / PRIVATE CLIENT
+              YOUR PERSONAL OVERVIEW
             </p>
 
             <div className="mt-3 flex items-center gap-3 sm:gap-4">
@@ -187,7 +195,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {createPortal(
+            {!demo && createPortal(
               <button
                 type="button"
                 onClick={logout}
@@ -237,13 +245,13 @@ export default function Dashboard() {
         )}
 
         {/* PORTFOLIO HERO */}
-        <section className={`${panel} relative overflow-hidden p-6 sm:p-8`}>
+        <section className={`${panel} rw-fintech-overview relative overflow-hidden p-6 sm:p-8`}>
           <div
             className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full opacity-20 blur-[100px]"
             style={{ background: "#7998BA" }}
           />
 
-          <div className="relative flex flex-wrap items-end justify-between gap-8">
+          <div className="rw-fintech-balance flex relative flex-wrap items-end justify-between gap-8">
             <div>
               <div className="flex items-center gap-3">
                 <span className={label}>
@@ -298,14 +306,17 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => navigate("/portfolio")}
-              className="flex items-center gap-2 rounded-xl border border-[#405064] bg-[#263342] px-5 py-3 text-sm text-[#CFDBE8] transition hover:bg-[#34475C]"
-            >
-              View Portfolio
-              <ArrowUpRight size={16} />
-            </button>
+            <div className="rw-fintech-hero-actions">
+              <button type="button" className="rw-fintech-primary" onClick={() => navigate("/markets")}>
+                <ArrowLeftRight size={16} /> Trade
+              </button>
+              <button type="button" className="rw-fintech-secondary" onClick={() => navigate("/deposit")}>
+                Add money <ArrowUpRight size={16} />
+              </button>
+              <button type="button" className="rw-fintech-text-action" onClick={() => navigate("/portfolio")}>
+                View portfolio <ChevronRight size={15} />
+              </button>
+            </div>
           </div>
         
           <div className="relative mt-8 border-t border-[#2B333D] pt-7">
@@ -316,7 +327,7 @@ export default function Dashboard() {
         </section>
 
         {/* METRICS */}
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <section aria-label="Portfolio overview" className="rw-fintech-metrics grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <div className={card}>
             <div className="flex items-center justify-between">
               <span className={label}>INVESTED VALUE</span>
@@ -371,10 +382,10 @@ export default function Dashboard() {
         <section className="grid grid-cols-1 gap-6">
 
           {/* LEFT */}
-          <div className="min-w-0 space-y-6">
+          <div className="rw-fintech-investments min-w-0 space-y-6">
 
             {/* HOLDINGS */}
-            <div className={`${panel} overflow-hidden p-5 sm:p-7`}>
+            <div className={`${panel} rw-fintech-holdings overflow-hidden p-5 sm:p-7`}>
               <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className={label}>YOUR INVESTMENTS</p>
@@ -400,7 +411,7 @@ export default function Dashboard() {
             </div>
 
             {/* LARGEST POSITIONS */}
-            <div className={`${panel} p-5 sm:p-7`}>
+            <div className={`${panel} rw-fintech-allocation p-5 sm:p-7`}>
               <div className="mb-6">
                 <p className={label}>PORTFOLIO COMPOSITION</p>
 
@@ -599,7 +610,6 @@ export default function Dashboard() {
 
         </section>
 
-        <WatchlistOverlay />
 
         <footer className="flex items-center justify-between border-t border-[#2B333D] pt-6 text-[11px] text-[#647384]">
           <span>RUSSELL WEALTH</span>

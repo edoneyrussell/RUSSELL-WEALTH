@@ -1,3 +1,4 @@
+import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Plus, RefreshCw, Search, Star, Trash2, X } from "lucide-react";
 import AssetLogo from "./AssetLogo";
@@ -48,13 +49,15 @@ function asOf(value: string | number | null) {
 }
 
 function closeWatchlist() {
+  if (customerDemoNavigate("/dashboard")) return;
   window.history.pushState({}, "", "/dashboard");
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
 export default function WatchlistOverlay() {
+  const customerFetch = useCustomerFetch();
   const [open, setOpen] = useState(
-    () => window.location.hash === "#watchlist"
+    () => window.location.pathname === "/demo/customer" || window.location.hash === "#watchlist"
   );
   const [symbols, setSymbols] = useState(getWatchlist);
   const [input, setInput] = useState("");
@@ -126,7 +129,7 @@ export default function WatchlistOverlay() {
     const timer = window.setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const response = await fetch(
+        const response = await customerFetch(
           `/api/market/search?q=${encodeURIComponent(query)}`,
           { credentials: "same-origin", signal: controller.signal }
         );
@@ -194,10 +197,10 @@ export default function WatchlistOverlay() {
           try {
             const encoded = encodeURIComponent(symbol);
             const [qr, hr] = await Promise.all([
-              fetch(`/api/market/quote?symbol=${encoded}`, {
+              customerFetch(`/api/market/quote?symbol=${encoded}`, {
                 signal: controller.signal
               }),
-              fetch(`/api/market/history?symbol=${encoded}`, {
+              customerFetch(`/api/market/history?symbol=${encoded}`, {
                 signal: controller.signal
               })
             ]);
@@ -281,7 +284,7 @@ export default function WatchlistOverlay() {
     setMessage("");
 
     try {
-      const response = await fetch(
+      const response = await customerFetch(
         `/api/market/quote?symbol=${encodeURIComponent(symbol)}`
       );
 
@@ -306,6 +309,7 @@ export default function WatchlistOverlay() {
   }
 
   function openMarket(symbol: string) {
+    if (customerDemoNavigate("/markets")) return;
     window.history.pushState(
       {},
       "",
@@ -317,26 +321,16 @@ export default function WatchlistOverlay() {
 
   if (!open) return null;
 
-  const gainers = symbols.filter(s =>
-    typeof data[s]?.change === "number" && data[s].change! > 0
-  ).length;
-
-  const losers = symbols.filter(s =>
-    typeof data[s]?.change === "number" && data[s].change! < 0
-  ).length;
-
   return (
-    <div
-      className="fixed inset-0 z-[10000] flex h-[100dvh] flex-col overflow-hidden bg-[#090C10] text-[#F0F3F7]"
-      role="dialog"
-      aria-modal="true"
+    <main
+      className="rw-fintech-workspace rw-fintech-watchlist min-h-screen bg-[#090C10] pb-24 text-[#F0F3F7]"
       aria-label="My Watchlist"
     >
       <div
-        className="h-full min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-y-contain [touch-action:pan-y] [-webkit-overflow-scrolling:touch]"
+        className="w-full"
       >
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
-        <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="mb-3 text-[11px] font-semibold tracking-[0.22em] text-[#8DA9C9]">
               RUSSELL WEALTH / MARKETS
@@ -357,26 +351,6 @@ export default function WatchlistOverlay() {
           >
             <X size={20} />
           </button>
-        </div>
-
-        <div className="mb-7 grid grid-cols-3 gap-3">
-          {[
-            ["WATCHING", symbols.length],
-            ["GAINERS", gainers],
-            ["DECLINERS", losers]
-          ].map(([name, value]) => (
-            <div
-              key={name}
-              className="rounded-2xl border border-[#2B333D] bg-[#12171E] p-4 sm:p-6"
-            >
-              <p className="text-[10px] tracking-[0.12em] text-[#91A1B4]">
-                {name}
-              </p>
-              <p className="mt-3 text-2xl font-semibold sm:text-3xl">
-                {value}
-              </p>
-            </div>
-          ))}
         </div>
 
         <div className="mb-7 rounded-2xl border border-[#2B333D] bg-[#12171E] p-5 sm:p-6">
@@ -486,7 +460,7 @@ export default function WatchlistOverlay() {
             <button
               type="submit"
               disabled={adding}
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#B8C6D5] px-6 py-4 text-sm font-semibold text-[#090C10] hover:bg-[#D5DFEA] disabled:opacity-50"
+              className="rw-fintech-primary flex items-center justify-center gap-2 rounded-xl bg-[#B8C6D5] px-6 py-4 text-sm font-semibold text-[#090C10] hover:bg-[#D5DFEA] disabled:opacity-50"
             >
               <Plus size={18} />
               {adding ? "Checking..." : "Add Stock"}
@@ -501,7 +475,7 @@ export default function WatchlistOverlay() {
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[#2B333D] bg-[#12171E]">
-          <div className="flex items-center justify-between border-b border-[#2B333D] px-5 py-5 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2B333D] px-5 py-5 sm:px-6">
             <h2 className="font-['Lora'] text-xl">Watched Assets</h2>
             <button
               type="button"
@@ -541,12 +515,12 @@ export default function WatchlistOverlay() {
                 return (
                   <div
                     key={symbol}
-                    className="flex flex-wrap items-center gap-4 px-4 py-5 hover:bg-[#171E27] sm:px-6"
+                    className="rw-watchlist-asset flex flex-wrap items-center gap-4 px-4 py-5 hover:bg-[#171E27] sm:px-6"
                   >
                     <button
                       type="button"
                       onClick={() => openMarket(symbol)}
-                      className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                      className="rw-watchlist-identity flex min-w-0 flex-1 items-center gap-3 text-left"
                     >
                       <AssetLogo symbol={symbol} name={symbol} />
                       <div className="min-w-0">
@@ -557,7 +531,8 @@ export default function WatchlistOverlay() {
                       </div>
                     </button>
 
-                    <div className="min-w-[110px] text-right">
+                    <div className="rw-watchlist-price min-w-[110px] text-right">
+                      <span className="rw-watchlist-label hidden">Price</span>
                       <p className="text-sm font-semibold">
                         {quote
                           ? money(Number(quote.price), quote.currency)
@@ -570,7 +545,8 @@ export default function WatchlistOverlay() {
                       </p>
                     </div>
 
-                    <div className={`min-w-[120px] text-right ${color}`}>
+                    <div className={`rw-watchlist-change min-w-[120px] text-right ${color}`}>
+                      <span className="rw-watchlist-label hidden">Daily change</span>
                       {typeof change === "number" &&
                        typeof percent === "number" ? (
                         <>
@@ -597,12 +573,12 @@ export default function WatchlistOverlay() {
                       type="button"
                       onClick={() => removeStock(symbol)}
                       aria-label={`Remove ${symbol} from watchlist`}
-                      className="rounded-lg p-2 text-[#91A1B4] hover:bg-[#303039] hover:text-[#F19A9A]"
+                      className="rw-watchlist-remove rounded-lg p-2 text-[#91A1B4] hover:bg-[#303039] hover:text-[#F19A9A]"
                     >
                       <Trash2 size={17} />
                     </button>
 
-                    <p className="w-full text-right text-[10px] text-[#738599]">
+                    <p className="rw-watchlist-quote w-full text-right text-[10px] text-[#738599]">
                       {quote
                         ? `Quote: ${asOf(quote.as_of)} · ${quote.price_type.replaceAll("_", " ")}`
                         : stock?.error ?? ""}
@@ -624,6 +600,6 @@ export default function WatchlistOverlay() {
         </p>
       </div>
       </div>
-    </div>
+    </main>
   );
 }

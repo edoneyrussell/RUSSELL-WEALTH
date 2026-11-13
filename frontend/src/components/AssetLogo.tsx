@@ -119,8 +119,9 @@ export default function AssetLogo({
   size = 36,
   className = "",
 }: Props) {
-  const [failed, setFailed] = useState(false);
-  const clean = symbol.trim().toUpperCase().replace(/\\.(TO|V|NE)$/, "");
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const ticker = symbol.trim().toUpperCase();
+  const clean = symbol.trim().toUpperCase().replace(/\.(TO|V|NE)$/, "");
   const normalizedName = (name || "").toLowerCase();
 
   const domainFromName = Object.entries(companyDomains).find(
@@ -129,25 +130,32 @@ export default function AssetLogo({
 
   const domain = domains[clean] || domainFromName;
   const initials = clean.slice(0, 3) || "?";
+  const sources = [
+    ...(domain ? [clean === 'SHOP' ? 'https://www.shopify.com/favicon.ico' : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`] : []),
+    `https://images.financialmodelingprep.com/symbol/${encodeURIComponent(ticker)}.png`,
+  ];
+  const source = sources[sourceIndex];
 
   useEffect(() => {
-    setFailed(false);
-  }, [domain]);
+    setSourceIndex(0);
+  }, [ticker, domain]);
 
   return (
     <span
       title={name || symbol}
-      aria-label={`${name || symbol} logo`}
+      role="img"
+      aria-label={`${name || symbol} ${source ? "logo" : "ticker badge"}`}
       className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#34404D] bg-[#202A35] text-[#D6E0EB] ${className}`}
       style={{ width: size, height: size }}
     >
-      {domain && !failed ? (
+      {source ? (
         <img
-          src={clean === "SHOP" ? "https://www.shopify.com/favicon.ico" : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`}
+          key={source}
+          src={source}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setFailed(true)}
+          onError={() => setSourceIndex(index => index + 1)}
           className="h-[75%] w-[75%] object-contain"
         />
       ) : (

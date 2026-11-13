@@ -9,7 +9,7 @@ export async function logout() {
       throw new Error('Logout failed');
     }
 
-    window.location.replace('/login');
+    window.location.replace('/');
   } catch (error) {
     console.error('Logout error:', error);
     alert('Unable to log out. Please try again.');

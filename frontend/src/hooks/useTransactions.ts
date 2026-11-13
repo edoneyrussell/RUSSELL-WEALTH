@@ -1,3 +1,4 @@
+import { useCustomerFetch } from "../demo/customerDemo";
 import { useEffect, useState } from 'react';
 
 export type Transaction = {
@@ -12,6 +13,7 @@ export type Transaction = {
 };
 
 export function useTransactions() {
+  const customerFetch = useCustomerFetch();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -21,7 +23,7 @@ export function useTransactions() {
 
     const refresh = async () => {
       try {
-        const response = await fetch('/api/customer/transactions', {
+        const response = await customerFetch('/api/customer/transactions', {
           credentials: 'same-origin',
         });
 

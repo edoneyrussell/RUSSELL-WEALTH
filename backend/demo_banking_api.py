@@ -133,7 +133,7 @@ def money(cents):
     return str(Decimal(cents) / Decimal(100))
 
 @banking_bp.route("/api/customer/demo-banking", methods=["GET"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def demo_banking_status():
     uid = customer_id()
     conn = get_db_connection()
@@ -196,7 +196,7 @@ def demo_banking_status():
         conn.close()
 
 @banking_bp.route("/api/customer/demo-banking/transfer", methods=["POST"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def demo_banking_transfer():
     data = request.get_json(silent=True) or {}
     code = data.get("bank_code")

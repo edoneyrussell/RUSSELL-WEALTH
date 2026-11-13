@@ -7,6 +7,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordHint, setPasswordHint] = useState("");
   const [confirm, setConfirm] = useState("");
   const [code, setCode] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -59,6 +60,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
         lastName,
         email,
         password,
+        passwordHint,
         acceptedTerms: agreed
       });
       setPassword("");
@@ -96,6 +98,10 @@ export default function RegistrationForm({ mobile = false }: Props) {
         "relative z-10 flex w-full flex-col items-center " +
         (mobile ? "max-w-[430px]" : "max-w-[560px]")
       }>
+        <a href="/" className="mb-4 inline-flex min-h-[44px] items-center gap-2 self-start rounded-lg border border-[#414650] px-4 py-2 text-sm text-[#d5e3d9] transition hover:bg-[#18251e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2edce]">
+          <span aria-hidden="true">←</span> Back to home
+        </a>
+
         <a href="/" className="block w-full max-w-[320px]">
           <img
             src="/assets/c8aca.png"
@@ -119,6 +125,19 @@ export default function RegistrationForm({ mobile = false }: Props) {
             <p role="alert" className="mt-5 rounded-lg border border-red-700 p-3 text-sm text-red-300">
               {error}
             </p>
+          )}
+
+          {step === "form" && (
+            <section aria-labelledby="simulation-notice-title" className="mt-6 rounded-xl border border-[#556b5c] bg-[#18251e] p-5 text-sm leading-6 text-[#d5e3d9]">
+              <h2 id="simulation-notice-title" className="mb-2 font-semibold text-[#e4f3e8]">Before you create an account</h2>
+              <p>Russell Wealth is a fictional trading and banking platform built for demonstration and learning.</p>
+              <ul className="mt-3 list-disc space-y-2 pl-5">
+                <li>All money, holdings, trades, deposits, and withdrawals are simulated. You cannot invest, transfer, or withdraw real money.</li>
+                <li>Prices and performance may be simulated, delayed, or inaccurate and do not necessarily reflect any stock exchange or actual market activity.</li>
+                <li>Russell Wealth is not a bank, brokerage, or financial institution and is not affiliated with any bank or stock exchange. Bank names and logos are used for demonstration only.</li>
+                <li>Nothing on this platform is financial or investment advice. Do not enter real banking credentials, account numbers, or payment details.</li>
+              </ul>
+            </section>
           )}
 
           {step === "form" && (
@@ -163,10 +182,22 @@ export default function RegistrationForm({ mobile = false }: Props) {
                   required value={confirm} onChange={e => setConfirm(e.target.value)} />
               </label>
 
+              <label className="text-xs text-[#f5f5f5]">
+                Password hint (optional)
+                <input className={inputClass + " mt-2"} type="text"
+                  placeholder="Write a reminder only you understand"
+                  autoComplete="off" maxLength={200} aria-describedby="password-hint-help"
+                  value={passwordHint} onChange={e => setPasswordHint(e.target.value)} />
+                <span id="password-hint-help" className="mt-2 block leading-4 text-[#8c929c]">
+                  Don’t enter your password. Your hint will appear in password reset emails.
+                </span>
+              </label>
+
               <label className="flex items-start gap-3 text-xs leading-5 text-[#b4b8c0]">
-                <input type="checkbox" className="mt-1 accent-[#c5cad2]"
+                <input type="checkbox" className="mt-1 accent-[#c5cad2]" required
                   checked={agreed} onChange={e => setAgreed(e.target.checked)} />
                 <span>
+                  I understand that Russell Wealth is a demonstration platform with simulated money and activity.
                   I agree to the Terms &amp; Conditions and Privacy Policy,
                   and confirm that I am at least 18 years old.
                 </span>

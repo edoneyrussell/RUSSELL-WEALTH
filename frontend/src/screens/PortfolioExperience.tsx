@@ -1,4 +1,6 @@
+import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useMemo, useState } from "react";
+import AssetLogo from "../components/AssetLogo";
 import {
   ArrowUpRight, ChevronDown, ChevronRight, Layers3,
   Search, Wallet, BriefcaseBusiness, PieChart as PieIcon,
@@ -60,6 +62,7 @@ function assetClass(h: Holding) {
 }
 
 function navigate(path: string) {
+  if (customerDemoNavigate(path)) return;
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -82,6 +85,7 @@ function Panel({
 }
 
 export default function PortfolioExperience() {
+  const customerFetch = useCustomerFetch();
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -97,7 +101,7 @@ export default function PortfolioExperience() {
 
     async function load() {
       try {
-        const response = await fetch("/api/customer/portfolio", {
+        const response = await customerFetch("/api/customer/portfolio", {
           credentials: "same-origin"
         });
         const result = await response.json();
@@ -188,7 +192,7 @@ export default function PortfolioExperience() {
   useEffect(() => {
     let active = true;
 
-    fetch("https://open.er-api.com/v6/latest/CAD")
+    customerFetch("https://open.er-api.com/v6/latest/CAD")
       .then(response => {
         if (!response.ok) throw new Error("FX unavailable");
         return response.json();
@@ -227,7 +231,7 @@ export default function PortfolioExperience() {
   const label = "text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8E9BAA]";
 
   return (
-    <div className="min-h-screen bg-[#090C10] px-4 pb-16 pt-7 text-[#F0F3F7] sm:px-7 lg:px-10">
+    <div className="rw-fintech-workspace rw-fintech-portfolio min-h-screen bg-[#090C10] px-4 pb-16 pt-7 text-[#F0F3F7] sm:px-7 lg:px-10">
       <div className="mx-auto max-w-[1480px] space-y-6">
 
         <header className="flex flex-wrap items-start justify-between gap-4">
@@ -274,7 +278,7 @@ export default function PortfolioExperience() {
 
         {portfolio && (
           <>
-            <Panel className="relative overflow-hidden p-6 sm:p-8">
+            <Panel className="rw-fintech-summary relative overflow-hidden p-6 sm:p-8">
               <div
                 className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full opacity-20 blur-[100px]"
                 style={{ background: "#7998BA" }}
@@ -311,7 +315,7 @@ export default function PortfolioExperience() {
                 <button
                   type="button"
                   onClick={() => navigate("/markets")}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#D9E2EC] px-6 py-3.5 text-sm font-semibold text-[#111820] hover:bg-white"
+                  className="rw-fintech-primary flex items-center justify-center gap-2 rounded-xl bg-[#D9E2EC] px-6 py-3.5 text-sm font-semibold text-[#111820] hover:bg-white"
                 >
                   Explore & Trade <ArrowUpRight size={17} />
                 </button>
@@ -430,6 +434,7 @@ export default function PortfolioExperience() {
                             <span className="text-[11px] text-[#738293]">
                               {String(index + 1).padStart(2, "0")}
                             </span>
+                            <AssetLogo symbol={h.symbol} name={h.name} size={28} />
                             <span className="truncate text-sm font-semibold">{h.symbol}</span>
                           </div>
                           <span className="text-xs text-[#BBC7D5]">
@@ -544,9 +549,7 @@ export default function PortfolioExperience() {
                         onClick={() => setExpanded(active ? null : h.symbol)}
                         className="flex w-full items-center gap-3 p-4 text-left sm:gap-5"
                       >
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-[#435267] bg-[#293747] text-xs font-bold">
-                          {h.symbol.slice(0, 2)}
-                        </div>
+                        <AssetLogo symbol={h.symbol} name={h.name} size={44} />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold">{h.symbol}</p>
                           <p className="mt-1 truncate text-xs text-[#94A2B2]">{h.name}</p>

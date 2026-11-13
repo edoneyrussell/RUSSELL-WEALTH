@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { CustomerDemoContext } from "../demo/customerDemo";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -42,11 +43,12 @@ export default function PortfolioHistoryChart({
 }: {
   value: number | null;
 }) {
-  const [history, setHistory] = useState<Point[]>(readHistory);
+  const demo = useContext(CustomerDemoContext);
+  const [history, setHistory] = useState<Point[]>(() => demo ? Array.from({length: 24}, (_,i) => ({time:Date.now()-(23-i)*3600000,value:48500+i*1500/23})) : readHistory());
   const [range, setRange] = useState<Range>("1D");
 
   useEffect(() => {
-    if (value === null || !Number.isFinite(value)) return;
+    if (demo || value === null || !Number.isFinite(value)) return;
 
     setHistory(previous => {
       const now = Date.now();
@@ -140,7 +142,7 @@ export default function PortfolioHistoryChart({
         </div>
       </div>
 
-      <div className="h-[280px] w-full sm:h-[330px]">
+      <div className="rw-portfolio-chart-canvas h-[280px] w-full sm:h-[330px]">
         {data.length < 2 ? (
           <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#34404D] bg-[#10161D] px-6 text-center">
             <p className="text-sm font-medium text-[#DCE7F3]">
@@ -250,7 +252,7 @@ export default function PortfolioHistoryChart({
       </div>
 
       <p className="mt-3 text-[10px] text-[#667585]">
-        Actual recorded account values · CAD · Not investment returns
+        {demo ? 'Fictional portfolio history · Demo CAD values' : 'Actual recorded account values · CAD · Not investment returns'}
       </p>
     </div>
   );

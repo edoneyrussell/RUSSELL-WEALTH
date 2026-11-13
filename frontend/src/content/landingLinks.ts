@@ -3,8 +3,8 @@
 export const landingLinks = {
   home: "/",
   about: "/about",
-  platform: "/#rw-platform",
-  security: "/#rw-security",
+  platform: "/demo/customer",
+  security: "/demo/security",
 
   github: "https://github.com/edoneyrussell",
 

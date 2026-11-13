@@ -1,3 +1,4 @@
+import { useSecurityFetch } from "../demo/securityDemo";
 import { useEffect, useState } from 'react';
 import type { SecurityEvent } from '../hooks/useSecurityOverview';
 
@@ -7,7 +8,8 @@ type Props = {
 
 type LogsResponse = {
   success: boolean;
-  logs: SecurityEvent[];
+  logs: (SecurityEvent & { source: string; source_label: string; event_key: string })[];
+  sources: { key: string; label: string; status: string; count: number | null }[];
   pagination: {
     page: number;
     per_page: number;
@@ -46,19 +48,24 @@ function reginaDateTime(value: string) {
 }
 
 export default function AllSecurityLogs({ onClose }: Props) {
+  const securityFetch = useSecurityFetch();
   const [page, setPage] = useState(1);
   const [eventType, setEventType] = useState('');
   const [severity, setSeverity] = useState('');
+  const [search, setSearch] = useState('');
   const [data, setData] = useState<LogsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
+    let inFlight = false;
+    setLoading(true);
     async function loadLogs() {
-      setLoading(true);
+      if (inFlight) return;
+      inFlight = true;
       setError(null);
 
       try {
@@ -69,8 +76,9 @@ export default function AllSecurityLogs({ onClose }: Props) {
 
         if (eventType) params.set('event_type', eventType);
         if (severity) params.set('severity', severity);
+        if (search.trim()) params.set('search', search.trim());
 
-        const response = await fetch(
+        const response = await securityFetch(
           `/api/security/logs?${params.toString()}`,
           {
             credentials: 'include',
@@ -89,24 +97,33 @@ export default function AllSecurityLogs({ onClose }: Props) {
           throw new Error('Unable to retrieve security logs');
         }
 
-        setData(result);
+        if (!controller.signal.aborted) setData(result);
       } catch (err) {
         if (!controller.signal.aborted) {
           setError(err instanceof Error ? err.message : 'Request failed');
         }
       } finally {
+        inFlight = false;
         if (!controller.signal.aborted) setLoading(false);
       }
     }
 
-    loadLogs();
-    return () => controller.abort();
-  }, [page, eventType, severity]);
+    const initial = window.setTimeout(() => void loadLogs(), 200);
+    const refresh = () => { if (!document.hidden) void loadLogs(); };
+    const interval = window.setInterval(refresh, 5000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      controller.abort();
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [page, eventType, severity, search]);
 
   return (
-    <div className="fixed inset-0 z-[5000] bg-[#080a0d] overflow-y-auto p-6 md:p-10">
+    <div className="rw-security-logs fixed inset-0 z-[5000] bg-[#080a0d] overflow-y-auto p-6 md:p-10">
       <div className="max-w-[1400px] mx-auto space-y-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="rw-security-logs-header flex items-center justify-between gap-4">
           <div>
             <p className="text-[#8c929c] text-xs mb-2">
               RUSSELL WEALTH / SECURITY OPERATIONS
@@ -115,7 +132,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
               All Security Logs
             </h1>
             <p className="text-[#8c929c] text-sm mt-2">
-              Recorded security events · America/Regina (CST)
+              Local and live security events · Regina time (CST) · Refreshes every 5 seconds
             </p>
           </div>
 
@@ -128,10 +145,12 @@ export default function AllSecurityLogs({ onClose }: Props) {
           </button>
         </div>
 
-        <div className="bg-[#14171c] border border-[#30343b] rounded-xl p-5">
+        <div className="rw-security-logs-panel bg-[#14171c] border border-[#30343b] rounded-xl p-5">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-            <div className="flex flex-wrap gap-3">
+            <div className="rw-security-logs-filters flex flex-wrap gap-3">
+              <input aria-label="Search logs by account email" type="search" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} placeholder="Search account email…" className="bg-[#1a1d22] text-[#f5f5f5] border border-[#30343b] rounded-lg px-3 py-2 text-sm" />
               <select
+                aria-label="Filter log event type"
                 value={eventType}
                 onChange={e => {
                   setEventType(e.target.value);
@@ -145,6 +164,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
               </select>
 
               <select
+                aria-label="Filter log severity"
                 value={severity}
                 onChange={e => {
                   setSeverity(e.target.value);
@@ -164,15 +184,44 @@ export default function AllSecurityLogs({ onClose }: Props) {
             </span>
           </div>
 
+          <div aria-label="Security log sources" className="mb-4 flex flex-wrap gap-3 text-xs">
+            {data?.sources.map(source => <span key={source.key} className={source.status === 'connected' ? 'text-[#91A1B4]' : 'text-[#f5b942]'}>{source.label}: {source.status === 'connected' ? `${source.count} matching events` : 'Unavailable — results are incomplete'}</span>)}
+          </div>
           {error && (
             <p className="text-[#ff454f] text-sm mb-4">{error}</p>
           )}
 
+          <div className="rw-security-log-cards hidden">
+            {data?.logs.map(event => {
+              const timestamp = reginaDateTime(event.created_at);
+              return (
+                <article key={event.event_key} className="rw-security-log-card">
+                  <div className="rw-security-log-card-heading">
+                    <h2>{event.event_type.replaceAll('_', ' ').toLowerCase()}</h2>
+                    <span className={event.severity === 'CRITICAL' ? 'text-[#ff454f]' : event.severity === 'WARNING' ? 'text-[#f5b942]' : 'text-[#25e487]'}>{event.severity}</span>
+                  </div>
+                  <dl>
+                    <div><dt>Account email</dt><dd>{event.email || (event.event_type.startsWith('LOGIN_') ? 'Email not recorded' : 'System / no account')}</dd></div>
+                    <div><dt>Source IP</dt><dd>{event.source_ip || 'IP not recorded'}{(event.source_ip === '127.0.0.1' || event.source_ip === '::1') && <small>Loopback address recorded</small>}</dd></div>
+                    <div><dt>Date &amp; time (CST)</dt><dd>{timestamp.date} · {timestamp.time}</dd></div>
+                    <div><dt>Database · Event ID</dt><dd>{event.source_label} · #{event.id}</dd></div>
+                  </dl>
+                  <details>
+                    <summary>Event details</summary>
+                    <p>{event.details || 'No additional details'}</p>
+                    <p>User ID: {event.user_id ?? 'Unknown'}</p>
+                    <p>Recorded UTC: {event.created_at}</p>
+                  </details>
+                </article>
+              );
+            })}
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[950px] text-left text-sm">
+            <table className="rw-security-logs-table w-full min-w-[950px] text-left text-sm">
               <thead className="bg-[#1a1d22] text-[#8c929c]">
                 <tr>
-                  {['ID', 'Date (Regina)', 'Time (CST)', 'Event', 'Severity', 'Account', 'Source IP'].map(label => (
+                  {['ID', 'Database', 'Date (Regina)', 'Time (CST)', 'Event', 'Severity', 'Account Email', 'Source IP'].map(label => (
                     <th key={label} className="px-3 py-3 font-medium">
                       {label}
                     </th>
@@ -183,17 +232,18 @@ export default function AllSecurityLogs({ onClose }: Props) {
               <tbody>
                 {data?.logs.map(event => {
                   const timestamp = reginaDateTime(event.created_at);
-                  const selected = selectedId === event.id;
+                  const selected = selectedId === event.event_key;
 
                   return (
                     <tr
-                      key={event.id}
-                      onClick={() => setSelectedId(selected ? null : event.id)}
+                      key={event.event_key}
+                      onClick={() => setSelectedId(selected ? null : event.event_key)}
                       className="border-b border-[#30343b] hover:bg-[#1a1d22] cursor-pointer"
                     >
                       <td className="px-3 py-3 text-[#8c929c]">
                         #{event.id}
                       </td>
+                      <td className="px-3 py-3 text-[#b4b8c0]">{event.source_label}</td>
                       <td className="px-3 py-3 text-[#b4b8c0]">
                         {timestamp.date}
                       </td>
@@ -222,10 +272,11 @@ export default function AllSecurityLogs({ onClose }: Props) {
                         </span>
                       </td>
                       <td className="px-3 py-3 text-[#b4b8c0]">
-                        {event.email ?? 'Unknown'}
+                        {event.email || (event.event_type.startsWith('LOGIN_') ? 'Email not recorded' : 'System / no account')}
                       </td>
                       <td className="px-3 py-3 text-[#b4b8c0]">
-                        {event.source_ip ?? 'Unknown'}
+                        {event.source_ip || 'IP not recorded'}
+                        {(event.source_ip === '127.0.0.1' || event.source_ip === '::1') && <p className="mt-1 text-xs text-[#8c929c]">Loopback address recorded</p>}
                       </td>
                     </tr>
                   );
@@ -246,7 +297,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
             )}
           </div>
 
-          <div className="flex items-center justify-between mt-5">
+          <div className="rw-security-logs-pagination flex items-center justify-between mt-5">
             <span className="text-[#8c929c] text-sm">
               Page {data?.pagination.page ?? page} of {Math.max(1, data?.pagination.total_pages ?? 1)}
             </span>

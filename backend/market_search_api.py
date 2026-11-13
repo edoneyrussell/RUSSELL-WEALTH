@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import get_db_connection
 import os
 from market_data import api_key, request_json
+from trade_catalog import stock_catalog
 
 market_search_bp = Blueprint("market_search", __name__)
 
@@ -48,49 +49,54 @@ def search_market():
     finally:
         conn.close()
 
-    # Search the external stock market.
-    try:
-        data = request_json(
-            "https://financialmodelingprep.com/stable/search-symbol",
-            {
-                "query": query,
-                "limit": 100,
-                "apikey": api_key("FMP_API_KEY")
-            }
-        )
+    for asset in stock_catalog().values():
+        if q in asset['symbol'] or q in asset['name'].upper():
+            results.setdefault(asset['symbol'], dict(asset, currency=asset['listing_currency']))
 
-        if isinstance(data, list):
-            for item in data:
-                symbol = str(item.get("symbol", "")).upper().strip()
-                name = str(item.get("name", symbol)).strip()
+    # Ask external providers only when the bundled directory has no matches.
+    if not results:
+        try:
+            data = request_json(
+                "https://financialmodelingprep.com/stable/search-symbol",
+                {
+                    "query": query,
+                    "limit": 100,
+                    "apikey": api_key("FMP_API_KEY")
+                }
+            )
 
-                if not symbol or not name:
-                    continue
+            if isinstance(data, list):
+                for item in data:
+                    symbol = str(item.get("symbol", "")).upper().strip()
+                    name = str(item.get("name", symbol)).strip()
 
-                if not (
-                    symbol.startswith(q)
-                    or name.upper().startswith(q)
-                ):
-                    continue
+                    if not symbol or not name:
+                        continue
 
-                exchange = str(
-                    item.get("exchangeShortName")
-                    or item.get("exchange")
-                    or ""
-                )
+                    if not (
+                        symbol.startswith(q)
+                        or name.upper().startswith(q)
+                    ):
+                        continue
 
-                results.setdefault(symbol, {
-                    "symbol": symbol,
-                    "name": name,
-                    "exchange": exchange,
-                    "currency": item.get("currency") or (
-                        "CAD" if symbol.endswith(".TO") else "USD"
-                    ),
-                    "type": "STOCK"
-                })
+                    exchange = str(
+                        item.get("exchangeShortName")
+                        or item.get("exchange")
+                        or ""
+                    )
 
-    except Exception:
-        pass
+                    results.setdefault(symbol, {
+                        "symbol": symbol,
+                        "name": name,
+                        "exchange": exchange,
+                        "currency": item.get("currency") or (
+                            "CAD" if symbol.endswith(".TO") else "USD"
+                        ),
+                        "type": "STOCK"
+                    })
+
+        except Exception:
+            pass
 
     ordered = sorted(
         results.values(),

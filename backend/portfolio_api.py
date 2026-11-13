@@ -8,7 +8,7 @@ portfolio_bp = Blueprint("portfolio", __name__)
 
 
 @portfolio_bp.route("/api/customer/portfolio", methods=["GET"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def get_portfolio():
     conn = get_db_connection()
 

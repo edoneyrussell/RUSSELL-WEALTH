@@ -29,8 +29,10 @@ def create_database():
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            password_hint TEXT,
             role TEXT NOT NULL,
             account_status TEXT NOT NULL DEFAULT 'ACTIVE',
+            access_version INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -39,6 +41,7 @@ def create_database():
         CREATE TABLE IF NOT EXISTS security_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
+            account_email TEXT,
             event_type TEXT NOT NULL,
             source_ip TEXT,
             severity TEXT NOT NULL,

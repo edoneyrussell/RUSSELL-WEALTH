@@ -1,5 +1,8 @@
+import CustomerDemo from "./screens/CustomerDemo"
+import SecurityDemo from "./screens/SecurityDemo"
 import DemoBanking from './screens/DemoBanking'
 import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
+import WatchlistOverlay from './components/WatchlistOverlay'
 import GlobalToastHost from './components/GlobalToastHost'
 import HelpSupport from './screens/HelpSupport'
 import CustomerSettings from './screens/CustomerSettings'
@@ -16,7 +19,6 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import ForgotPassword from './screens/ForgotPassword'
 import Dashboard from './screens/Dashboard'
 import Incident from './screens/Incident'
-import Investigations from './screens/Investigations'
 import Landing from './screens/Landing'
 import MobileDashboard from './screens/MobileDashboard'
 import MobileLanding from './screens/MobileLanding'
@@ -25,15 +27,17 @@ import Portfolio from './screens/PortfolioExperience'
 import Transactions from './screens/Transactions'
 import SecurityDashboard from './screens/SecurityDashboard'
 import NetworkInfrastructure from './screens/NetworkInfrastructure'
-import CloudSecurity from './screens/CloudSecurity'
 import AccessManagement from './screens/AccessManagement'
 
 const routes = {
+  '/demo/security': SecurityDemo,
+  '/demo/customer': CustomerDemo,
   '/help': HelpSupport,
   '/': Landing,
   '/about': About,
   '/create-account': RegistrationForm,
   '/forgot-password': ForgotPassword,
+  '/reset-password': ForgotPassword,
   '/dashboard': Dashboard,
   '/portfolio': Portfolio,
   '/transactions': Transactions,
@@ -42,10 +46,8 @@ const routes = {
   '/markets': Markets,
   '/security': SecurityDashboard,
   '/security/network': NetworkInfrastructure,
-  '/security/cloud': CloudSecurity,
   '/security/access': AccessManagement,
   '/security/incidents': Incident,
-  '/security/investigations': Investigations,
   '/security/incidents/INC-2026-0142': Incident,
   '/admin/settings': AdminSettings,
   '/customer/settings': CustomerSettings,
@@ -62,14 +64,12 @@ const navigationByLabel: Record<string, string> = {
   Transactions: '/transactions',
   Markets: '/markets',
   'SOC Dashboard': '/security',
-  'Cloud Security': '/security/cloud',
   Incidents: '/security/incidents',
-  Investigations: '/security/investigations',
   'View Dashboard': '/dashboard',
-  'Explore the Platform': '/dashboard',
-  'Explore Platform': '/dashboard',
+  'Explore the Platform': '/demo/customer',
+  'Explore Platform': '/demo/customer',
   'View Investigation': '/security/incidents/INC-2026-0142',
-  'Explore Security Environment': '/security',
+  'Explore Security Environment': '/demo/security',
 }
 
 function useMediaQuery(query: string) {
@@ -97,16 +97,24 @@ function navigate(path: string) {
   window.scrollTo({ top: 0, behavior: 'instant' })
 }
 
+function currentPath() {
+  if (['/security/investigations', '/security/cloud'].includes(window.location.pathname)) {
+    window.history.replaceState({}, '', '/security')
+  }
+  return window.location.pathname
+}
+
 export default function App() {
-  const [path, setPath] = useState(window.location.pathname)
+  const [path, setPath] = useState(currentPath)
+  const [hash, setHash] = useState(() => window.location.hash)
   const isMobile = useMediaQuery('(max-width: 700px)')
   const showPublicNavigation = path === '/' || path === '/about'
   const showUnifiedMobileNav =
     isMobile &&
     (
       ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
-       '/customer/settings', '/customer/activity', '/customer/account-settings', '/security', '/security/incidents', '/security/investigations',
-       '/security/network', '/security/cloud', '/security/access', '/admin/settings'].includes(path) ||
+       '/customer/settings', '/customer/activity', '/customer/account-settings', '/security', '/security/incidents',
+       '/security/network', '/security/access', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
     )
 
@@ -114,10 +122,15 @@ export default function App() {
   const [auth, setAuth] = useState<{
     authenticated: boolean
     role?: string
+    roles?: string[]
   } | null>(null)
 
   useEffect(() => {
     let active = true
+    if (path.startsWith('/demo/')) {
+      setAuth({ authenticated: false })
+      return () => { active = false }
+    }
 
     fetch('/api/me', {
       credentials: 'same-origin',
@@ -142,11 +155,18 @@ export default function App() {
   }, [path])
 
   useEffect(() => {
-    const update = () => setPath(window.location.pathname)
+    const update = () => {
+      setPath(currentPath())
+      setHash(window.location.hash)
+    }
 
     window.addEventListener('popstate', update)
+    window.addEventListener('hashchange', update)
 
-    return () => window.removeEventListener('popstate', update)
+    return () => {
+      window.removeEventListener('popstate', update)
+      window.removeEventListener('hashchange', update)
+    }
   }, [])
 
   const handleNavigation = (event: MouseEvent<HTMLElement>) => {
@@ -185,10 +205,8 @@ export default function App() {
     '/admin/settings',
     '/security',
     '/security/network',
-    '/security/cloud',
     '/security/access',
     '/security/incidents',
-    '/security/investigations',
     '/security/incidents/INC-2026-0142',
   ]
 
@@ -258,18 +276,20 @@ export default function App() {
   }
 
   if (isProtectedRoute && !auth?.authenticated) {
-    window.location.replace('/login')
+    window.location.replace('/')
     return null
   }
 
+  const roles = auth?.roles ?? (auth?.role ? [auth.role] : [])
+  const customerAccess = roles.includes('CUSTOMER')
+  const socAccess = roles.includes('SOC_ADMIN')
+
   if (
-    (isCustomerRoute &&
-      auth?.role !== 'CUSTOMER' &&
-      auth?.role !== 'SOC_ADMIN') ||
-    (isSecurityRoute && auth?.role !== 'SOC_ADMIN')
+    (isCustomerRoute && !customerAccess) ||
+    (isSecurityRoute && !socAccess)
   ) {
     window.location.replace(
-      '/dashboard'
+      socAccess ? '/security' : '/dashboard'
     )
     return null
   }
@@ -281,7 +301,7 @@ export default function App() {
   } else if (path === '/create-account') {
     Screen = RegistrationForm
   } else if (path === '/dashboard') {
-    Screen = isMobile ? MobileDashboard : Dashboard
+    Screen = hash === '#watchlist' ? WatchlistOverlay : isMobile ? MobileDashboard : Dashboard
   } else if (path === '/') {
     Screen = isMobile ? MobileLanding : Landing
   } else {
@@ -298,6 +318,12 @@ export default function App() {
   return (
     <>
       {showPublicNavigation && <RWPersistentNav />}
+      {isProtectedRoute && customerAccess && socAccess && (
+        <nav aria-label="Switch dashboard" className="flex justify-end gap-3 border-b border-[#30343b] bg-[#10151C] px-5 py-2 text-sm text-[#BAD9EF]">
+          <a href="/dashboard" className="rounded px-3 py-2 hover:bg-[#202833]" aria-current={isCustomerRoute ? 'page' : undefined}>Customer Dashboard</a>
+          <a href="/security" className="rounded px-3 py-2 hover:bg-[#202833]" aria-current={isSecurityRoute ? 'page' : undefined}>SOC Dashboard</a>
+        </nav>
+      )}
       {showUnifiedMobileNav && (
         <UnifiedMobileNav
           security={

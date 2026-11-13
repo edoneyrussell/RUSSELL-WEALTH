@@ -1,8 +1,10 @@
+import { useCustomerFetch } from "../demo/customerDemo";
 import { useState } from 'react';
 
 type TradeDirection = 'BUY' | 'SELL';
 
 export function useTrading() {
+  const customerFetch = useCustomerFetch();
   const [direction, setDirection] = useState<TradeDirection>('BUY');
   const [symbol, setSymbol] = useState('VDY');
   const [quantity, setQuantity] = useState('1');
@@ -22,7 +24,7 @@ export function useTrading() {
     setSubmitting(true);
 
     try {
-      const response = await fetch('/api/customer/trade', {
+      const response = await customerFetch('/api/customer/trade', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

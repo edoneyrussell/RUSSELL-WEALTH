@@ -6,6 +6,7 @@ from trading_api import trading_bp
 from portfolio_api import portfolio_bp
 from market_api import market_bp
 from authorization import role_required
+from roles import account_roles
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from werkzeug.security import check_password_hash
 from database import get_db_connection
@@ -17,10 +18,51 @@ from registration_api import registration_bp
 from password_reset_api import password_reset_bp
 app = Flask(__name__)
 
+from access_api import access_bp
+import security_logs_api
+app.register_blueprint(access_bp)
+
+
+@app.before_request
+def validate_current_account():
+    """Revalidate signed sessions against current account access on every request."""
+    uid = session.get('user_id')
+    if uid is None:
+        return
+    db = get_db_connection()
+    try:
+        user = db.execute(
+            'SELECT name, role, account_status, access_version FROM users WHERE id=?', (uid,)
+        ).fetchone()
+        roles = account_roles(db, uid, user['role']) if user is not None else []
+    finally:
+        db.close()
+    if (user is None or user['account_status'] != 'ACTIVE'
+            or user['role'] != session.get('role')
+            or user['access_version'] != session.get('access_version', 0)):
+        session.clear()
+        return jsonify(error='Your account access changed. Please sign in again.'), 401
+    session['name'] = user['name']
+    session['roles'] = roles
+    if request.path.startswith('/api/customer/') and 'CUSTOMER' not in roles:
+        return jsonify(error='Customer access required'), 403
+
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+from access_api import initialize_access_schema
+initialize_access_schema()
+from security import initialize_security_email_schema
+initialize_security_email_schema()
+from password_hints import initialize_password_hint_schema
+initialize_password_hint_schema()
+# Trust forwarded client IPs only when the deployment explicitly configures its proxy chain.
+from werkzeug.middleware.proxy_fix import ProxyFix
+trusted_proxy_hops = int(os.environ.get('RW_TRUSTED_PROXY_HOPS', '0'))
+if trusted_proxy_hops > 0:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=trusted_proxy_hops, x_proto=0, x_host=0, x_port=0, x_prefix=0)
 app.secret_key = os.environ["FLASK_SECRET_KEY"]
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -54,7 +96,9 @@ def login():
 
     source_ip = request.remote_addr
 
-    if user and check_password_hash(user["password_hash"], password):
+    if (user and user["account_status"] == "ACTIVE"
+            and user["role"] in ("CUSTOMER", "SOC_ADMIN")
+            and check_password_hash(user["password_hash"], password)):
 
         log_security_event(
             user["id"],
@@ -67,6 +111,7 @@ def login():
         session["user_id"] = user["id"]
         session["name"] = user["name"]
         session["role"] = user["role"]
+        session["access_version"] = user["access_version"]
 
         if user["role"] == "CUSTOMER":
             return redirect(url_for("customer"))
@@ -79,9 +124,13 @@ def login():
         "LOGIN_FAILED",
         source_ip,
         "WARNING",
-        f"Failed login attempt for {email}"
+        f"Failed login attempt for {email}",
+        account_email=email
     )
 
+    if user and user["account_status"] == "SUSPENDED":
+        log_security_event(user["id"], "SUSPENDED_LOGIN_ATTEMPT", source_ip, "WARNING",
+                           "Suspended account sign-in rejected", account_email=email)
     detect_failed_login_attack(source_ip)
 
     return "Invalid email or password."
@@ -92,7 +141,7 @@ def customer():
     if "user_id" not in session:
         return redirect(url_for("home"))
 
-    if session["role"] != "CUSTOMER":
+    if "CUSTOMER" not in session.get("roles", [session["role"]]):
         return "Access Denied", 403
 
     return f"Customer Dashboard — Welcome {session['name']}"
@@ -103,7 +152,7 @@ def soc():
     if "user_id" not in session:
         return redirect(url_for("home"))
 
-    if session["role"] != "SOC_ADMIN":
+    if "SOC_ADMIN" not in session.get("roles", [session["role"]]):
         return "Access Denied", 403
 
     return f"SOC Dashboard — Welcome {session['name']}"
@@ -161,13 +210,15 @@ def api_login():
         session["user_id"] = user["id"]
         session["name"] = user["name"]
         session["role"] = user["role"]
+        session["access_version"] = user["access_version"]
 
         log_security_event(
             user["id"],
             "LOGIN_SUCCESS",
             source_ip,
             "INFO",
-            f"Successful login for {email}"
+            f"Successful login for {email}",
+            account_email=email
         )
 
         # Notify the account owner after successful authentication.
@@ -179,7 +230,8 @@ def api_login():
         return jsonify({
             "success": True,
             "name": user["name"],
-            "role": user["role"]
+            "role": user["role"],
+            "roles": account_roles_for_login(user)
         }), 200
 
     log_security_event(
@@ -187,14 +239,26 @@ def api_login():
         "LOGIN_FAILED",
         source_ip,
         "WARNING",
-        f"Failed login attempt for {email}"
+        f"Failed login attempt for {email}",
+        account_email=email
     )
 
+    if user and user["account_status"] == "SUSPENDED":
+        log_security_event(user["id"], "SUSPENDED_LOGIN_ATTEMPT", source_ip, "WARNING",
+                           "Suspended account sign-in rejected", account_email=email)
     detect_failed_login_attack(source_ip)
 
     return jsonify({
         "error": "Invalid email or password"
     }), 401
+
+
+def account_roles_for_login(user):
+    db = get_db_connection()
+    try:
+        return account_roles(db, user['id'], user['role'])
+    finally:
+        db.close()
 
 
 @app.route("/api/me", methods=["GET"])
@@ -232,6 +296,7 @@ def api_me():
             "authenticated": True,
             "name": session["name"],
             "role": session["role"],
+            "roles": session.get("roles", [session["role"]]),
             "profile_photo": photo
         })
     finally:
@@ -243,7 +308,7 @@ def api_logout():
     session.clear()
     return jsonify({"success": True})
 @app.route("/api/customer/overview", methods=["GET"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def api_customer_overview():
     return jsonify({
         "success": True,
@@ -486,73 +551,6 @@ def api_security_overview():
         connection.close()
 
 
-@app.route("/api/security/logs", methods=["GET"])
-@role_required("SOC_ADMIN")
-def api_security_logs():
-    try:
-        page = max(1, int(request.args.get("page", 1)))
-        per_page = min(100, max(1, int(request.args.get("per_page", 25))))
-    except (ValueError, TypeError):
-        return jsonify({"success": False, "error": "Invalid pagination"}), 400
-
-    event_type = request.args.get("event_type", "").strip()
-    severity = request.args.get("severity", "").strip().upper()
-
-    conditions = []
-    parameters = []
-
-    if event_type:
-        conditions.append("e.event_type = ?")
-        parameters.append(event_type)
-
-    if severity:
-        conditions.append("e.severity = ?")
-        parameters.append(severity)
-
-    where_clause = (
-        "WHERE " + " AND ".join(conditions)
-        if conditions else ""
-    )
-
-    connection = get_db_connection()
-
-    try:
-        total = connection.execute(
-            f"SELECT COUNT(*) AS total FROM security_events e {where_clause}",
-            parameters
-        ).fetchone()["total"]
-
-        offset = (page - 1) * per_page
-
-        rows = connection.execute(f"""
-            SELECT
-                e.id,
-                e.user_id,
-                u.email,
-                e.event_type,
-                e.source_ip,
-                e.severity,
-                e.details,
-                e.created_at
-            FROM security_events e
-            LEFT JOIN users u ON u.id = e.user_id
-            {where_clause}
-            ORDER BY e.created_at DESC, e.id DESC
-            LIMIT ? OFFSET ?
-        """, parameters + [per_page, offset]).fetchall()
-
-        return jsonify({
-            "success": True,
-            "logs": [dict(row) for row in rows],
-            "pagination": {
-                "page": page,
-                "per_page": per_page,
-                "total": total,
-                "total_pages": (total + per_page - 1) // per_page
-            }
-        })
-    finally:
-        connection.close()
 
 
 app.register_blueprint(market_bp)
@@ -571,135 +569,8 @@ app.register_blueprint(password_reset_bp)
 
 
 
-@app.route("/api/security/alerts", methods=["GET"])
-@role_required("SOC_ADMIN")
-def api_security_alerts():
-    try:
-        page_number = max(1, int(request.args.get("page", 1)))
-        per_page = min(100, max(1, int(request.args.get("per_page", 25))))
-    except (ValueError, TypeError):
-        return jsonify({"success": False, "error": "Invalid pagination"}), 400
-
-    severity = request.args.get("severity", "").strip().upper()
-
-    connection = get_db_connection()
-
-    try:
-        conditions = []
-        parameters = []
-
-        if severity:
-            conditions.append("severity = ?")
-            parameters.append(severity)
-
-        where_clause = (
-            "WHERE " + " AND ".join(conditions)
-            if conditions else ""
-        )
-
-        total = connection.execute(
-            f"SELECT COUNT(*) AS total FROM security_alerts {where_clause}",
-            parameters
-        ).fetchone()["total"]
-
-        active_count = connection.execute("""
-            SELECT COUNT(*) AS total FROM security_alerts
-            WHERE status = 'ACTIVE'
-        """).fetchone()["total"]
-
-        rows = connection.execute(f"""
-            SELECT id, event_id, alert_type, title, description,
-                   severity, source_ip, status, created_at, dismissed_at
-            FROM security_alerts
-            {where_clause}
-            ORDER BY id DESC
-            LIMIT ? OFFSET ?
-        """, parameters + [per_page, (page_number - 1) * per_page]).fetchall()
-
-        logs = []
-
-        for row in rows:
-            alert = dict(row)
-
-            logs.append({
-                "id": alert["id"],
-                "user_id": None,
-                "email": None,
-                "event_type": alert["alert_type"],
-                "source_ip": alert["source_ip"],
-                "severity": alert["severity"],
-                "details": (
-                    alert["title"] + " — " +
-                    (alert["description"] or "") +
-                    " | Status: " + alert["status"]
-                ),
-                "created_at": alert["created_at"],
-                "status": alert["status"],
-                "title": alert["title"],
-                "description": alert["description"]
-            })
-
-        return jsonify({
-            "success": True,
-            "logs": logs,
-            "active_count": active_count,
-            "pagination": {
-                "page": page_number,
-                "per_page": per_page,
-                "total": total,
-                "total_pages": max(1, (total + per_page - 1) // per_page)
-            }
-        })
-
-    finally:
-        connection.close()
-
-
-@app.route("/api/security/active-alerts", methods=["GET"])
-@role_required("SOC_ADMIN")
-def api_security_active_alerts():
-    connection = get_db_connection()
-    try:
-        rows = connection.execute("""
-            SELECT id, event_id, alert_type, title,
-                   description, severity, source_ip, created_at
-            FROM security_alerts
-            WHERE status = 'ACTIVE'
-            ORDER BY id DESC
-        """).fetchall()
-
-        alerts = [dict(row) for row in rows]
-
-        return jsonify({
-            "success": True,
-            "count": len(alerts),
-            "alerts": alerts
-        })
-    finally:
-        connection.close()
-
-
-@app.route("/api/security/clear-alerts", methods=["POST"])
-@role_required("SOC_ADMIN")
-def api_security_clear_alerts():
-    connection = get_db_connection()
-    try:
-        cursor = connection.execute("""
-            UPDATE security_alerts
-            SET status = 'DISMISSED',
-                dismissed_at = CURRENT_TIMESTAMP
-            WHERE status = 'ACTIVE'
-        """)
-
-        connection.commit()
-
-        return jsonify({
-            "success": True,
-            "cleared": cursor.rowcount
-        })
-    finally:
-        connection.close()
-
+from alerts_api import alerts_bp
+app.register_blueprint(alerts_bp)
 
 
 # RW INCIDENT API START
@@ -1146,7 +1017,7 @@ def rw_customer_account_management():
                 return jsonify(error="Choose a different password"), 400
 
             db.execute(
-                "UPDATE users SET password_hash=? WHERE id=?",
+                "UPDATE users SET password_hash=?, password_hint=NULL WHERE id=?",
                 (generate_password_hash(new), uid)
             )
             db.commit()
@@ -1280,112 +1151,13 @@ def api_security_infrastructure():
     })
 
 
+
+
+
+from profile_api import profile_bp, initialize_profile_schema
+initialize_profile_schema()
+app.register_blueprint(profile_bp)
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
-
-
-# RW CUSTOMER PROFILE API
-@app.route("/api/me/profile", methods=["GET", "PUT"])
-def rw_customer_profile():
-    import re
-
-    user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"error": "Authentication required"}), 401
-
-    if request.method == "PUT":
-        if not request.is_json:
-            return jsonify({"error": "JSON required"}), 415
-
-        payload = request.get_json(silent=True)
-        if not isinstance(payload, dict):
-            return jsonify({"error": "Invalid request"}), 400
-
-        name = payload.get("name")
-        email = payload.get("email")
-
-        if name is None and email is None:
-            return jsonify({"error": "No profile changes provided"}), 400
-
-        if name is not None:
-            if not isinstance(name, str):
-                return jsonify({"error": "Invalid name"}), 400
-            name = " ".join(name.strip().split())
-            if not 2 <= len(name) <= 100:
-                return jsonify({"error": "Name must be 2–100 characters"}), 400
-
-        if email is not None:
-            if not isinstance(email, str):
-                return jsonify({"error": "Invalid email"}), 400
-            email = email.strip().lower()
-            if (
-                len(email) > 254
-                or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email)
-            ):
-                return jsonify({"error": "Enter a valid email address"}), 400
-
-    db = get_db_connection()
-    try:
-        user = db.execute(
-            "SELECT id, name, email, role FROM users WHERE id=?",
-            (user_id,)
-        ).fetchone()
-
-        if not user:
-            return jsonify({"error": "Account not found"}), 404
-
-        if request.method == "PUT":
-            updated_name = name if name is not None else user["name"]
-            updated_email = email if email is not None else user["email"]
-
-            if email is not None:
-                duplicate = db.execute(
-                    "SELECT id FROM users WHERE LOWER(email)=? AND id<>?",
-                    (updated_email, user_id)
-                ).fetchone()
-
-                if duplicate:
-                    return jsonify({"error": "Email already in use"}), 409
-
-            db.execute(
-                "UPDATE users SET name=?, email=? WHERE id=?",
-                (updated_name, updated_email, user_id)
-            )
-            db.commit()
-
-            session["name"] = updated_name
-
-            if updated_name != user["name"]:
-                log_security_event(
-                    user_id, "PROFILE_NAME_CHANGED",
-                    request.remote_addr, "INFO",
-                    "Customer updated full name"
-                )
-
-            if updated_email != user["email"]:
-                log_security_event(
-                    user_id, "PROFILE_EMAIL_CHANGED",
-                    request.remote_addr, "INFO",
-                    "Customer updated email address"
-                )
-
-            return jsonify({
-                "success": True,
-                "name": updated_name,
-                "email": updated_email,
-                "role": user["role"]
-            })
-
-        return jsonify({
-            "name": user["name"],
-            "email": user["email"],
-            "role": user["role"]
-        })
-
-    except Exception:
-        db.rollback()
-        app.logger.exception("Profile request failed")
-        return jsonify({"error": "Profile request failed"}), 500
-    finally:
-        db.close()
-# RW CUSTOMER PROFILE API END

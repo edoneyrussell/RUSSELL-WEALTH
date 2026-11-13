@@ -1,3 +1,4 @@
+import { useCustomerFetch } from "../demo/customerDemo";
 import { useCallback, useEffect, useState } from 'react';
 
 export type Portfolio = {
@@ -17,12 +18,13 @@ export type Portfolio = {
 };
 
 export function usePortfolio() {
+  const customerFetch = useCustomerFetch();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [error, setError] = useState(false);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch('/api/customer/portfolio', {
+      const response = await customerFetch('/api/customer/portfolio', {
         credentials: 'same-origin',
         cache: 'no-store',
         signal,

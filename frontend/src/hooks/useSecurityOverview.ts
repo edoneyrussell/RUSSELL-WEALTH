@@ -1,6 +1,10 @@
+import { useSecurityFetch } from "../demo/securityDemo";
 import { useEffect, useState } from 'react';
 
 export type SecurityEvent = {
+  title?: string;
+  status?: string;
+  evidence?: { id: number; account_email: string | null; event_type: string; source_ip: string | null; created_at: string }[];
   id: number;
   user_id: number | null;
   email: string | null;
@@ -33,6 +37,7 @@ export type SecurityOverview = {
 };
 
 export function useSecurityOverview() {
+  const securityFetch = useSecurityFetch();
   const [data, setData] = useState<SecurityOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +46,7 @@ export function useSecurityOverview() {
 
     async function refresh() {
       try {
-        const response = await fetch('/api/security/overview', {
+        const response = await securityFetch('/api/security/overview', {
           credentials: 'include',
           cache: 'no-store'
         });

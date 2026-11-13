@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import { Network, UsersRound } from "lucide-react";
 import { logout } from "../auth";
 
 type NavItem = {
   label: string;
   href: string;
-  icon: string;
+  icon: ReactNode;
   action?: "Alerts" | "Logs";
 };
 
@@ -23,10 +24,9 @@ const securityItems: NavItem[] = [
   { label: "SOC Dashboard", href: "/security", icon: "▦" },
   { label: "Alerts", href: "/security", icon: "△", action: "Alerts" },
   { label: "Incidents", href: "/security/incidents", icon: "◈" },
-  { label: "Investigations", href: "/security/investigations", icon: "⌕" },
   { label: "Logs", href: "/security", icon: "≡", action: "Logs" },
-  { label: "Network", href: "/security/network", icon: "⌘" },
-  { label: "Cloud Security", href: "/security/cloud", icon: "◇" },
+  { label: "Network", href: "/security/network", icon: <Network size={19} aria-hidden="true" /> },
+  { label: "Access", href: "/security/access", icon: <UsersRound size={19} aria-hidden="true" /> },
   { label: "Admin Settings", href: "/admin/settings", icon: "⚙" },
 ];
 
@@ -38,6 +38,7 @@ export default function UnifiedMobileNav({
   settingsPlacement?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   const [current, setCurrent] = useState(
     window.location.pathname + window.location.hash
   );
@@ -45,6 +46,7 @@ export default function UnifiedMobileNav({
   useEffect(() => {
     const update = () => {
       setCurrent(window.location.pathname + window.location.hash);
+      if (window.location.pathname !== "/security") setActivePanel(null);
       setOpen(false);
     };
 
@@ -55,6 +57,14 @@ export default function UnifiedMobileNav({
       window.removeEventListener("popstate", update);
       window.removeEventListener("hashchange", update);
     };
+  }, []);
+
+  useEffect(() => {
+    const updatePanel = (event: Event) => {
+      setActivePanel((event as CustomEvent<{ panel: string | null }>).detail?.panel ?? null);
+    };
+    window.addEventListener("rw-soc-active-panel", updatePanel);
+    return () => window.removeEventListener("rw-soc-active-panel", updatePanel);
   }, []);
 
   useEffect(() => {
@@ -84,6 +94,11 @@ export default function UnifiedMobileNav({
     ) return;
 
     event.preventDefault();
+
+    if (href === '/security') {
+      sessionStorage.removeItem('rw-soc-pending-action');
+      window.dispatchEvent(new Event('rw-close-security-panels'));
+    }
 
     if (window.location.pathname + window.location.hash !== href) {
       window.history.pushState({}, "", href);
@@ -194,8 +209,9 @@ export default function UnifiedMobileNav({
 
             <nav className="rw-mobile-fullnav-items">
               {items.map(item => {
-                const selected =
-                  current.split("#")[0] === item.href;
+                const selected = item.action
+                  ? current === "/security" && activePanel === item.action
+                  : current === item.href && (item.href !== "/security" || !activePanel);
 
                 return (
                   <a

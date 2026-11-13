@@ -86,7 +86,7 @@ export default function Transactions() {
   const entries = transactions as HistoryEntry[];
 
   return (
-    <div className="min-h-screen bg-[#08090a] px-5 py-10 text-[#f5f5f5] md:px-12">
+    <div className="rw-fintech-workspace rw-fintech-transactions min-h-screen bg-[#08090a] px-5 py-10 text-[#f5f5f5] md:px-12">
       <div className="mx-auto max-w-[1200px]">
         <header className="mb-8">
           <button

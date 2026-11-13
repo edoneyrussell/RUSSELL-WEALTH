@@ -1,3 +1,4 @@
+import LanguageSelector from "../components/LanguageSelector";
 import { landingLinks } from "../content/landingLinks";
 import { landingContent } from "../content/landingContent";
 const assetPathPrefix = "/assets";
@@ -33,7 +34,7 @@ const imgCodeXml1 = `${assetPathPrefix}/8548e.svg`;
 
 export default function RussellWealthMobileLandingPage() {
   return (
-    <div className="bg-[#080a0d] content-stretch flex flex-col items-start relative size-full" data-node-id="68:992" data-name="Russell Wealth mobile landing page">
+    <div className="rw-landing-alive bg-[#080a0d] content-stretch flex flex-col items-start relative size-full" data-node-id="68:992" data-name="Russell Wealth mobile landing page">
       <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[28px] pt-[14px] px-[20px] relative shrink-0 w-full" data-node-id="68:993" data-name="Landing hero">
         <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="68:994" data-name="Navigation">
           <div className="h-[53px] overflow-clip relative shrink-0 w-[164px]" data-node-id="68:995" data-name="Russell Wealth logo">
@@ -47,15 +48,7 @@ export default function RussellWealthMobileLandingPage() {
             </p>
           </div>
         </div>
-        <div className="content-stretch flex gap-[12px] items-center justify-center overflow-clip relative shrink-0 w-full" data-node-id="68:999" data-name="Language selector">
-          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[11px] whitespace-nowrap" data-node-id="68:1000">
-            🇨🇦 EN
-          </p>
-          <div className="bg-[#30363f] h-[12px] relative shrink-0 w-px" data-node-id="68:1001" data-name="Language divider" />
-          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[11px] whitespace-nowrap" data-node-id="68:1002">
-            🇫🇷 FR
-          </p>
-        </div>
+<LanguageSelector />
         <div className="[word-break:break-word] content-stretch flex flex-col gap-[20px] items-center overflow-clip pt-[16px] relative shrink-0 text-center w-full" data-node-id="68:1003" data-name="Hero copy">
           <p className="font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[9px] tracking-[1.1px] w-full whitespace-pre-wrap" data-node-id="68:1004">{`RUSSELL WEALTH  |  EST. NOVEMBER 1ST, 2026`}</p>
           <div className="font-['Lora:SemiBold'] font-semibold leading-[0] relative shrink-0 text-[#f2f2f3] text-[32px] tracking-[-0.8px] w-full" data-node-id="68:1005">
@@ -293,7 +286,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1100" data-name="Platform actions">
-          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1101" data-name="Action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
+          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1101" data-name="Action" onClick={() => window.location.assign("/demo/customer")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/demo/customer"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1102">
               Explore the Platform
             </p>
@@ -303,11 +296,7 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1104" data-name="Action" onClick={() => window.location.assign("/dashboard")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/dashboard"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1105">
-              View Dashboard
-            </p>
-          </div>
+
         </div>
       </div>
       <div id="rw-security" data-rw-anchor="rw-security" className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[52px] px-[20px] relative shrink-0 w-full" data-node-id="68:1106" data-name="Security showcase">
@@ -392,7 +381,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1141" data-name="Security actions">
-          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1142" data-name="Action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
+          <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1142" data-name="Action" onClick={() => window.location.assign("/demo/security")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/demo/security"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1143">
               Explore Security Environment
             </p>
@@ -402,11 +391,7 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
-          <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1145" data-name="Action" onClick={() => window.location.assign("/security/incidents/INC-2026-0142")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/security/incidents/INC-2026-0142"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1146">
-              View Investigation
-            </p>
-          </div>
+
         </div>
       </div>
       <div className="content-stretch flex flex-col gap-[32px] h-[407px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1147" data-name="Footer">

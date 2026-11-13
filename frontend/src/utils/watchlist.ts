@@ -1,6 +1,7 @@
 export const WATCHLIST_KEY = "russellwealth:watchlist:v1";
 
 export function getWatchlist(): string[] {
+  if (window.location.pathname === "/demo/customer") return ["AAPL", "VDY", "MSFT"];
   try {
     const value: unknown = JSON.parse(
       localStorage.getItem(WATCHLIST_KEY) || "[]"
@@ -18,6 +19,7 @@ export function getWatchlist(): string[] {
 }
 
 export function saveWatchlist(symbols: string[]) {
+  if (window.location.pathname === "/demo/customer") return;
   localStorage.setItem(
     WATCHLIST_KEY,
     JSON.stringify(Array.from(new Set(symbols)))

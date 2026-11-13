@@ -1,3 +1,4 @@
+import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -117,6 +118,7 @@ function cad(value: string | number) {
 }
 
 function navigate(path: string) {
+  if (customerDemoNavigate(path)) return;
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -127,6 +129,7 @@ const field = "w-full rounded-xl border border-[#36414D] bg-[#151D25] px-4 py-4 
 const secondaryButton = "rounded-xl border border-[#374451] bg-[#18212A] px-4 py-3 text-sm font-medium transition hover:border-[#A7C0D4] hover:bg-[#263544]";
 
 export default function DemoBanking() {
+  const customerFetch = useCustomerFetch();
   const [data, setData] = useState<BankingData | null>(null);
   const [mode, setMode] = useState<"DEPOSIT" | "WITHDRAW">(
     window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT"
@@ -158,7 +161,7 @@ export default function DemoBanking() {
   const [completed, setCompleted] = useState("");
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/customer/demo-banking", {
+    const response = await customerFetch("/api/customer/demo-banking", {
       credentials: "same-origin"
     });
     const body = await response.json();
@@ -196,7 +199,7 @@ export default function DemoBanking() {
     setError("");
 
     try {
-      const response = await fetch("/api/customer/demo-banking/transfer", {
+      const response = await customerFetch("/api/customer/demo-banking/transfer", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
@@ -244,7 +247,7 @@ export default function DemoBanking() {
   }
 
   return (
-    <main className="min-h-screen bg-[#090D12] px-4 py-8 text-[#F2F5F8] sm:px-8 lg:px-10">
+    <main className="rw-fintech-workspace rw-fintech-banking min-h-screen bg-[#090D12] px-4 py-8 text-[#F2F5F8] sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1500px] space-y-6">
         <header>
           <button
@@ -429,7 +432,7 @@ export default function DemoBanking() {
                 <button
                   disabled={!validAmount}
                   onClick={() => { setError(""); setStep(2); }}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#D3E4EE] px-5 py-4 font-semibold text-[#101820] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rw-fintech-primary flex w-full items-center justify-center gap-3 rounded-xl bg-[#D3E4EE] px-5 py-4 font-semibold text-[#101820] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Continue to Confirm <ChevronRight size={20} />
                 </button>
@@ -495,7 +498,7 @@ export default function DemoBanking() {
                   <button
                     disabled={busy || !validAmount}
                     onClick={submit}
-                    className="rounded-xl bg-[#D3E4EE] px-4 py-3 font-semibold text-[#101820] hover:bg-white disabled:opacity-50"
+                    className="rw-fintech-primary rounded-xl bg-[#D3E4EE] px-4 py-3 font-semibold text-[#101820] hover:bg-white disabled:opacity-50"
                   >
                     {busy ? "Processing..." : "Confirm Transfer"}
                   </button>
@@ -534,7 +537,7 @@ export default function DemoBanking() {
                 </p>
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full rounded-xl bg-[#D3E4EE] px-5 py-4 font-semibold text-[#101820] hover:bg-white"
+                  className="rw-fintech-primary w-full rounded-xl bg-[#D3E4EE] px-5 py-4 font-semibold text-[#101820] hover:bg-white"
                 >
                   Return to Dashboard
                 </button>

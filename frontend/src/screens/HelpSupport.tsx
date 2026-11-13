@@ -1,4 +1,3 @@
-import CustomerSidebar from "../components/CustomerSidebar";
 import { useMemo, useState } from "react";
 import {
   Search, ChevronDown, ArrowUpRight, ShieldCheck,
@@ -89,7 +88,7 @@ export default function HelpSupport() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-[#090b0e]"><CustomerSidebar /><main className="rw-help min-h-full w-full bg-[#090b0e] text-[#eeece7]">
+    <main className="rw-fintech-workspace rw-help min-h-full w-full bg-[#090b0e] text-[#eeece7]">
       <style>{`
         .rw-help {
           font-family: Inter, sans-serif;
@@ -311,6 +310,5 @@ export default function HelpSupport() {
         </div>
       </div>
     </main>
-    </div>
   );
 }

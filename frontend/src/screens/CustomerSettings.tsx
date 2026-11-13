@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { logout } from '../auth';
 
 type Account = {
@@ -8,6 +9,9 @@ type Account = {
   profile_photo?: string | null;
   role?: string;
 };
+
+const emptyProfile = { first_name: '', last_name: '', email: '', phone: '', address_line1: '', address_line2: '', city: '', region: '', postal_code: '', country: '' };
+type Profile = typeof emptyProfile;
 
 const features = [
   {
@@ -23,28 +27,10 @@ const features = [
     href: '/customer/account-settings',
   },
   {
-    title: 'Investment Accounts',
-    description: 'View your portfolio and investments',
-    icon: '◫',
-    href: '/portfolio',
-  },
-  {
-    title: 'Transaction History',
-    description: 'Review your investment activity',
-    icon: '▤',
-    href: '/transactions',
-  },
-  {
     title: 'Security & Activity',
     description: 'Your personal security and transaction activity',
     icon: '◇',
     href: '/customer/activity',
-  },
-  {
-    title: 'Help & Support',
-    description: 'Customer support and assistance',
-    icon: '?',
-    status: 'Coming soon',
   },
 ];
 
@@ -77,8 +63,10 @@ export default function CustomerSettings() {
   const [account, setAccount] = useState<Account | null>(null);
   const [uploading, setUploading] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileName, setProfileName] = useState("");
-  const [profileEmail, setProfileEmail] = useState("");
+  const [profile, setProfile] = useState<Profile>(emptyProfile);
+  const [savedProfile, setSavedProfile] = useState<Profile>(emptyProfile);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const profileDialog = useRef<HTMLElement>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
@@ -92,7 +80,7 @@ export default function CustomerSettings() {
     fetch('/api/me', { credentials: 'same-origin' })
       .then((response) => response.ok ? response.json() : null)
       .then((data: Account | null) => {
-        if (active) setAccount(data);
+        if (active && data) setAccount(previous => ({ ...previous, ...data }));
       })
       .catch(() => {});
 
@@ -108,8 +96,9 @@ export default function CustomerSettings() {
       .then(readProfileResponse)
       .then(data => {
         if (!active) return;
-        setProfileName(data.name || "");
-        setProfileEmail(data.email || "");
+        const loaded = { ...emptyProfile, ...Object.fromEntries(Object.keys(emptyProfile).map(key => [key, data[key] || ''])) } as Profile;
+        setProfile(loaded);
+        setSavedProfile(loaded);
         setAccount(previous => ({
           ...previous,
           name: data.name,
@@ -124,46 +113,50 @@ export default function CustomerSettings() {
     return () => { active = false; };
   }, []);
 
-  async function saveProfileField(field: "name" | "email") {
-    setSavingProfile(true);
+  function openProfile() {
+    setProfile({ ...savedProfile });
+    setCurrentPassword("");
     setProfileError("");
     setProfileMessage("");
+    setEditingProfile(true);
+  }
 
+  useEffect(() => {
+    if (!editingProfile) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const panel = profileDialog.current;
+    panel?.querySelector<HTMLElement>('button, input')?.focus();
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !savingProfile) setEditingProfile(false);
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(panel?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select, a[href]') || []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {event.preventDefault();last?.focus();}
+      if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first?.focus();}
+    };
+    document.addEventListener('keydown', keyboard);
+    return () => {document.body.style.overflow = previousOverflow;document.removeEventListener('keydown', keyboard);previous?.focus();};
+  }, [editingProfile, savingProfile]);
+
+  async function saveProfile(event: FormEvent) {
+    event.preventDefault();
+    setSavingProfile(true); setProfileError(''); setProfileMessage('');
     try {
-      const value = field === "name" ? profileName : profileEmail;
-
-      const response = await fetch("/api/me/profile", {
-        method: "PUT",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [field]: value })
+      const response = await fetch('/api/me/profile', {
+        method: 'PUT', credentials: 'same-origin', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({...profile, current_password: currentPassword})
       });
-
       const data = await readProfileResponse(response);
-
-      setAccount(previous => ({
-        ...previous,
-        name: data.name,
-        email: data.email
-      }));
-
-      setProfileName(data.name);
-      setProfileEmail(data.email);
-
-      setProfileMessage(
-        field === "name"
-          ? "Full name updated successfully."
-          : "Email updated successfully."
-      );
-
-      window.dispatchEvent(new Event("rw-profile-updated"));
-    } catch (error) {
-      setProfileError(
-        error instanceof Error ? error.message : "Save failed."
-      );
-    } finally {
-      setSavingProfile(false);
-    }
+      const updated = { ...emptyProfile, ...Object.fromEntries(Object.keys(emptyProfile).map(key => [key, data[key] || ''])) } as Profile;
+      setProfile(updated); setSavedProfile(updated); setCurrentPassword('');
+      setAccount(previous => ({...previous, name:data.name, email:data.email}));
+      setProfileMessage(data.email !== account?.email ? 'Profile saved. Use your new email address to sign in.' : 'Your profile has been updated.');
+      window.dispatchEvent(new Event('rw-profile-updated'));
+      try { localStorage.setItem('rw-profile-sync', String(Date.now())); } catch { /* Profile save still succeeds if browser storage is unavailable. */ }
+    } catch (error) {setProfileError(error instanceof Error ? error.message : 'Unable to save profile.');}
+    finally {setSavingProfile(false);}
   }
 
   const name = account?.name || 'Customer';
@@ -354,94 +347,57 @@ export default function CustomerSettings() {
           )}
         </section>
 
-        {profileMessage && (
+        {profileMessage && !editingProfile && (
           <p role="status" className="mb-5 text-sm text-[#7DD9A8]">
             {profileMessage}
           </p>
         )}
 
-        {profileError && (
+        {profileError && !editingProfile && (
           <p role="alert" className="mb-5 text-sm text-[#F1A8A8]">
             {profileError}
           </p>
         )}
 
-        {editingProfile && (
-          <section
-            id="rw-profile-editor"
-            className="mb-8 rounded-xl border border-[#526780] bg-[#14171c] p-6"
-          >
-            <h2 className="mb-5 text-xl font-semibold">
-              Edit My Profile
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <label htmlFor="rw-profile-name"
-                  className="mb-2 block text-sm text-[#b4b8c0]">
-                  Full Name
-                </label>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    id="rw-profile-name"
-                    type="text"
-                    minLength={2}
-                    maxLength={100}
-                    autoComplete="name"
-                    value={profileName}
-                    onChange={e => setProfileName(e.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-[#455262] bg-[#090C10] px-4 py-3 text-white outline-none focus:border-[#B8C6D5]"
-                  />
-                  <button
-                    type="button"
-                    disabled={savingProfile || !profileName.trim()}
-                    onClick={() => void saveProfileField("name")}
-                    className="rounded-lg bg-[#B8C6D5] px-5 py-3 text-sm font-semibold text-[#090C10] disabled:opacity-50"
-                  >
-                    {savingProfile ? "Saving..." : "Save Name"}
-                  </button>
+        {editingProfile && createPortal(
+          <div className="rw-profile-modal fixed inset-0 z-[30000] flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center" onMouseDown={event => {if (event.target === event.currentTarget && !savingProfile) setEditingProfile(false);}}>
+            <section ref={profileDialog} role="dialog" aria-modal="true" aria-labelledby="profile-editor-title" className="my-auto max-h-[calc(100dvh-32px)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#34483b] bg-[#13191a] text-[#ecf1ed] shadow-2xl">
+              <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[#283332] bg-[#13191a] px-6 py-5">
+                <div><p className="text-xs text-[#91a498]">YOUR ACCOUNT</p><h2 id="profile-editor-title" className="mt-1 text-2xl font-medium">Edit my profile</h2></div>
+                <button type="button" aria-label="Close profile editor" disabled={savingProfile} onClick={() => setEditingProfile(false)} className="size-11 rounded-lg border border-[#34483b] text-xl">×</button>
+              </header>
+              <form onSubmit={saveProfile} className="space-y-7 px-6 py-6">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#526780] bg-[#24372c] text-xl">{account?.profile_photo ? <img src={account.profile_photo} alt="Profile" className="size-full object-cover"/> : initials}</div>
+                  <div><p className="font-medium">Profile photo</p><button type="button" disabled={uploading || savingProfile} onClick={() => photoInput.current?.click()} className="mt-2 min-h-11 text-sm text-[#c2edce] underline">{uploading ? 'Uploading…' : account?.profile_photo ? 'Change photo' : 'Add photo'}</button></div>
+                  {photoError && <p role="alert" className="w-full text-sm text-red-300">{photoError}</p>}
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="rw-profile-email"
-                  className="mb-2 block text-sm text-[#b4b8c0]">
-                  Email Address
-                </label>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    id="rw-profile-email"
-                    type="email"
-                    maxLength={254}
-                    autoComplete="email"
-                    value={profileEmail}
-                    onChange={e => setProfileEmail(e.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-[#455262] bg-[#090C10] px-4 py-3 text-white outline-none focus:border-[#B8C6D5]"
-                  />
-                  <button
-                    type="button"
-                    disabled={savingProfile || !profileEmail.trim()}
-                    onClick={() => void saveProfileField("email")}
-                    className="rounded-lg bg-[#B8C6D5] px-5 py-3 text-sm font-semibold text-[#090C10] disabled:opacity-50"
-                  >
-                    {savingProfile ? "Saving..." : "Save Email"}
-                  </button>
-                </div>
-              </div>
-
-              <p className="text-xs text-[#8c929c]">
-                Each field saves independently to your account.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setEditingProfile(false)}
-                className="rounded-lg border border-[#455262] px-5 py-3 text-sm"
-              >
-                Close Editor
-              </button>
-            </div>
-          </section>
+                <fieldset className="space-y-4"><legend className="mb-4 text-lg font-medium">Personal information</legend>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {([['first_name','First name','given-name'],['last_name','Last name','family-name']] as const).map(([key,label,autoComplete]) => <label key={key} className="block text-sm text-[#a8b6ad]">{label}<input required maxLength={80} autoComplete={autoComplete} value={profile[key]} onChange={event=>setProfile(previous=>({...previous,[key]:event.target.value}))} className="rw-profile-input"/></label>)}
+                  </div>
+                  <p className="text-xs leading-5 text-[#91a498]">Your name appears on your profile, dashboard, and account navigation.</p>
+                </fieldset>
+                <fieldset className="space-y-4"><legend className="mb-4 text-lg font-medium">Contact &amp; sign-in</legend>
+                  <label className="block text-sm text-[#a8b6ad]">Login email<input required type="email" maxLength={254} autoComplete="email" value={profile.email} onChange={event=>setProfile(previous=>({...previous,email:event.target.value}))} className="rw-profile-input"/></label>
+                  <p className="text-xs leading-5 text-[#91a498]">Changing this address updates the email you use to sign in and reset your password.</p>
+                  {profile.email.trim().toLowerCase() !== savedProfile.email.toLowerCase() && <label className="block text-sm text-[#a8b6ad]">Current password<input required type="password" autoComplete="current-password" maxLength={128} value={currentPassword} onChange={event=>setCurrentPassword(event.target.value)} className="rw-profile-input"/><span className="mt-2 block text-xs text-[#91a498]">Confirm your password to change your login email. Other sessions will be signed out.</span></label>}
+                  <label className="block text-sm text-[#a8b6ad]">Phone number (optional)<input type="tel" maxLength={40} autoComplete="tel" value={profile.phone} onChange={event=>setProfile(previous=>({...previous,phone:event.target.value}))} className="rw-profile-input"/></label>
+                </fieldset>
+                <fieldset><legend className="mb-4 text-lg font-medium">Mailing address (optional)</legend><div className="grid gap-4 sm:grid-cols-2">
+                  {([['address_line1','Street address','address-line1',160],['address_line2','Apartment or unit','address-line2',160],['city','City','address-level2',100],['region','Province / state','address-level1',100],['postal_code','Postal / ZIP code','postal-code',24],['country','Country','country-name',80]] as const).map(([key,label,autoComplete,maxLength])=><label key={key} className={`block text-sm text-[#a8b6ad] ${key.startsWith('address_')?'sm:col-span-2':''}`}>{label}<input maxLength={maxLength} autoComplete={autoComplete} value={profile[key]} onChange={event=>setProfile(previous=>({...previous,[key]:event.target.value}))} className="rw-profile-input"/></label>)}
+                </div></fieldset>
+                <p className="text-xs leading-5 text-[#91a498]">Contact details are saved to your profile. This demonstration platform does not verify your phone number or mailing address.</p>
+                <a href="/customer/account-settings" className="inline-block text-sm text-[#c2edce] underline">Manage password and account security →</a>
+                {profileError && <p role="alert" className="rounded-lg border border-red-900 p-3 text-sm text-red-300">{profileError}</p>}
+                {profileMessage && <p role="status" className="rounded-lg border border-[#43634e] p-3 text-sm text-[#c2edce]">{profileMessage}</p>}
+                <footer className="sticky bottom-0 flex flex-wrap justify-end gap-3 border-t border-[#283332] bg-[#13191a] py-4">
+                  <button type="button" disabled={savingProfile} onClick={()=>setEditingProfile(false)} className="min-h-11 rounded-full border border-[#34483b] px-6 text-sm">Close</button>
+                  <button type="submit" disabled={savingProfile || uploading} className="min-h-11 rounded-full bg-[#c2edce] px-6 text-sm font-semibold text-[#14251a] disabled:opacity-50">{savingProfile?'Saving…':'Save changes'}</button>
+                </footer>
+              </form>
+            </section>
+          </div>, document.body
         )}
 
         <h2 className="text-[16px] font-semibold mb-4">
@@ -472,11 +428,7 @@ export default function CustomerSettings() {
                 <button
                   key={feature.title}
                   type="button"
-                  onClick={() => {
-                    setEditingProfile(value => !value);
-                    setProfileError("");
-                    setProfileMessage("");
-                  }}
+                  onClick={openProfile}
                   className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left hover:border-[#777e89] transition-colors"
                 >
                   <span className="flex size-[40px] items-center justify-center rounded-lg bg-[#292e36] text-[22px]">

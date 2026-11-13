@@ -17,6 +17,10 @@ function findSection(key: Tab): HTMLElement | null {
     );
   }
 
+  if (key === "about") {
+    return document.querySelector<HTMLElement>('[data-name="Founder story"]');
+  }
+
   if (key === "platform") {
     return document.getElementById("rw-platform") ||
       document.querySelector<HTMLElement>(
@@ -46,10 +50,15 @@ export default function RWPersistentNav() {
         return;
       }
 
+      const about = findSection("about");
       const platform = findSection("platform");
       const security = findSection("security");
 
       let current: Tab = "home";
+
+      if (about && about.getBoundingClientRect().top <= 160) {
+        current = "about";
+      }
 
       if (platform && platform.getBoundingClientRect().top <= 160) {
         current = "platform";
@@ -109,6 +118,14 @@ export default function RWPersistentNav() {
   }, []);
 
   const navigate = (key: Tab) => {
+    if (key === "platform") {
+      window.location.href = "/demo/customer";
+      return;
+    }
+    if (key === "security") {
+      window.location.href = "/demo/security";
+      return;
+    }
     if (key === "about") {
       window.location.href = "/about";
       return;

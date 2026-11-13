@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    profile_data TEXT NOT NULL DEFAULT '{}'
+);

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { SecurityDemoContext, useSecurityFetch } from "../demo/securityDemo";
+import { useEffect, useState, useContext } from 'react';
 import { ShieldCheck, LockKeyhole, Activity } from 'lucide-react';
 
 type CoverageStatus = {
@@ -16,6 +17,8 @@ type CoverageResponse = {
 };
 
 export default function SecurityCoverage() {
+  const securityFetch = useSecurityFetch();
+  const demo = useContext(SecurityDemoContext);
   const [data, setData] = useState<CoverageResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +27,7 @@ export default function SecurityCoverage() {
 
     async function refresh() {
       try {
-        const response = await fetch('/api/security/coverage', {
+        const response = await securityFetch('/api/security/coverage', {
           credentials: 'include',
           cache: 'no-store'
         });
@@ -87,7 +90,7 @@ export default function SecurityCoverage() {
         </h3>
 
         <span className="text-[#8c929c] text-[11px] whitespace-nowrap">
-          Live · 5s
+          {demo ? 'Demo dataset' : 'Live · 5s'}
         </span>
       </div>
 

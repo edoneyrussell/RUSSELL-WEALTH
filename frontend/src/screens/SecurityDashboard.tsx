@@ -1,3 +1,4 @@
+import { SecurityDemoContext, useSecurityFetch } from "../demo/securityDemo";
 import AnimatedValue from '../components/ui/AnimatedValue';
 import SecurityInvestigationDrawer from '../components/ui/SecurityInvestigationDrawer';
 import SecurityThreatChart from '../components/charts/SecurityThreatChart';
@@ -6,7 +7,7 @@ import SecurityCoverage from '../components/SecurityCoverage';
 import SecurityAlerts from '../components/SecurityAlerts';
 import AllSecurityLogs from '../components/AllSecurityLogs';
 import SecurityActivityMap from '../components/SecurityActivityMap';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useSecurityOverview } from '../hooks/useSecurityOverview';
 const assetPathPrefix = "/assets";
 const imgOriginalLogoArtwork = `${assetPathPrefix}/c8aca.png`;
@@ -14,12 +15,10 @@ const imgLayoutDashboard = `${assetPathPrefix}/651b9.svg`;
 const imgTriangleAlert = `${assetPathPrefix}/7412e.svg`;
 const imgClipboardPlus = `${assetPathPrefix}/82d8b.svg`;
 const imgFileSearch = `${assetPathPrefix}/83d18.svg`;
-const imgSearchCode = `${assetPathPrefix}/746d6.svg`;
 const imgList = `${assetPathPrefix}/0df54.svg`;
 const imgRadar = `${assetPathPrefix}/2b57e.svg`;
 const imgMonitor = `${assetPathPrefix}/9d07e.svg`;
 const imgNetwork = `${assetPathPrefix}/8a4d1.svg`;
-const imgCloud = `${assetPathPrefix}/78f9f.svg`;
 const imgUsersRound = `${assetPathPrefix}/e2640.svg`;
 const imgShieldAlert = `${assetPathPrefix}/74b18.svg`;
 const imgClipboardCheck = `${assetPathPrefix}/40640.svg`;
@@ -59,10 +58,6 @@ const imgLaptop = `${assetPathPrefix}/e2150.svg`;
 const imgNetwork1 = `${assetPathPrefix}/e2248.svg`;
 const imgCloud1 = `${assetPathPrefix}/802a4.svg`;
 const imgEventStatus = `${assetPathPrefix}/e4758.svg`;
-const imgGoal = `${assetPathPrefix}/8864f.svg`;
-const imgLayers1 = `${assetPathPrefix}/27559.svg`;
-const imgSearch1 = `${assetPathPrefix}/edb9a.svg`;
-const imgFileText = `${assetPathPrefix}/e845f.svg`;
 
 
 function formatReginaAlertTime(value: string | null | undefined) {
@@ -98,6 +93,8 @@ function formatReginaAlertTime(value: string | null | undefined) {
 }
 
 export default function RussellWealthSecurityAnalyticsDashboard() {
+  const securityFetch = useSecurityFetch();
+  const demo = useContext(SecurityDemoContext);
   const [showAllAlerts, setShowAllAlerts] = useState(false);
   const [severityFilter, setSeverityFilter] = useState('All');
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
@@ -187,7 +184,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
     const refreshActiveAlerts = async () => {
       try {
-        const response = await fetch('/api/security/active-alerts', {
+        const response = await securityFetch('/api/security/active-alerts', {
           credentials: 'include',
           cache: 'no-store'
         });
@@ -236,7 +233,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         aria-label={monitoringOnline ? 'Security monitoring connected' : 'Security monitoring unavailable'}
       >
         <span className={monitoringOnline ? 'rw-monitoring-dot' : 'rw-monitoring-dot offline'} />
-        <span>{monitoringOnline ? 'LIVE MONITORING' : 'MONITORING UNAVAILABLE'}</span>
+        <span>{window.location.pathname.startsWith('/demo/') ? 'DEMO MONITORING' : monitoringOnline ? 'LIVE MONITORING' : 'MONITORING UNAVAILABLE'}</span>
       </div>
       {/* RW_INTERACTIVE_INVESTIGATION */}
       <SecurityInvestigationDrawer
@@ -253,7 +250,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
             setShowSecurityAlerts(false);
             setShowSecurityLogs(false);
 
-            if (window.location.pathname !== "/security") {
+            if (!window.location.pathname.startsWith("/demo/") && window.location.pathname !== "/security") {
               window.history.pushState({}, "", "/security");
               window.dispatchEvent(new PopStateEvent("popstate"));
             }
@@ -316,14 +313,6 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   Threat Hunting
                 </p>
               </div>
-              <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2945" data-name="Navigation item">
-                <div className="relative shrink-0 size-[21px]" data-node-id="15:3388" data-name="search-code">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSearchCode} />
-                </div>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Medium'] font-medium leading-[normal] min-w-px not-italic relative text-[#b4b8c0] text-[15px]" data-node-id="15:2947">
-                  Investigations
-                </p>
-              </div>
               <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2948" data-name="Navigation item">
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3391" data-name="list">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgList} />
@@ -359,14 +348,6 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 </div>
                 <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Medium'] font-medium leading-[normal] min-w-px not-italic relative text-[#b4b8c0] text-[15px]" data-node-id="15:2962">
                   Network
-                </p>
-              </div>
-              <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2963" data-name="Navigation item">
-                <div className="relative shrink-0 size-[21px]" data-node-id="15:3403" data-name="cloud">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCloud} />
-                </div>
-                <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Medium'] font-medium leading-[normal] min-w-px not-italic relative text-[#b4b8c0] text-[15px]" data-node-id="15:2965">
-                  Cloud Security
                 </p>
               </div>
               <div className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full" data-node-id="15:2966" data-name="Navigation item">
@@ -633,7 +614,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 Global Threat Activity
               </p>
               <span className="text-[#8c929c] text-[10px]">
-                Live login activity
+                {demo ? 'Simulated login activity' : 'Live login activity'}
               </span>
             </div>
 
@@ -663,7 +644,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 Security Event Overview
               </p>
               <span className="text-[#8c929c] text-[10px]">
-                Live · 5s refresh
+                {demo ? 'Demo dataset' : 'Live · 5s refresh'}
               </span>
             </div>
 
@@ -879,53 +860,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
             </div>
           </div>
           </div>
-<div className="w-full mt-[18px]">
-<div className="bg-[#14171c] border border-[#30343b] flex flex-col gap-5 w-full min-w-0 p-5 rounded-[14px]" data-node-id="15:3359" data-name="SOC operations">
-            <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="15:3360" data-name="Panel heading">
-              <p className="break-normal font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[20px] whitespace-nowrap" data-node-id="15:3361">
-                SOC Operations
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full" data-node-id="15:3362" data-name="Response actions">
-              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3363" data-name="Operation action">
-                <div className="relative shrink-0 size-[30px]" data-node-id="15:3478" data-name="goal">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGoal} />
-                </div>
-                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3365">
-                  <p className="leading-[1.4] mb-0">Create</p>
-                  <p className="leading-[1.4]">Incident</p>
-                </div>
-              </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3366" data-name="Operation action">
-                <div className="relative shrink-0 size-[30px]" data-node-id="15:3481" data-name="layers">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLayers1} />
-                </div>
-                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3368">
-                  <p className="leading-[1.4] mb-0">Run</p>
-                  <p className="leading-[1.4]">Investigation</p>
-                </div>
-              </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3369" data-name="Operation action">
-                <div className="relative shrink-0 size-[30px]" data-node-id="15:3484" data-name="search">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSearch1} />
-                </div>
-                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3371">
-                  <p className="leading-[1.4] mb-0">Threat</p>
-                  <p className="leading-[1.4]">Hunt</p>
-                </div>
-              </div>
-              <div className="bg-[#1a1d22] border border-[#30343b] flex flex-col items-center justify-center gap-3 min-h-[125px] min-w-0 p-4 rounded-[12px]" data-node-id="15:3372" data-name="Operation action">
-                <div className="relative shrink-0 size-[30px]" data-node-id="15:3487" data-name="file-text">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgFileText} />
-                </div>
-                <div className="w-full text-center text-[#f5f5f5] text-[13px] font-medium leading-[1.5] break-normal whitespace-normal" data-node-id="15:3374">
-                  <p className="leading-[1.4] mb-0">Generate</p>
-                  <p className="leading-[1.4]">Report</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
     </>

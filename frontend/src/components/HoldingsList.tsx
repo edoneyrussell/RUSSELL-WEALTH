@@ -1,11 +1,7 @@
 import AssetLogo from "./AssetLogo";
 import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 
-export default function HoldingsList({
-  mobile = false,
-}: {
-  mobile?: boolean;
-}) {
+export default function HoldingsList() {
   const { portfolio, error } = usePortfolio();
 
   if (error) {
@@ -34,14 +30,13 @@ export default function HoldingsList({
 
   return (
     <div className="w-full">
+      <div className="rw-holdings-column-labels" aria-hidden="true"><span>Asset</span><span>Shares</span><span>Price</span><span>Value</span></div>
       {portfolio.holdings.map(holding => (
         <div
           key={holding.symbol}
-          className={`border-b border-[#30343b] py-3 ${
-            mobile ? 'flex flex-col gap-2' : 'flex items-center gap-3'
-          }`}
+          className="rw-dashboard-holding border-b border-[#30343b] py-3 flex items-center gap-3"
         >
-          <div className="flex-1 min-w-0">
+          <div className="rw-holding-identity flex-1 min-w-0">
             <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="text-[#f5f5f5] font-semibold text-[12px]">
               {holding.symbol}
             </p>
@@ -50,34 +45,28 @@ export default function HoldingsList({
             </p></div></div>
           </div>
 
-          <div className={mobile ? 'flex justify-between' : 'text-right w-[70px]'}>
-            {mobile && (
-              <span className="text-[#8c929c] text-[11px]">
+          <div className="rw-holding-detail text-right w-[70px]">
+              <span className="rw-holding-label hidden text-[#8c929c] text-[11px]">
                 Shares
               </span>
-            )}
             <p className="text-[#f5f5f5] text-[12px]">
               {holding.quantity}
             </p>
           </div>
 
-          <div className={mobile ? 'flex justify-between' : 'text-right w-[80px]'}>
-            {mobile && (
-              <span className="text-[#8c929c] text-[11px]">
+          <div className="rw-holding-detail text-right w-[80px]">
+              <span className="rw-holding-label hidden text-[#8c929c] text-[11px]">
                 Price
               </span>
-            )}
             <p className="text-[#b4b8c0] text-[12px]">
               {formatCAD(holding.price)}
             </p>
           </div>
 
-          <div className={mobile ? 'flex justify-between' : 'text-right w-[90px]'}>
-            {mobile && (
-              <span className="text-[#8c929c] text-[11px]">
+          <div className="rw-holding-detail text-right w-[90px]">
+              <span className="rw-holding-label hidden text-[#8c929c] text-[11px]">
                 Market Value
               </span>
-            )}
             <p className="text-[#f5f5f5] font-medium text-[12px]">
               {formatCAD(holding.market_value)}
             </p>

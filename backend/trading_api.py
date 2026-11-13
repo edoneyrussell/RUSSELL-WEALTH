@@ -5,41 +5,26 @@ from authorization import role_required
 from account_access import customer_user_id
 from database import get_db_connection
 from market_data import get_quote, get_usd_cad_rate
+from trade_catalog import available_assets, stock_catalog, SIMULATION_PRICE_CENTS
 
 trading_bp = Blueprint("trading", __name__)
 
 
 @trading_bp.route("/api/customer/assets", methods=["GET"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def list_assets():
     conn = get_db_connection()
     try:
-        rows = conn.execute(
-            """
-            SELECT symbol, name, asset_type, currency, price_cents
-            FROM assets
-            ORDER BY symbol
-            """
-        ).fetchall()
-
-        return jsonify({
-            "assets": [
-                {
-                    "symbol": row["symbol"],
-                    "name": row["name"],
-                    "type": row["asset_type"],
-                    "currency": row["currency"],
-                    "price": str(Decimal(row["price_cents"]) / 100)
-                }
-                for row in rows
-            ]
-        })
+        assets = available_assets(conn)
+        response = jsonify(assets=assets, count=len(assets), pricing='SIMULATED')
+        response.headers['Cache-Control'] = 'private, no-store'
+        return response
     finally:
         conn.close()
 
 
 @trading_bp.route("/api/customer/trade", methods=["POST"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def execute_trade():
     data = request.get_json(silent=True)
 
@@ -118,14 +103,13 @@ def execute_trade():
             (lookup_symbol,)
         ).fetchone()
 
-        # Existing seeded assets retain their simulated prices.
-        # New assets require a valid market quote.
+        # Preserve stored prices. Newly listed stocks use the disclosed CAD simulation price.
         if asset is None:
-            import datetime
-
-            # Simulated fallback price for new assets (CAD).
-            # Existing stored asset prices are never overwritten.
-            price_cents = 10000
+            if action == 'SELL':
+                conn.rollback()
+                return jsonify(error='Insufficient shares'), 400
+            metadata = stock_catalog().get(symbol, {})
+            price_cents = SIMULATION_PRICE_CENTS
 
             conn.execute(
                 """
@@ -133,7 +117,7 @@ def execute_trade():
                 (symbol, name, asset_type, currency, price_cents)
                 VALUES (?, ?, ?, 'CAD', ?)
                 """,
-                (symbol, symbol, "STOCK", price_cents)
+                (symbol, metadata.get("name", symbol), metadata.get("type", "STOCK"), price_cents)
             )
 
             asset = conn.execute(
@@ -237,7 +221,7 @@ def execute_trade():
 
 
 @trading_bp.route("/api/customer/transactions", methods=["GET"])
-@role_required("CUSTOMER", "SOC_ADMIN")
+@role_required("CUSTOMER")
 def transaction_history():
     conn = get_db_connection()
     try:

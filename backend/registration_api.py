@@ -93,7 +93,7 @@ from flask import session
 
 def _login_registered_customer(db, email):
     user = db.execute(
-        "SELECT id, name, role FROM users WHERE lower(email)=?",
+        "SELECT id, name, role, access_version FROM users WHERE lower(email)=?",
         (email,)
     ).fetchone()
 
@@ -104,6 +104,10 @@ def _login_registered_customer(db, email):
     session["user_id"] = user["id"]
     session["name"] = user["name"]
     session["role"] = user["role"]
+    session["access_version"] = user["access_version"]
+    from security import log_security_event
+    log_security_event(user['id'], 'LOGIN_SUCCESS', request.remote_addr, 'INFO',
+                       f'Account created and signed in for {email}', account_email=email)
 
 
 
@@ -141,9 +145,16 @@ def start_registration():
     last = data.get("lastName", "")
     email = data.get("email", "")
     password = data.get("password", "")
+    hint = data.get("passwordHint", "")
 
     if not all(isinstance(v, str) for v in (first, last, email, password)):
         return jsonify(error="Invalid registration details"), 400
+
+    if not isinstance(hint, str) or len(hint) > 200:
+        return jsonify(error="Password hint must be at most 200 characters"), 400
+    hint = hint.strip()
+    if password and password.casefold() in hint.casefold():
+        return jsonify(error="Your password hint must not contain your password"), 400
 
     first = first.strip()
     last = last.strip()
@@ -186,9 +197,9 @@ def start_registration():
         try:
             db.execute("""
                 INSERT INTO users
-                (name, email, password_hash, role, account_status)
-                VALUES (?, ?, ?, 'CUSTOMER', 'ACTIVE')
-            """, (first + " " + last, email, password_hash))
+                (name, email, password_hash, password_hint, role, account_status)
+                VALUES (?, ?, ?, ?, 'CUSTOMER', 'ACTIVE')
+            """, (first + " " + last, email, password_hash, hint or None))
 
         except (sqlite3.IntegrityError, psycopg.errors.UniqueViolation):
             db.rollback()
