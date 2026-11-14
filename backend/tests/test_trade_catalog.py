@@ -1,13 +1,21 @@
+import test_access
+from datetime import datetime, timezone
+from trading_hours import market_status
 import unittest
 from unittest.mock import patch
-import test_access
 import database
 
 
 class TradeCatalogTests(unittest.TestCase):
     setUpClass = classmethod(test_access.AccessTests.setUpClass.__func__)
     tearDownClass = classmethod(test_access.AccessTests.tearDownClass.__func__)
-    setUp = test_access.AccessTests.setUp
+    def setUp(self):
+        test_access.AccessTests.setUp(self)
+        clock = patch('trading_api.market_status', side_effect=lambda symbol, asset_type='STOCK', exchange='':
+                      market_status(symbol, asset_type, exchange, now=datetime(2026, 11, 13, 16, tzinfo=timezone.utc)))
+        clock.start()
+        self.addCleanup(clock.stop)
+
     client = test_access.AccessTests.client
 
     def fund_customer(self, balance=100000):

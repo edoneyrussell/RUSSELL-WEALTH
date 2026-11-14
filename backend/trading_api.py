@@ -1,11 +1,15 @@
+import simulation_prices
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import os
 from flask import Blueprint, jsonify, request, session
 from authorization import role_required
 from account_access import customer_user_id
+from customer_accounts import selected_account, AccountError
 from database import get_db_connection
-from market_data import get_quote, get_usd_cad_rate
 from trade_catalog import available_assets, stock_catalog, SIMULATION_PRICE_CENTS
+
+from trading_hours import market_status, exchange_status
+from exchanges import EXCHANGES, exchange_code
 
 trading_bp = Blueprint("trading", __name__)
 
@@ -21,6 +25,36 @@ def list_assets():
         return response
     finally:
         conn.close()
+
+
+@trading_bp.get('/api/customer/exchanges')
+@role_required('CUSTOMER')
+def list_exchanges():
+    response = jsonify(exchanges=[dict(code=code, **details, status=exchange_status(code))
+                                  for code, details in EXCHANGES.items()])
+    response.headers['Cache-Control'] = 'private, no-store'
+    return response
+
+
+@trading_bp.get('/api/customer/trading-status')
+@role_required('CUSTOMER')
+def trading_status():
+    symbol = request.args.get('symbol', '').strip().upper()
+    if not symbol:
+        return jsonify(error='Symbol required'), 400
+    metadata = stock_catalog().get(symbol) or stock_catalog().get(symbol + '.TO')
+    if metadata is None:
+        conn = get_db_connection()
+        try:
+            row = conn.execute('SELECT asset_type FROM assets WHERE symbol=?', (symbol,)).fetchone()
+            metadata = dict(type=row['asset_type'], exchange='') if row else None
+        finally:
+            conn.close()
+    if metadata is None:
+        return jsonify(error='This asset is not supported for trading.'), 400
+    response = jsonify(market_status(symbol, metadata['type'], metadata.get('exchange', '')))
+    response.headers['Cache-Control'] = 'private, no-store'
+    return response
 
 
 @trading_bp.route("/api/customer/trade", methods=["POST"])
@@ -55,29 +89,16 @@ def execute_trade():
     if (
         not quantity.is_finite()
         or quantity <= 0
-        or quantity != quantity.to_integral_value()
         or quantity > 1000000
     ):
         return jsonify({"error": "Quantity must be a positive whole number up to 1,000,000"}), 400
 
-    quantity = int(quantity)
     conn = get_db_connection()
 
     try:
         conn.execute("BEGIN IMMEDIATE")
 
-        account_sql = """
-            SELECT id, cash_balance_cents
-            FROM investment_accounts
-            WHERE user_id = ?
-            ORDER BY id
-            LIMIT 1
-        """
-        if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres":
-            account_sql += " FOR UPDATE"
-        account = conn.execute(
-            account_sql, (customer_user_id(conn),)
-        ).fetchone()
+        account = selected_account(conn, requested=data.get('account_id'), lock=True)
 
         if account is None:
             conn.rollback()
@@ -91,24 +112,47 @@ def execute_trade():
                 "SELECT id FROM assets WHERE symbol = ? AND currency = 'CAD'",
                 (base_symbol,)
             ).fetchone()
-            if existing:
+            base_metadata = stock_catalog().get(base_symbol)
+            if existing and (base_metadata is None or exchange_code(base_symbol, base_metadata['type'], base_metadata.get('exchange', '')) == 'TSX'):
                 lookup_symbol = base_symbol
 
         asset = conn.execute(
             """
-            SELECT id, symbol, price_cents, currency
+            SELECT id, symbol, name, asset_type, price_cents, currency
             FROM assets
             WHERE symbol = ?
             """,
             (lookup_symbol,)
         ).fetchone()
 
-        # Preserve stored prices. Newly listed stocks use the disclosed CAD simulation price.
+        metadata = stock_catalog().get(symbol) or stock_catalog().get(lookup_symbol)
+        if metadata is None and asset is not None:
+            metadata = stock_catalog().get(lookup_symbol + '.TO') or dict(
+                symbol=lookup_symbol, name=asset['name'], type=asset['asset_type'], exchange='')
+        if metadata is None:
+            conn.rollback()
+            return jsonify(error='This asset is not supported for trading.'), 400
+        asset_type = metadata['type']
+        if account['management_mode'] != 'SELF_DIRECTED':
+            raise AccountError('Select a self-directed account to place trades.')
+        if account['account_type'] == 'CRYPTO' and asset_type != 'CRYPTO':
+            raise AccountError('This account supports crypto only.')
+        if account['account_type'] not in ('PERSONAL', 'CRYPTO') and asset_type == 'CRYPTO':
+            raise AccountError('Select a Crypto or Personal account for cryptocurrency trades.')
+        crypto = asset_type == 'CRYPTO'
+        if (not crypto and quantity != quantity.to_integral_value()) or (crypto and quantity.as_tuple().exponent < -8):
+            conn.rollback()
+            return jsonify(error='Crypto supports up to 8 decimal places.' if crypto else 'Quantity must be a positive whole number.'), 400
+        status = market_status(symbol, asset_type, metadata.get('exchange', ''))
+        if not status['is_open']:
+            conn.rollback()
+            return jsonify(error=status['message'], code='MARKET_CLOSED', market_status=status), 409
+
+        # Stored prices are a fallback; supported assets use the shared daily simulation.
         if asset is None:
             if action == 'SELL':
                 conn.rollback()
                 return jsonify(error='Insufficient shares'), 400
-            metadata = stock_catalog().get(symbol, {})
             price_cents = SIMULATION_PRICE_CENTS
 
             conn.execute(
@@ -122,13 +166,21 @@ def execute_trade():
 
             asset = conn.execute(
                 """
-                SELECT id, symbol, price_cents, currency
+                SELECT id, symbol, name, asset_type, price_cents, currency
                 FROM assets WHERE symbol = ?
                 """,
                 (symbol,)
             ).fetchone()
 
-        amount_cents = quantity * asset["price_cents"]
+        if asset['asset_type'] != asset_type:
+            conn.execute('UPDATE assets SET asset_type=? WHERE id=?', (asset_type, asset['id']))
+
+        price_cents = simulation_prices.stock_price_cents(asset["symbol"],asset_type,asset["price_cents"])
+        raw_amount = quantity * price_cents
+        amount_cents = int(raw_amount.quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+        if amount_cents <= 0 or raw_amount != Decimal(amount_cents):
+            conn.rollback()
+            return jsonify(error='Adjust the quantity so the trade value is at least CA$0.01 and has no fractions of a cent.'), 400
 
         holding = conn.execute(
             """
@@ -140,6 +192,9 @@ def execute_trade():
         ).fetchone()
 
         owned = Decimal(holding["quantity"]) if holding else Decimal("0")
+        from account_limits import MAX_ACCOUNT_CENTS
+        if action == 'SELL' and account['cash_balance_cents'] + amount_cents > MAX_ACCOUNT_CENTS:
+            return jsonify(error='Account cash cannot exceed CA$900 million.'), 400
 
         if action == "BUY":
             if account["cash_balance_cents"] < amount_cents:
@@ -175,7 +230,7 @@ def execute_trade():
             else:
                 conn.execute(
                     "UPDATE holdings SET quantity = ? WHERE id = ?",
-                    (str(new_quantity), holding["id"])
+                    (format(new_quantity.normalize(), 'f'), holding["id"])
                 )
         else:
             conn.execute(
@@ -183,7 +238,7 @@ def execute_trade():
                 INSERT INTO holdings (account_id, asset_id, quantity)
                 VALUES (?, ?, ?)
                 """,
-                (account["id"], asset["id"], str(new_quantity))
+                (account["id"], asset["id"], format(new_quantity.normalize(), 'f'))
             )
 
         conn.execute(
@@ -196,7 +251,7 @@ def execute_trade():
                 account["id"],
                 asset["id"],
                 action,
-                str(quantity),
+                format(quantity, 'f'),
                 amount_cents
             )
         )
@@ -207,10 +262,10 @@ def execute_trade():
             "success": True,
             "action": action,
             "symbol": symbol,
-            "quantity": str(quantity),
+            "quantity": format(quantity, 'f'),
             "trade_value": str(Decimal(amount_cents) / 100),
             "cash_balance": str(Decimal(new_cash) / 100),
-            "shares_owned": str(new_quantity)
+            "shares_owned": format(new_quantity.normalize(), 'f')
         })
 
     except Exception:
@@ -225,7 +280,10 @@ def execute_trade():
 def transaction_history():
     conn = get_db_connection()
     try:
-        uid = session["user_id"]
+        uid = customer_user_id(conn)
+        account = selected_account(conn, uid)
+        if account is None:
+            return jsonify(transactions=[])
 
         trades = conn.execute("""
             SELECT
@@ -235,16 +293,13 @@ def transaction_history():
                 t.amount_cents,
                 t.created_at,
                 a.symbol,
-                a.name
+                a.name,
+                a.asset_type
             FROM transactions t
             JOIN investment_accounts ia ON t.account_id = ia.id
             LEFT JOIN assets a ON t.asset_id = a.id
-            WHERE ia.user_id = ?
-               OR ia.user_id IN (
-                   SELECT id FROM users
-                   WHERE email = 'customer@russellwealth.local'
-               )
-        """, (uid,)).fetchall()
+            WHERE ia.id = ? AND ia.user_id=?
+        """, (account["id"],uid)).fetchall()
 
         banking = conn.execute("""
             SELECT
@@ -254,9 +309,10 @@ def transaction_history():
                 created_at,
                 bank_code
             FROM rw_demo_bank_transfers
-            WHERE user_id = ?
-        """, (uid,)).fetchall()
+            WHERE user_id = ? AND (account_id=? OR (account_id IS NULL AND ?=(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)))
+        """, (uid,account['id'],account['id'],uid)).fetchall()
 
+        from access_api import creation_timestamp
         result = []
 
         for row in trades:
@@ -268,11 +324,11 @@ def transaction_history():
                 "action": row["action"],
                 "symbol": row["symbol"] or "RUSSELL WEALTH",
                 "name": row["name"] or "Investment Account",
-                "quantity": str(quantity) if quantity is not None else None,
+                "quantity": format(quantity, 'f') if quantity is not None else None,
                 "price": str(amount / quantity) if quantity else None,
                 "total": str(amount),
-                "created_at": row["created_at"],
-                "category": "STOCK" if row["action"] in ("BUY", "SELL") else "BANK",
+                "created_at": creation_timestamp(row["created_at"]),
+                "category": row["asset_type"] if row["action"] in ("BUY", "SELL") else "BANK",
                 "bank_code": None
             })
 
@@ -285,7 +341,7 @@ def transaction_history():
                 "quantity": None,
                 "price": None,
                 "total": str(Decimal(row["amount_cents"]) / 100),
-                "created_at": row["created_at"],
+                "created_at": creation_timestamp(row["created_at"]),
                 "category": "BANK",
                 "bank_code": row["bank_code"]
             })
@@ -295,7 +351,9 @@ def transaction_history():
             reverse=True
         )
 
-        return jsonify({"transactions": result})
+        response = jsonify({"transactions": result})
+        response.headers['Cache-Control'] = 'private, no-store'
+        return response
 
     finally:
         conn.close()

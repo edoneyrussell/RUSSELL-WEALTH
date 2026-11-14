@@ -45,9 +45,16 @@ class AccessTests(unittest.TestCase):
         cls.app = module.app
         cls.app.config.update(TESTING=True)
         cls.password_hash = generate_password_hash('test-password-12345')
+        # Legacy workflow fixtures exercise the designated administrator by email.
+        cls.admin_identity_patch = patch('access_api.ACCESS_ADMIN_EMAIL','user101@example.com')
+        cls.admin_identity_patch.start()
+        cls.price_patch = patch('simulation_prices.stock_price_cents',side_effect=lambda symbol,asset_type='STOCK',fallback=10000,day=None: fallback)
+        cls.price_patch.start()
 
     @classmethod
     def tearDownClass(cls):
+        cls.price_patch.stop()
+        cls.admin_identity_patch.stop()
         cls.env_patch.stop()
         cls.connect_patch.stop()
         cls.db_patch.stop()
@@ -55,7 +62,7 @@ class AccessTests(unittest.TestCase):
 
     def setUp(self):
         db = database.get_db_connection()
-        for table in ('admin_customer_links', 'holdings', 'transactions', 'security_events', 'investment_accounts', 'users'):
+        for table in ('market_clock_preferences', 'customer_watchlist', 'security_alerts', 'portfolio_snapshots', 'admin_customer_links', 'holdings', 'transactions', 'security_events', 'investment_accounts', 'users'):
             db.execute(f'DELETE FROM {table}')
         for uid, role in [(101, 'SOC_ADMIN'), (102, 'SOC_ADMIN'), (103, 'CUSTOMER')]:
             db.execute('INSERT INTO users (id,name,email,password_hash,role) VALUES (?,?,?,?,?)',
@@ -117,7 +124,7 @@ class AccessTests(unittest.TestCase):
         self.assertIsNone(response.json['sources'][1]['count'])
 
     def test_secondary_source_cannot_mutate_colliding_local_id(self):
-        response = self.admin.patch('/api/security/users/103?source=live', json={'role': 'SOC_ADMIN'})
+        response = self.admin.patch('/api/security/users/103?source=live', json={'current_password': 'test-password-12345', 'role': 'SOC_ADMIN'})
         self.assertEqual(response.status_code, 400)
         db = database.get_db_connection()
         self.assertEqual(db.execute('SELECT role FROM users WHERE id=103').fetchone()[0], 'CUSTOMER')
@@ -125,21 +132,21 @@ class AccessTests(unittest.TestCase):
 
     def test_role_change_revokes_old_sessions_and_provisions_customer_portfolio(self):
         other = self.client(102, 'SOC_ADMIN')
-        self.assertEqual(self.admin.patch('/api/security/users/102', json={'role': 'CUSTOMER'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/102', json={'current_password': 'test-password-12345', 'role': 'CUSTOMER'}).status_code, 200)
         self.assertEqual(other.get('/api/security/users').status_code, 401)
         db = database.get_db_connection()
         self.assertEqual(db.execute('SELECT COUNT(*) FROM investment_accounts WHERE user_id=102').fetchone()[0], 1)
         db.close()
-        self.assertEqual(self.admin.patch('/api/security/users/103', json={'role': 'SOC_ADMIN'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'role': 'SOC_ADMIN'}).status_code, 200)
         self.assertEqual(self.customer.get('/api/me').status_code, 401)
 
     def test_suspension_blocks_both_logins_and_old_sessions_after_reactivation(self):
         payload = {'account_status': 'SUSPENDED'}
-        self.assertEqual(self.admin.patch('/api/security/users/103', json=payload).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={**payload, 'current_password': 'test-password-12345'}).status_code, 200)
         credentials = {'email': 'user103@example.com', 'password': 'test-password-12345'}
         self.assertEqual(self.app.test_client().post('/api/login', json=credentials).status_code, 401)
         self.assertNotEqual(self.app.test_client().post('/login', data=credentials).status_code, 302)
-        self.assertEqual(self.admin.patch('/api/security/users/103', json={'account_status': 'ACTIVE'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'account_status': 'ACTIVE'}).status_code, 200)
         self.assertEqual(self.customer.get('/api/me').status_code, 401)
         db = database.get_db_connection()
         self.assertEqual(db.execute('SELECT account_status FROM users WHERE id=103').fetchone()[0], 'ACTIVE')
@@ -149,12 +156,12 @@ class AccessTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_validation_and_self_protection(self):
-        self.assertEqual(self.admin.patch('/api/security/users/101', json={'role': 'CUSTOMER'}).status_code, 409)
-        self.assertEqual(self.admin.delete('/api/security/users/101', json={'confirm_email': 'user101@example.com'}).status_code, 409)
-        self.assertEqual(self.admin.patch('/api/security/users/103', json={'role': 'OWNER'}).status_code, 400)
-        self.assertEqual(self.admin.patch('/api/security/users/999', json={'role': 'CUSTOMER'}).status_code, 404)
-        self.assertEqual(self.admin.patch('/api/security/users/103', json={'role': 'SOC_ADMIN'}, headers={'Origin': 'https://other.example'}).status_code, 403)
-        self.assertEqual(self.customer.patch('/api/security/users/102', json={'role': 'CUSTOMER'}).status_code, 403)
+        self.assertEqual(self.admin.patch('/api/security/users/101', json={'current_password': 'test-password-12345', 'role': 'CUSTOMER'}).status_code, 409)
+        self.assertEqual(self.admin.delete('/api/security/users/101', json={'current_password': 'test-password-12345', 'confirm_email': 'user101@example.com'}).status_code, 409)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'role': 'OWNER'}).status_code, 400)
+        self.assertEqual(self.admin.patch('/api/security/users/999', json={'current_password': 'test-password-12345', 'role': 'CUSTOMER'}).status_code, 404)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'role': 'SOC_ADMIN'}, headers={'Origin': 'https://other.example'}).status_code, 403)
+        self.assertEqual(self.customer.patch('/api/security/users/102', json={'current_password': 'test-password-12345', 'role': 'CUSTOMER'}).status_code, 403)
 
     def test_deletion_removes_owned_records_and_preserves_audit_history(self):
         db = database.get_db_connection()
@@ -164,8 +171,8 @@ class AccessTests(unittest.TestCase):
         db.execute("INSERT INTO security_events (user_id,event_type,severity) VALUES (103,'LOGIN_SUCCESS','INFO')")
         db.commit()
         db.close()
-        self.assertEqual(self.admin.delete('/api/security/users/103', json={'confirm_email': 'wrong'}).status_code, 400)
-        self.assertEqual(self.admin.delete('/api/security/users/103', json={'confirm_email': 'user103@example.com'}).status_code, 200)
+        self.assertEqual(self.admin.delete('/api/security/users/103', json={'current_password': 'incorrect'}).status_code, 403)
+        self.assertEqual(self.admin.delete('/api/security/users/103', json={'current_password': 'test-password-12345', 'confirm_email': 'user103@example.com'}).status_code, 200)
         self.assertEqual(self.customer.get('/api/me').status_code, 401)
         db = database.get_db_connection()
         self.assertIsNone(db.execute('SELECT id FROM users WHERE id=103').fetchone())
@@ -185,7 +192,7 @@ class AccessTests(unittest.TestCase):
         self.assertTrue(all(user['created_at'].endswith('Z') for user in response.json['users']))
 
     def test_combined_role_provisions_own_portfolio_and_allows_both_dashboards(self):
-        response = self.admin.patch('/api/security/users/103', json={'role': 'BOTH'})
+        response = self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'role': 'BOTH'})
         self.assertEqual(response.status_code, 200)
         member = self.app.test_client()
         with patch.object(self.module, 'send_login_notification'):
@@ -201,7 +208,7 @@ class AccessTests(unittest.TestCase):
             db = database.get_db_connection()
             self.assertEqual(customer_user_id(db), 103)
             db.close()
-        self.assertEqual(self.admin.patch('/api/security/users/103', json={'role': 'SOC_ADMIN'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/103', json={'current_password': 'test-password-12345', 'role': 'SOC_ADMIN'}).status_code, 200)
         self.assertEqual(member.get('/api/me').status_code, 401)
         with patch.object(self.module, 'send_login_notification'):
             member.post('/api/login', json={'email': 'user103@example.com', 'password': 'test-password-12345'})
@@ -212,9 +219,9 @@ class AccessTests(unittest.TestCase):
         db.close()
 
     def test_admin_can_add_own_customer_access_without_losing_session(self):
-        self.assertEqual(self.admin.patch('/api/security/users/101', json={'role': 'BOTH'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/101', json={'current_password': 'test-password-12345', 'role': 'BOTH'}).status_code, 200)
         self.assertEqual(self.admin.get('/api/me').json['roles'], ['CUSTOMER', 'SOC_ADMIN'])
-        self.assertEqual(self.admin.patch('/api/security/users/101', json={'role': 'CUSTOMER'}).status_code, 409)
+        self.assertEqual(self.admin.patch('/api/security/users/101', json={'current_password': 'test-password-12345', 'role': 'CUSTOMER'}).status_code, 409)
 
 
 class CrossDatabaseTests(unittest.TestCase):
@@ -253,7 +260,7 @@ class CrossDatabaseTests(unittest.TestCase):
         return db
 
     def test_remote_actions_use_matching_soc_identity_and_target_database(self):
-        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'role': 'BOTH'}).status_code, 200)
+        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'role': 'BOTH'}).status_code, 200)
         remote = self.remote_connect()
         self.assertEqual(remote.execute('SELECT role FROM users WHERE id=103').fetchone()[0], 'SOC_ADMIN')
         self.assertIsNotNone(remote.execute('SELECT 1 FROM admin_customer_links WHERE admin_user_id=103 AND customer_user_id=103').fetchone())
@@ -264,13 +271,13 @@ class CrossDatabaseTests(unittest.TestCase):
         local.close()
 
     def test_remote_suspend_reactivate_delete_and_self_protection(self):
-        self.assertEqual(self.admin.delete('/api/security/users/201?source=local', json={'confirm_email': 'user101@example.com'}).status_code, 409)
+        self.assertEqual(self.admin.delete('/api/security/users/201?source=local', json={'current_password': 'test-password-12345', 'confirm_email': 'user101@example.com'}).status_code, 409)
         for status in ('SUSPENDED', 'ACTIVE'):
-            self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'account_status': status}).status_code, 200)
+            self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'account_status': status}).status_code, 200)
             remote = self.remote_connect()
             self.assertEqual(remote.execute('SELECT account_status FROM users WHERE id=103').fetchone()[0], status)
             remote.close()
-        self.assertEqual(self.admin.delete('/api/security/users/103?source=local', json={'confirm_email': 'remote-customer@example.com'}).status_code, 200)
+        self.assertEqual(self.admin.delete('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'confirm_email': 'remote-customer@example.com'}).status_code, 200)
         local = database.get_db_connection()
         self.assertIsNotNone(local.execute('SELECT id FROM users WHERE id=103').fetchone())
         local.close()
@@ -280,17 +287,17 @@ class CrossDatabaseTests(unittest.TestCase):
         remote.execute("UPDATE users SET account_status='SUSPENDED' WHERE id=201")
         remote.commit()
         remote.close()
-        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'role': 'BOTH'}).status_code, 403)
+        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'role': 'BOTH'}).status_code, 403)
         remote = self.remote_connect()
         remote.execute("UPDATE users SET account_status='ACTIVE', role='CUSTOMER' WHERE id=201")
         remote.commit()
         remote.close()
-        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'role': 'BOTH'}).status_code, 403)
+        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'role': 'BOTH'}).status_code, 403)
         remote = self.remote_connect()
         remote.execute("UPDATE users SET role='SOC_ADMIN', email='unrelated@example.com' WHERE id=201")
         remote.commit()
         remote.close()
-        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'role': 'BOTH'}).status_code, 403)
+        self.assertEqual(self.admin.patch('/api/security/users/103?source=local', json={'current_password': 'test-password-12345', 'role': 'BOTH'}).status_code, 403)
 
 
 if __name__ == '__main__':

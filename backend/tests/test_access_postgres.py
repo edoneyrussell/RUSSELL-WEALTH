@@ -68,16 +68,16 @@ class PostgresAccessTests(unittest.TestCase):
         return Connection()
 
     def test_postgres_automatic_authorization_roles_suspension_and_deletion(self):
-        response = self.admin.patch('/api/security/users/103?source=live', json={'role': 'BOTH'})
+        response = self.admin.patch('/api/security/users/103?source=live', json={'current_password': 'test-password-12345', 'role': 'BOTH'})
         self.assertEqual(response.status_code, 200, response.json)
         directory = self.admin.get('/api/security/users')
         live = [row for row in directory.json['users'] if row['source'] == 'live' and row['id'] == 103]
         self.assertEqual(live[0]['access_role'], 'BOTH')
         self.assertTrue(live[0]['manageable'])
         for status in ('SUSPENDED', 'ACTIVE'):
-            response = self.admin.patch('/api/security/users/103?source=live', json={'account_status': status})
+            response = self.admin.patch('/api/security/users/103?source=live', json={'current_password': 'test-password-12345', 'account_status': status})
             self.assertEqual(response.status_code, 200, response.json)
-        response = self.admin.delete('/api/security/users/103?source=live', json={'confirm_email': 'member@example.com'})
+        response = self.admin.delete('/api/security/users/103?source=live', json={'current_password': 'test-password-12345', 'confirm_email': 'member@example.com'})
         self.assertEqual(response.status_code, 200, response.json)
         self.assertIsNone(self.real.execute('SELECT id FROM users WHERE id=103').fetchone())
         self.assertEqual(self.real.execute("SELECT COUNT(*) AS n FROM security_events WHERE event_type='ACCOUNT_DELETED' AND user_id=401").fetchone()['n'], 1)

@@ -32,11 +32,17 @@ export function demoSecurityResponse(input: string, init?: RequestInit): Respons
       pagination: { page, per_page: size, total: filtered.length, total_pages: Math.ceil(filtered.length / size) } };
   };
   let body: unknown;
-  if (path === '/api/security/overview') body = { success: true,
+  if (path === '/api/me') body = {authenticated:true,name:'Demo SOC Administrator',profile_photo:null};
+  else if (path === '/api/security/search') {
+    const q=(url.searchParams.get('q') || '').trim().toLowerCase();
+    const matches=q ? demoEvents.filter(row=>`${row.email} ${row.source_ip} ${row.event_type} ${row.details}`.toLowerCase().includes(q)) : [];
+    body={results:[...matches.slice(0,6).map(row=>({key:`demo:Log:${row.id}`,kind:'Log',title:row.event_type.replaceAll('_',' '),description:`${row.email} · ${row.source_ip} · Security Logs`,href:`/demo/security?panel=logs&search=${encodeURIComponent(q)}&event=${row.event_key}`})),...[...new Set(matches.map(row=>row.source_ip))].map(ip=>({key:`demo:IP:${ip}`,kind:'IP address',title:ip,description:'Demo security activity · Security Logs',href:`/demo/security?panel=logs&search=${encodeURIComponent(ip)}`}))],unavailable_sources:[]};
+  }
+  else if (path === '/api/security/overview') body = { success: true,
     metrics: { total_events: 36, successful_logins: 24, failed_logins: 12, blocked_attempts: 8, open_incidents: 3, total_incidents: 8, resolved_incidents: 5, info_events: 24, warning_events: 6, critical_events: 6 },
     recent_events: demoEvents, top_sources: ['192.0.2.10', '198.51.100.24', '203.0.113.8'].map(source_ip => ({source_ip, event_count:12})) };
-  else if (path === '/api/security/active-alerts') body = { success: true, alerts };
-  else if (path === '/api/security/alerts') body = pagination(allAlerts.filter(event=>!url.searchParams.get('status') || event.status===url.searchParams.get('status')));
+  else if (path === '/api/security/active-alerts') body = { success: true,count:alerts.length,filtered_count:alerts.filter(event=>!url.searchParams.get('severity')||event.severity===url.searchParams.get('severity')).length,alerts:alerts.filter(event=>!url.searchParams.get('severity')||event.severity===url.searchParams.get('severity')) };
+  else if (path === '/api/security/alerts') body = pagination(allAlerts.filter(event=>(!url.searchParams.get('status') || (url.searchParams.get('status')==='ACTIVE' ? event.status!=='RESOLVED' : event.status===url.searchParams.get('status'))) && (!url.searchParams.get('alert') || String(event.id)===url.searchParams.get('alert'))));
   else if (path === '/api/security/logs') body = pagination(demoEvents);
   else if (path === '/api/security/clear-alerts' && init?.method === 'POST') { alertsCleared = true; body = { success: true, message: 'Demo alerts cleared in this preview only.' }; }
   else if (/^\/api\/security\/alerts\/\d+$/.test(path) && init?.method === 'PATCH') { const id=Number(path.split('/').pop()); reviewStates[id]=JSON.parse(String(init.body)).status; body={success:true}; }

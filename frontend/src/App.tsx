@@ -1,6 +1,8 @@
+import { landingContent } from "./content/landingContent"
 import CustomerDemo from "./screens/CustomerDemo"
 import SecurityDemo from "./screens/SecurityDemo"
 import DemoBanking from './screens/DemoBanking'
+import Accounts from './screens/Accounts'
 import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
 import WatchlistOverlay from './components/WatchlistOverlay'
 import GlobalToastHost from './components/GlobalToastHost'
@@ -40,6 +42,7 @@ const routes = {
   '/reset-password': ForgotPassword,
   '/dashboard': Dashboard,
   '/portfolio': Portfolio,
+  '/accounts': Accounts,
   '/transactions': Transactions,
   '/deposit': DemoBanking,
   '/withdraw': DemoBanking,
@@ -57,7 +60,7 @@ const routes = {
 
 const navigationByLabel: Record<string, string> = {
   'Help & Support': '/help',
-  'Sign In': '/login',
+  [landingContent.signIn]: '/login',
   'Create Account': '/create-account',
   Dashboard: '/dashboard',
   Portfolio: '/portfolio',
@@ -66,10 +69,10 @@ const navigationByLabel: Record<string, string> = {
   'SOC Dashboard': '/security',
   Incidents: '/security/incidents',
   'View Dashboard': '/dashboard',
-  'Explore the Platform': '/demo/customer',
-  'Explore Platform': '/demo/customer',
+  [landingContent.exploreThePlatform]: '/demo/customer',
+  [landingContent.explorePlatform]: '/demo/customer',
   'View Investigation': '/security/incidents/INC-2026-0142',
-  'Explore Security Environment': '/demo/security',
+  [landingContent.exploreSecurityEnvironment]: '/demo/security',
 }
 
 function useMediaQuery(query: string) {
@@ -82,6 +85,7 @@ function useMediaQuery(query: string) {
     const update = () => setMatches(media.matches)
 
     media.addEventListener('change', update)
+    update()
 
     return () => media.removeEventListener('change', update)
   }, [query])
@@ -112,7 +116,7 @@ export default function App() {
   const showUnifiedMobileNav =
     isMobile &&
     (
-      ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
+      ['/accounts', '/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
        '/customer/settings', '/customer/activity', '/customer/account-settings', '/security', '/security/incidents',
        '/security/network', '/security/access', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
@@ -200,7 +204,7 @@ export default function App() {
     }
   }
 
-  const customerRoutes = ['/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets', '/customer/settings', '/customer/activity', '/customer/account-settings', '/help']
+  const customerRoutes = ['/accounts', '/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets', '/customer/settings', '/customer/activity', '/customer/account-settings', '/help']
   const securityRoutes = [
     '/admin/settings',
     '/security',

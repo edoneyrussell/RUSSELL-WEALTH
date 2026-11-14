@@ -13,10 +13,6 @@ def customer_user_id(connection):
     if 'CUSTOMER' not in session.get('roles', [session.get('role')]):
         raise PermissionError('Customer access denied')
 
-    # Both owner logins use the same investment account.
-    if int(uid) in (1, 2):
-        return 2
-
     if session.get("role") == "CUSTOMER":
         return uid
 

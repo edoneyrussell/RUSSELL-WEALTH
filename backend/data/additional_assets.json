@@ -1,0 +1,365 @@
+{
+  "sources": [
+    "https://www.vanguard.ca/en/tools-and-resources/tax-centre",
+    "https://www.blackrock.com/ca/investors/en/products/product-list"
+  ],
+  "assets": [
+    {
+      "symbol": "VFV.TO",
+      "name": "Vanguard S&P 500 Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VCN.TO",
+      "name": "Vanguard FTSE Canada All Cap Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VDY.TO",
+      "name": "Vanguard FTSE Canadian High Dividend Yield Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VEQT.TO",
+      "name": "Vanguard All-Equity ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VGRO.TO",
+      "name": "Vanguard Growth ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VBAL.TO",
+      "name": "Vanguard Balanced ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VCNS.TO",
+      "name": "Vanguard Conservative ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VAB.TO",
+      "name": "Vanguard Canadian Aggregate Bond Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VSB.TO",
+      "name": "Vanguard Canadian Short-Term Bond Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VUN.TO",
+      "name": "Vanguard U.S. Total Market Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VIU.TO",
+      "name": "Vanguard FTSE Developed All Cap ex North America Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VEE.TO",
+      "name": "Vanguard FTSE Emerging Markets All Cap Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XIC.TO",
+      "name": "iShares Core S&P/TSX Capped Composite Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XIU.TO",
+      "name": "iShares S&P/TSX 60 Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XEF.TO",
+      "name": "iShares Core MSCI EAFE IMI Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XEC.TO",
+      "name": "iShares Core MSCI Emerging Markets IMI Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XEQT.TO",
+      "name": "iShares Core Equity ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XGRO.TO",
+      "name": "iShares Core Growth ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XBAL.TO",
+      "name": "iShares Core Balanced ETF Portfolio",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XBB.TO",
+      "name": "iShares Core Canadian Universe Bond Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XSP.TO",
+      "name": "iShares Core S&P 500 Index ETF (CAD-Hedged)",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XAW.TO",
+      "name": "iShares Core MSCI All Country World ex Canada Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XEG.TO",
+      "name": "iShares S&P/TSX Capped Energy Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XRE.TO",
+      "name": "iShares S&P/TSX Capped REIT Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "ZAG.TO",
+      "name": "BMO Aggregate Bond Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "ZRE.TO",
+      "name": "BMO Equal Weight REITs Index ETF",
+      "type": "ETF",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "VOO",
+      "name": "Vanguard S&P 500 ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "VTI",
+      "name": "Vanguard Total Stock Market ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "VXUS",
+      "name": "Vanguard Total International Stock ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "VT",
+      "name": "Vanguard Total World Stock ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "BND",
+      "name": "Vanguard Total Bond Market ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "VIG",
+      "name": "Vanguard Dividend Appreciation ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "VYM",
+      "name": "Vanguard High Dividend Yield ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "IVV",
+      "name": "iShares Core S&P 500 ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "ITOT",
+      "name": "iShares Core S&P Total U.S. Stock Market ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "IWM",
+      "name": "iShares Russell 2000 ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "AGG",
+      "name": "iShares Core U.S. Aggregate Bond ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "TLT",
+      "name": "iShares 20+ Year Treasury Bond ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "QQQ",
+      "name": "Invesco QQQ Trust",
+      "type": "ETF",
+      "exchange": "NASDAQ",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "SCHD",
+      "name": "Schwab U.S. Dividend Equity ETF",
+      "type": "ETF",
+      "exchange": "NYSE",
+      "listing_currency": "USD"
+    },
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "SOL",
+      "name": "Solana",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "XRP",
+      "name": "XRP",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "ADA",
+      "name": "Cardano",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "DOGE",
+      "name": "Dogecoin",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "LTC-CAD",
+      "name": "Litecoin",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "AVAX",
+      "name": "Avalanche",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "LINK-CAD",
+      "name": "Chainlink",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "DOT",
+      "name": "Polkadot",
+      "type": "CRYPTO",
+      "exchange": "CRYPTO",
+      "listing_currency": "CAD"
+    }
+  ]
+}

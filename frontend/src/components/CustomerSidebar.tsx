@@ -1,20 +1,9 @@
+import { useAccountProfile } from "../hooks/useAccountProfile";
+import { customerNavigation as items, supportNavigation as support, securityNavigation, customerSettings, adminSettings } from "../content/navigationContent";
 import { logout } from "../auth";
 import { useEffect, useState } from "react";
 
 const assets = "/assets";
-
-const items = [
-  { label: "Dashboard", href: "/dashboard", icon: "50fa9.svg" },
-  { label: "Portfolio", href: "/portfolio", icon: "70fb9.svg" },
-  { label: "Trade", href: "/markets", icon: "74de4.svg" },
-  { label: "Watchlist", href: "/dashboard#watchlist", icon: "18ed1.svg" },
-  { label: "Transactions", href: "/transactions", icon: "ca3db.svg" },
-  { label: "Add Funds", href: "/deposit", icon: "add-funds-money.svg" },
-];
-
-const support = [
-  { label: "Help & Support", href: "/help", icon: "2bd20.svg" },
-];
 
 function go(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
   if (
@@ -98,30 +87,7 @@ function NavItem({
 
 export default function CustomerSidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [profileName, setProfileName] = useState("");
-
-  useEffect(() => {
-    const loadProfile = () => {
-      fetch("/api/me", { credentials: "same-origin" })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          setProfilePhoto(data?.profile_photo ?? null);
-          setProfileName(typeof data?.name === "string" ? data.name.trim() : "");
-        })
-        .catch(() => {});
-    };
-    loadProfile();
-    const syncProfile = (event: StorageEvent) => { if (event.key === 'rw-profile-sync') loadProfile(); };
-    window.addEventListener("rw-profile-updated", loadProfile);
-    window.addEventListener('focus', loadProfile);
-    window.addEventListener('storage', syncProfile);
-    return () => {
-      window.removeEventListener("rw-profile-updated", loadProfile);
-      window.removeEventListener('focus', loadProfile);
-      window.removeEventListener('storage', syncProfile);
-    };
-  }, []);
+  const { profileName, profilePhoto } = useAccountProfile();
 
   return (
     <aside
@@ -197,7 +163,7 @@ export default function CustomerSidebar() {
         >
           {/* RW_CUSTOMER_ACCOUNT_LABEL_V1 */}
           <span className="flex w-full items-center justify-between text-[12px] font-normal text-[#b4b8c0] transition-colors hover:text-[#f5f5f5]">
-            <span>Account Settings</span>
+            <span>{customerSettings.label}</span>
             <span aria-hidden="true">›</span>
           </span>
           <span className="h-px w-full bg-[#30343b]" />
@@ -233,27 +199,7 @@ export default function CustomerSidebar() {
 
 
 
-type SocEntry = {
-  label: string;
-  icon: string;
-  href?: string;
-  action?: "Alerts" | "Logs";
-};
-
-const socGroups: { heading: string; entries: SocEntry[] }[] = [
-  {
-    heading: "SOC OPERATIONS",
-    entries: [
-      { label: "SOC Dashboard", href: "/security", icon: "651b9.svg" },
-      { label: "Alerts", action: "Alerts", icon: "7412e.svg" },
-      { label: "Incidents", href: "/security/incidents", icon: "82d8b.svg" },
-      { label: "Logs", action: "Logs", icon: "0df54.svg" },
-      { label: "Network", href: "/security/network", icon: "8a4d1.svg" },
-      { label: "Access", href: "/security/access", icon: "e2640.svg" },
-    ],
-  },
-];
-
+const socGroups = [{ heading: "SOC OPERATIONS", entries: securityNavigation }];
 
 // RW_SOC_ARROW_NAV_V2
 // Up/Down immediately activate the previous/next SOC tab.
@@ -371,6 +317,7 @@ function goToSocDashboard(preservePendingAction = false) {
 
 
 function SocSidebar() {
+  const { profileName, profilePhoto, initials } = useAccountProfile();
   const [activePanel, setActivePanel] = useState<string | null>(null);
 
   useEffect(() => {
@@ -492,7 +439,7 @@ function SocSidebar() {
                   key={entry.label}
                   
                 >
-                  {entry.href ? (
+                  {entry.href && !entry.action ? (
                     <a
                       href={entry.href}
                       className={classes}
@@ -535,7 +482,7 @@ function SocSidebar() {
           onClick={e => go(e, "/admin/settings")}
           className="mb-2 flex w-full items-center justify-between rounded-lg border border-[#344454] bg-[#1B2530] px-3 py-2.5 text-[12px] font-semibold text-[#DCE7F2] transition-colors hover:border-[#559CFA] hover:bg-[#25364A]"
         >
-          <span>Account Settings</span>
+          <span>{adminSettings.label}</span>
           <span aria-hidden="true" className="text-[#8FA9C4]">›</span>
         </a>
 
@@ -547,11 +494,11 @@ function SocSidebar() {
             className="flex items-center gap-[10px]"
           >
             <div className="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-[#252a31] text-[11px] font-semibold text-[#c5cad2]">
-              ER
+              {profilePhoto ? <img src={profilePhoto} alt={profileName || 'Profile'} className="size-full rounded-full object-cover" /> : initials}
             </div>
             <div className="flex min-w-0 flex-col gap-[4px]">
               <span className="text-[12px] font-semibold text-[#f5f5f5]">
-                Edoney Russell
+                {profileName || 'Administrator'}
               </span>
               <span className="text-[10px] text-[#8c929c]">
                 SOC Administrator

@@ -1,0 +1,200 @@
+{
+  "assets": [
+    {
+      "symbol": "RY.TO",
+      "name": "Royal Bank of Canada",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "TD.TO",
+      "name": "Toronto-Dominion Bank",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "BNS.TO",
+      "name": "Bank of Nova Scotia",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "BMO.TO",
+      "name": "Bank of Montreal",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "CM.TO",
+      "name": "Canadian Imperial Bank of Commerce",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "SHOP.TO",
+      "name": "Shopify",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "ENB.TO",
+      "name": "Enbridge",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "CNR.TO",
+      "name": "Canadian National Railway",
+      "type": "STOCK",
+      "exchange": "TSX",
+      "listing_currency": "CAD"
+    },
+    {
+      "symbol": "HSBA.L",
+      "name": "HSBC Holdings",
+      "type": "STOCK",
+      "exchange": "LSE",
+      "listing_currency": "GBP"
+    },
+    {
+      "symbol": "AZN.L",
+      "name": "AstraZeneca",
+      "type": "STOCK",
+      "exchange": "LSE",
+      "listing_currency": "GBP"
+    },
+    {
+      "symbol": "ULVR.L",
+      "name": "Unilever",
+      "type": "STOCK",
+      "exchange": "LSE",
+      "listing_currency": "GBP"
+    },
+    {
+      "symbol": "BP.L",
+      "name": "BP",
+      "type": "STOCK",
+      "exchange": "LSE",
+      "listing_currency": "GBP"
+    },
+    {
+      "symbol": "SHEL.L",
+      "name": "Shell",
+      "type": "STOCK",
+      "exchange": "LSE",
+      "listing_currency": "GBP"
+    },
+    {
+      "symbol": "7203.T",
+      "name": "Toyota Motor",
+      "type": "STOCK",
+      "exchange": "TSE",
+      "listing_currency": "JPY"
+    },
+    {
+      "symbol": "6758.T",
+      "name": "Sony Group",
+      "type": "STOCK",
+      "exchange": "TSE",
+      "listing_currency": "JPY"
+    },
+    {
+      "symbol": "9984.T",
+      "name": "SoftBank Group",
+      "type": "STOCK",
+      "exchange": "TSE",
+      "listing_currency": "JPY"
+    },
+    {
+      "symbol": "7974.T",
+      "name": "Nintendo",
+      "type": "STOCK",
+      "exchange": "TSE",
+      "listing_currency": "JPY"
+    },
+    {
+      "symbol": "8306.T",
+      "name": "Mitsubishi UFJ Financial Group",
+      "type": "STOCK",
+      "exchange": "TSE",
+      "listing_currency": "JPY"
+    },
+    {
+      "symbol": "0700.HK",
+      "name": "Tencent Holdings",
+      "type": "STOCK",
+      "exchange": "HKEX",
+      "listing_currency": "HKD"
+    },
+    {
+      "symbol": "9988.HK",
+      "name": "Alibaba Group Holding",
+      "type": "STOCK",
+      "exchange": "HKEX",
+      "listing_currency": "HKD"
+    },
+    {
+      "symbol": "0005.HK",
+      "name": "HSBC Holdings",
+      "type": "STOCK",
+      "exchange": "HKEX",
+      "listing_currency": "HKD"
+    },
+    {
+      "symbol": "1299.HK",
+      "name": "AIA Group",
+      "type": "STOCK",
+      "exchange": "HKEX",
+      "listing_currency": "HKD"
+    },
+    {
+      "symbol": "1810.HK",
+      "name": "Xiaomi",
+      "type": "STOCK",
+      "exchange": "HKEX",
+      "listing_currency": "HKD"
+    },
+    {
+      "symbol": "BHP.AX",
+      "name": "BHP Group",
+      "type": "STOCK",
+      "exchange": "ASX",
+      "listing_currency": "AUD"
+    },
+    {
+      "symbol": "CBA.AX",
+      "name": "Commonwealth Bank of Australia",
+      "type": "STOCK",
+      "exchange": "ASX",
+      "listing_currency": "AUD"
+    },
+    {
+      "symbol": "CSL.AX",
+      "name": "CSL",
+      "type": "STOCK",
+      "exchange": "ASX",
+      "listing_currency": "AUD"
+    },
+    {
+      "symbol": "NAB.AX",
+      "name": "National Australia Bank",
+      "type": "STOCK",
+      "exchange": "ASX",
+      "listing_currency": "AUD"
+    },
+    {
+      "symbol": "WBC.AX",
+      "name": "Westpac Banking Corporation",
+      "type": "STOCK",
+      "exchange": "ASX",
+      "listing_currency": "AUD"
+    }
+  ]
+}

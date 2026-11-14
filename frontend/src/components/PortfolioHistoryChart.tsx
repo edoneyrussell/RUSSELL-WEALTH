@@ -1,5 +1,5 @@
 import { CustomerDemoContext } from "../demo/customerDemo";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -10,10 +10,9 @@ import {
   YAxis,
 } from "recharts";
 
-type Point = { time: number; value: number };
-type Range = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL";
+import { buildHistorySeries, type PortfolioPoint as Point, type PortfolioRange as Range } from "../utils/portfolioHistory";
 
-const KEY = "russellwealth:portfolio-history:v1";
+const emptyHistory: Point[] = [];
 const ranges: Range[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
 
 const formatMoney = (value: number) =>
@@ -22,73 +21,20 @@ const formatMoney = (value: number) =>
     currency: "CAD",
   }).format(value);
 
-function readHistory(): Point[] {
-  try {
-    const stored: unknown = JSON.parse(localStorage.getItem(KEY) || "[]");
-    if (!Array.isArray(stored)) return [];
-
-    return stored.filter(
-      (point): point is Point =>
-        typeof point?.time === "number" &&
-        typeof point?.value === "number" &&
-        Number.isFinite(point.value)
-    );
-  } catch {
-    return [];
-  }
-}
-
 export default function PortfolioHistoryChart({
   value,
+  history = emptyHistory,
 }: {
   value: number | null;
+  history?: Point[];
 }) {
   const demo = useContext(CustomerDemoContext);
-  const [history, setHistory] = useState<Point[]>(() => demo ? Array.from({length: 24}, (_,i) => ({time:Date.now()-(23-i)*3600000,value:48500+i*1500/23})) : readHistory());
+  const [demoHistory] = useState<Point[]>(() => Array.from({ length: 24 }, (_, i) => ({
+    time: Date.now() - (23 - i) * 3600000, value: 48500 + i * 1500 / 23,
+  })));
   const [range, setRange] = useState<Range>("1D");
-
-  useEffect(() => {
-    if (demo || value === null || !Number.isFinite(value)) return;
-
-    setHistory(previous => {
-      const now = Date.now();
-      const last = previous[previous.length - 1];
-
-      if (
-        last &&
-        last.value === value &&
-        now - last.time < 60 * 60 * 1000
-      ) {
-        return previous;
-      }
-
-      const next = [...previous, { time: now, value }]
-        .filter(point => point.time >= now - 366 * 86400000)
-        .slice(-10000);
-
-      try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-      } catch {
-        // Continue displaying the chart without persistent storage.
-      }
-
-      return next;
-    });
-  }, [value]);
-
-  const data = useMemo(() => {
-    const days: Record<Range, number> = {
-      "1D": 1,
-      "1W": 7,
-      "1M": 30,
-      "3M": 90,
-      "1Y": 365,
-      ALL: Infinity,
-    };
-
-    const cutoff = Date.now() - days[range] * 86400000;
-    return history.filter(point => point.time >= cutoff);
-  }, [history, range]);
+  const data = useMemo(() => buildHistorySeries(demo ? demoHistory : history, value, range),
+    [demo, demoHistory, history, value, range]);
 
   const first = data[0]?.value;
   const last = data[data.length - 1]?.value;
@@ -105,7 +51,7 @@ export default function PortfolioHistoryChart({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8E9BAA]">
-            Portfolio Performance
+            Portfolio Balance History
           </p>
 
           <div className="mt-2 flex items-center gap-3">
@@ -146,11 +92,10 @@ export default function PortfolioHistoryChart({
         {data.length < 2 ? (
           <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#34404D] bg-[#10161D] px-6 text-center">
             <p className="text-sm font-medium text-[#DCE7F3]">
-              Your portfolio history starts here.
+              Your balance history starts when you fund your account.
             </p>
             <p className="mt-2 max-w-sm text-xs leading-5 text-[#8E9BAA]">
-              Russell Wealth is now recording portfolio value snapshots.
-              The line will appear as new observations become available.
+              Add money to start tracking your account balance.
             </p>
           </div>
         ) : (
@@ -252,7 +197,7 @@ export default function PortfolioHistoryChart({
       </div>
 
       <p className="mt-3 text-[10px] text-[#667585]">
-        {demo ? 'Fictional portfolio history · Demo CAD values' : 'Actual recorded account values · CAD · Not investment returns'}
+        {demo ? 'Fictional portfolio history · Demo CAD values' : 'Recorded account balances · CAD · Flat line until the balance changes · Not investment returns'}
       </p>
     </div>
   );

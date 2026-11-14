@@ -1,13 +1,13 @@
 import AssetLogo from "./AssetLogo";
 import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
 
-export default function HoldingsList() {
+export default function HoldingsList({ limit }: { limit?: number }) {
   const { portfolio, error } = usePortfolio();
 
-  if (error) {
+  if (error && !portfolio) {
     return (
       <p className="text-[#b4b8c0] text-[12px] py-4">
-        Unable to load holdings.
+        {error}
       </p>
     );
   }
@@ -31,7 +31,7 @@ export default function HoldingsList() {
   return (
     <div className="w-full">
       <div className="rw-holdings-column-labels" aria-hidden="true"><span>Asset</span><span>Shares</span><span>Price</span><span>Value</span></div>
-      {portfolio.holdings.map(holding => (
+      {[...portfolio.holdings].sort((a, b) => Number(b.market_value) - Number(a.market_value)).slice(0, limit).map(holding => (
         <div
           key={holding.symbol}
           className="rw-dashboard-holding border-b border-[#30343b] py-3 flex items-center gap-3"

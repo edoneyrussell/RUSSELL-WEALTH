@@ -1,3 +1,5 @@
+import AccountSelector from "../components/AccountSelector";
+import { notifyPortfolioUpdated } from "../utils/portfolioSync";
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 
 import { useCallback, useEffect, useState } from "react";
@@ -24,7 +26,11 @@ type Transfer = {
 };
 
 type BankingData = {
+  account_id: number;
+  account_name: string;
+  account_type: string;
   simulated: boolean;
+  deposit_capacity?: string;
   cash_balance: string;
   banks: Bank[];
   history: Transfer[];
@@ -179,14 +185,13 @@ export default function DemoBanking() {
   const numericAmount = Number(amount);
   const bankBalance = Number(bank?.balance ?? 0);
   const investmentCash = Number(data?.cash_balance ?? 0);
-  const bankCapacity = Number.MAX_SAFE_INTEGER / 100;
 
   const maxTransfer = mode === "DEPOSIT"
-    ? Number.MAX_SAFE_INTEGER / 100
-    : Number.MAX_SAFE_INTEGER / 100;
+    ? Number(data?.deposit_capacity ?? 0)
+    : investmentCash;
 
   const validAmount =
-    amount.trim() !== "" &&
+    !loading && amount.trim() !== "" &&
     Number.isFinite(numericAmount) &&
     numericAmount > 0 &&
     Number.isInteger(Math.round(numericAmount * 100)) &&
@@ -204,6 +209,7 @@ export default function DemoBanking() {
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          account_id: data?.account_id,
           bank_code: bankCode,
           direction: mode,
           amount,
@@ -216,15 +222,7 @@ export default function DemoBanking() {
       setCompleted(body.transfer_id);
       await load();
 
-      window.dispatchEvent(
-        new CustomEvent("rw:portfolio-updated", {
-          detail: {
-            source: "demo-banking",
-            direction: mode,
-            amount
-          }
-        })
-      );
+      notifyPortfolioUpdated();
 
       setStep(3);
     } catch (e) {
@@ -348,21 +346,11 @@ export default function DemoBanking() {
                   <label className="mb-3 block text-sm font-semibold">
                     {mode === "DEPOSIT" ? "To (Russell Wealth)" : "From (Russell Wealth)"}
                   </label>
-                  <div className="flex items-center gap-4 rounded-xl border border-[#36414D] bg-[#151D25] p-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#26333F]">
-                      <img
-                        src="/assets/c8aca.png"
-                        alt="Russell Wealth logo"
-                        className="h-full w-full object-contain"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Russell Wealth Account</p>
-                      <p className="text-xs text-[#A0AFBD]">
-                        CAD Investment Account · Available {cad(data.cash_balance)}
-                      </p>
-                    </div>
-                  </div>
+                  <AccountSelector label={mode === 'DEPOSIT' ? 'Fund this account' : 'Withdraw from account'} disabled={busy} onSelecting={id=>setLoading(id!==null)} onSelected={() => {
+                    setLoading(true);setStep(1);setAmount('');setRequestId(crypto.randomUUID());
+                    void load().catch(err=>setError(err.message)).finally(()=>setLoading(false));
+                  }} />
+                  <p className="mt-2 text-xs text-[#A0AFBD]">{data.account_name} · Available {cad(data.cash_balance)}</p>
                 </div>
 
                 <div>
@@ -402,7 +390,7 @@ export default function DemoBanking() {
                   </div>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[#A8B8C7]">
                     <span>
-                      Available: {mode === "DEPOSIT" ? "Demo funding" : cad(maxTransfer)}
+                      Available: {cad(maxTransfer)}{mode === "DEPOSIT" ? " · $900 million account limit" : ""}
                     </span>
                     <button
                       type="button"
@@ -460,7 +448,7 @@ export default function DemoBanking() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[#A8B8C7]">Direction</span>
-                      <span>{mode === "DEPOSIT" ? "Bank → Russell Wealth" : "Russell Wealth → Bank"}</span>
+                      <span>{mode === "DEPOSIT" ? `Bank → ${data?.account_name}` : `${data?.account_name} → Bank`}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[#A8B8C7]">Fees</span>
@@ -479,16 +467,6 @@ export default function DemoBanking() {
                         {cad(bankBalance + numericAmount)}
                       </span>
                     </div>
-                    <div className="mt-3 flex justify-between gap-3">
-                      <span className="text-[#A8B8C7]">Maximum bank balance</span>
-                      <span>{cad(900000)}</span>
-                    </div>
-                    {bankCapacity <= 0 && (
-                      <p className="mt-3 text-[#E7B4B4]">
-                        This bank is at its $900,000 limit. Select another bank
-                        or deposit funds from this bank into Russell Wealth first.
-                      </p>
-                    )}
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3">
@@ -518,12 +496,12 @@ export default function DemoBanking() {
                 <p className="font-['Lora'] text-4xl">{cad(amount)}</p>
                 <p className="text-sm text-[#B6C5D2]">
                   {mode === "DEPOSIT"
-                    ? `Transferred from ${bank?.name} to Russell Wealth.`
-                    : `Transferred from Russell Wealth to ${bank?.name}.`}
+                    ? `Transferred from ${bank?.name} to ${data?.account_name}.`
+                    : `Transferred from ${data?.account_name} to ${bank?.name}.`}
                 </p>
                 <div className="w-full rounded-xl border border-[#36414D] bg-[#151D25] p-5 text-left">
                   <p className="text-xs uppercase tracking-wider text-[#91A9BA]">
-                    Updated Russell Wealth cash balance
+                    Updated account cash balance
                   </p>
                   <p className="mt-2 font-['Lora'] text-3xl font-semibold">
                     {cad(data.cash_balance)}
@@ -578,7 +556,7 @@ export default function DemoBanking() {
               <h2 className="mb-4 flex items-center gap-3 font-['Lora'] text-xl">
                 <Wallet size={22} /> Account Overview
               </h2>
-              <p className="text-sm text-[#A7B7C4]">Russell Wealth Buying Power</p>
+              <p className="text-sm text-[#A7B7C4]">Selected Account Cash</p>
               <p className="mt-2 font-['Lora'] text-3xl">
                 {cad(data?.cash_balance ?? 0)}
               </p>

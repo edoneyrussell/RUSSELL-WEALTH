@@ -1,3 +1,5 @@
+import AccountOverview from "../components/AccountOverview";
+import { useAccountProfile } from "../hooks/useAccountProfile";
 import { CustomerDemoContext, useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import GlobalMarketsClock from "../components/GlobalMarketsClock";
 import PortfolioHistoryChart from "../components/PortfolioHistoryChart";
@@ -10,14 +12,15 @@ import {
   ArrowLeftRight,
   BriefcaseBusiness,
   Wallet,
-  Search,
   RefreshCw,
   TrendingUp,
   Layers3,
   ChevronRight,
 } from "lucide-react";
 
-import MarketSearch from "../components/MarketSearch";
+import DashboardWatchlist from "../components/DashboardWatchlist";
+import { getGreeting } from "../utils/greeting";
+import CustomerSearch from "../components/CustomerSearch";
 import HoldingsList from "../components/HoldingsList";
 import { useTrading } from "../hooks/useTrading";
 import { usePortfolio } from "../hooks/usePortfolio";
@@ -48,48 +51,9 @@ export default function Dashboard() {
   const trading = useTrading();
   const [showBalances, setShowBalances] = useState(true);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "Good Morning";
-    if (hour >= 12 && hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
-
   const [greeting, setGreeting] = useState(getGreeting);
 
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [profileName, setProfileName] = useState("");
-
-  useEffect(() => {
-    const loadProfilePhoto = async () => {
-      try {
-        const response = await customerFetch("/api/me", {
-          credentials: "same-origin"
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setProfilePhoto(data.profile_photo ?? null);
-        setProfileName(typeof data.name === "string" ? data.name.trim() : "");
-      } catch (error) {
-        console.error("Profile photo loading failed:", error);
-      }
-    };
-
-    loadProfilePhoto();
-    const syncProfile = (event: StorageEvent) => { if (event.key === 'rw-profile-sync') void loadProfilePhoto(); };
-    window.addEventListener("rw-profile-updated", loadProfilePhoto);
-    window.addEventListener('focus', loadProfilePhoto);
-    window.addEventListener('storage', syncProfile);
-
-    return () => {
-      window.removeEventListener("rw-profile-updated", loadProfilePhoto);
-      window.removeEventListener('focus', loadProfilePhoto);
-      window.removeEventListener('storage', syncProfile);
-    };
-  }, []);
-
+  const { profilePhoto, profileName, initials } = useAccountProfile(customerFetch);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -176,7 +140,7 @@ export default function Dashboard() {
                   />
                 ) : (
                   <div className="flex size-full items-center justify-center font-['Inter'] text-sm font-semibold text-[#B8C6D5]">
-                    ER
+                    {initials}
                   </div>
                 )}
               </div>
@@ -184,7 +148,7 @@ export default function Dashboard() {
               <h1 className="font-['Lora'] text-[34px] font-semibold tracking-[-0.04em] sm:text-[48px]">
                 {greeting},{" "}
                 <span className="italic text-[#B8C6D5]">
-                  {profileName ? profileName.trim().split(" ")[0] + "." : ""}
+                  {profileName ? profileName.trim().split(/\s+/)[0] : ""}
                 </span>
               </h1>
             </div>
@@ -206,20 +170,7 @@ export default function Dashboard() {
               document.body
             )}
             <div className="grid w-[320px] max-w-full grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                window.dispatchEvent(
-                  new Event("russellwealth:open-market-search")
-                )
-              }
-              className="flex items-center gap-3 rounded-xl border border-[#34404D] bg-[#171E27] px-4 py-3 text-xs text-[#C4CED9] transition hover:bg-[#26313D]"
-            >
-              <Search size={16} />
-              Search Markets
-            </button>
-
-            <div className="hidden"><MarketSearch triggerOnly /></div>
+            <CustomerSearch profileName={profileName} />
 
             <button
               type="button"
@@ -245,7 +196,7 @@ export default function Dashboard() {
         )}
 
         {/* PORTFOLIO HERO */}
-        <section className={`${panel} rw-fintech-overview relative overflow-hidden p-6 sm:p-8`}>
+        <section id="portfolio-history" className={`${panel} rw-fintech-overview relative overflow-hidden p-6 sm:p-8`}>
           <div
             className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full opacity-20 blur-[100px]"
             style={{ background: "#7998BA" }}
@@ -322,6 +273,7 @@ export default function Dashboard() {
           <div className="relative mt-8 border-t border-[#2B333D] pt-7">
             <PortfolioHistoryChart
               value={portfolio ? Number(portfolio.total_value) : null}
+              history={portfolio?.history}
             />
           </div>
         </section>
@@ -406,7 +358,7 @@ export default function Dashboard() {
               </div>
 
               <div className="w-full overflow-x-auto">
-                <HoldingsList />
+                <HoldingsList limit={4} />
               </div>
             </div>
 
@@ -483,63 +435,7 @@ export default function Dashboard() {
 
         {/* BOTTOM ACCOUNT & ACTION CARDS */}
         <section className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
-          <div className={`${panel} h-full p-5 sm:p-6`}>
-              <p className={label}>ACCOUNT OVERVIEW</p>
-
-              <h2 className="mb-6 mt-2 font-['Lora'] text-[25px]">
-                Accounts
-              </h2>
-
-              <div className="space-y-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <BriefcaseBusiness
-                      size={18}
-                      className="text-[#B8C6D5]"
-                    />
-
-                    <span className="text-xs text-[#A6B3C1]">
-                      Investments
-                    </span>
-                  </div>
-
-                  <span className="text-sm font-medium">
-                    {portfolio
-                      ? money(portfolio.invested_value)
-                      : "Loading..."}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Wallet
-                      size={18}
-                      className="text-[#B8C6D5]"
-                    />
-
-                    <span className="text-xs text-[#A6B3C1]">
-                      Cash
-                    </span>
-                  </div>
-
-                  <span className="text-sm font-medium">
-                    {portfolio
-                      ? money(portfolio.cash_balance)
-                      : "Loading..."}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-[#2B333D] pt-5">
-                  <span className="text-xs text-[#A6B3C1]">
-                    Total Balance
-                  </span>
-
-                  <span className="text-sm font-semibold">
-                    {total}
-                  </span>
-                </div>
-              </div>
-            </div>
+          <AccountOverview money={money} />
           <div className={`${panel} h-full p-5 sm:p-6`}>
               <p className={label}>EXPLORE</p>
 
@@ -610,6 +506,8 @@ export default function Dashboard() {
 
         </section>
 
+
+        <DashboardWatchlist />
 
         <footer className="flex items-center justify-between border-t border-[#2B333D] pt-6 text-[11px] text-[#647384]">
           <span>RUSSELL WEALTH</span>

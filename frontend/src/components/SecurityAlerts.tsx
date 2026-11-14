@@ -100,8 +100,10 @@ export default function SecurityAlerts({ onClose }: Props) {
   const securityFetch = useSecurityFetch();
   const [page, setPage] = useState(1);
   const [severity, setSeverity] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('ACTIVE');
   const [revision, setRevision] = useState(0);
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+  const [alertId, setAlertId] = useState(() => new URLSearchParams(window.location.search).get('alert') || '');
   const [data, setData] = useState<ResponseData | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState<number | null>(null);
@@ -109,7 +111,7 @@ export default function SecurityAlerts({ onClose }: Props) {
     const controller = new AbortController();
     async function load() {
       try {
-        const params = new URLSearchParams({page:String(page), per_page:'25', severity, status});
+        const params = new URLSearchParams({page:String(page), per_page:'25', severity, status, search, alert:alertId});
         const response = await securityFetch(`/api/security/alerts?${params}`, {credentials:'include', cache:'no-store', signal:controller.signal});
         if (!response.ok) throw new Error('Unable to load alerts');
         setData(await response.json()); setError('');
@@ -120,7 +122,7 @@ export default function SecurityAlerts({ onClose }: Props) {
     const refresh = () => load();
     window.addEventListener('security-alerts-cleared', refresh);
     return () => { controller.abort(); clearInterval(interval); window.removeEventListener('security-alerts-cleared', refresh); };
-  }, [page, severity, status, revision, securityFetch]);
+  }, [page, severity, status, search, alertId, revision, securityFetch]);
   async function review(id:number, next:string) {
     setSaving(id);
     try {
@@ -143,7 +145,9 @@ export default function SecurityAlerts({ onClose }: Props) {
     </div>
     <div className="flex flex-wrap gap-3 items-center mb-5">
       <select aria-label="Filter alerts by severity" value={severity} onChange={e=>{setSeverity(e.target.value);setPage(1);}} className="rw-alert-select"><option value="">All severities</option><option value="WARNING">Warning</option><option value="CRITICAL">Critical</option></select>
-      <select aria-label="Filter alerts by status" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}} className="rw-alert-select"><option value="">All statuses</option><option value="NEW">New</option><option value="UNDER_REVIEW">Under review</option><option value="RESOLVED">Resolved</option></select>
+      <select aria-label="Filter alerts by status" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}} className="rw-alert-select"><option value="ACTIVE">Active alerts</option><option value="">All statuses</option><option value="NEW">New</option><option value="UNDER_REVIEW">Under review</option><option value="RESOLVED">Resolved</option></select>
+      <input type="search" aria-label="Search alerts" placeholder="Search alerts, names or IPs" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} className="rw-alert-select" />
+      {alertId && <button className="rw-alert-select" onClick={()=>{setAlertId('');setPage(1);}}>Showing alert #{alertId} · Show all</button>}
       <ClearSecurityAlertsButton />
     </div>
     {error && <p role="alert" className="text-[#ff8585] mb-4">{error}</p>}
@@ -162,7 +166,7 @@ export default function SecurityAlerts({ onClose }: Props) {
             <div><dt className="text-[#819087] text-xs">Source IP</dt><dd className="font-mono mt-1 break-all">{event.source_ip || 'Not recorded'}</dd>{(event.source_ip==='127.0.0.1'||event.source_ip==='::1')&&<small className="text-[#819087]">Local connection</small>}</div>
             <div><dt className="text-[#819087] text-xs">Recorded in Regina (CST)</dt><dd className="mt-1">{time.date} · {time.time}</dd></div>
           </dl>
-          <details className="mt-5 border-t border-[#2b3830] pt-3 text-sm"><summary className="cursor-pointer text-[#bce6cd]">Related events · Alert #{event.id}</summary>
+          <details open={String(event.id)===alertId || undefined} className="mt-5 border-t border-[#2b3830] pt-3 text-sm"><summary className="cursor-pointer text-[#bce6cd]">Related events · Alert #{event.id}</summary>
             <p className="text-xs text-[#819087] mt-3">{event.event_type} · UTC {event.created_at}</p>
             {event.evidence?.length ? <ul className="space-y-2 mt-3">{event.evidence.map(item=><li key={item.id} className="break-words text-[#aeb9b2]">#{item.id} · {item.event_type} · {item.account_email || 'No email recorded'} · {item.source_ip || 'No IP recorded'} · {reginaTime(item.created_at).date} {reginaTime(item.created_at).time}</li>)}</ul> : <p className="text-[#819087] mt-2">No related event snapshot was stored for this older alert.</p>}
           </details>

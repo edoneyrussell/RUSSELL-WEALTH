@@ -1,12 +1,15 @@
+import AccountSelector from "../components/AccountSelector";
+import StockPriceHistory from "../components/StockPriceHistory";
+import { useExchanges } from "../hooks/useExchanges";
+import { usePortfolio } from "../hooks/usePortfolio";
 import { useCustomerFetch } from "../demo/customerDemo";
 import AssetLogo from "./../components/AssetLogo";
 import { useEffect, useMemo, useState } from "react";
 import { useTrading } from "../hooks/useTrading";
 import { Star } from "lucide-react";
-import {
-  getWatchlist,
-  toggleWatchlist
-} from "../utils/watchlist";
+import { useWatchlist } from "../hooks/useWatchlist";
+
+import MarketCountdown, { type TradeMarketStatus as MarketStatus } from "../components/MarketCountdown";
 
 type Asset = {
   symbol: string;
@@ -15,19 +18,9 @@ type Asset = {
   currency: string;
   price: string;
   exchange?: string;
+  market_code?: string;
   listing_currency?: string;
   price_source?: string;
-};
-
-type Holding = {
-  symbol: string;
-  quantity: string;
-  market_value: string;
-};
-
-type Portfolio = {
-  cash_balance: string;
-  holdings: Holding[];
 };
 
 const categories = ["All", "Stocks", "ETFs", "REITs", "Bonds", "Crypto"] as const;
@@ -48,6 +41,15 @@ const catalog: Asset[] = [
   { symbol: "BTC", name: "Bitcoin", type: "CRYPTO", currency: "USD", price: "100.00" },
   { symbol: "ETH", name: "Ethereum", type: "CRYPTO", currency: "USD", price: "100.00" },
 ];
+
+function marketCode(asset: Asset) {
+  if (asset.market_code) return asset.market_code;
+  if (asset.type === 'CRYPTO') return 'CRYPTO';
+  for (const [suffix, code] of [['.TO', 'TSX'], ['.L', 'LSE'], ['.T', 'TSE'], ['.HK', 'HKEX'], ['.AX', 'ASX']]) {
+    if (asset.symbol.endsWith(suffix)) return code;
+  }
+  return asset.exchange === 'NYSE American' ? 'AMEX' : asset.exchange?.toUpperCase() || 'US';
+}
 
 function categoryOf(asset: Asset): Category {
   const type = asset.type.toUpperCase();
@@ -72,20 +74,62 @@ export default function TradeExplore() {
   const customerFetch = useCustomerFetch();
   const trade = useTrading();
 
+  const [pendingAccountId, setPendingAccountId] = useState<number | null>(null);
+  const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null);
+  const [statusError, setStatusError] = useState('');
+
+  const { exchanges } = useExchanges();
+  const [exchange, setExchange] = useState('ALL');
+
   const [category, setCategory] = useState<Category>("All");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(48);
   const [marketResults, setMarketResults] = useState<Asset[]>([]);
   const [marketSearching, setMarketSearching] = useState(false);
   const [selected, setSelected] = useState(() =>
-    new URLSearchParams(window.location.search).get("symbol")?.toUpperCase() || "AAPL"
+    new URLSearchParams(window.location.search).get("symbol")?.toUpperCase() || ""
   );
-  const [starred, setStarred] = useState<string[]>(getWatchlist);
+  const { symbols: starred, loading: watchlistLoading, saving: watchlistSaving, error: watchlistError, setWatched } = useWatchlist();
+  useEffect(() => { if (!watchlistLoading && starred.length) setSelected(current => current || starred[0]); }, [starred, watchlistLoading]);
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const { portfolio, error: portfolioError } = usePortfolio();
+  useEffect(() => {
+    if (pendingAccountId !== null && portfolio?.account_id === pendingAccountId) setPendingAccountId(null);
+  }, [pendingAccountId, portfolio?.account_id]);
   const [assetError, setAssetError] = useState("");
-  const [portfolioError, setPortfolioError] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!selected) return;
+    let active = true;
+    const controller = new AbortController();
+    setMarketStatus(null);
+    setStatusError('');
+    async function loadStatus() {
+      try {
+        const response = await customerFetch(`/api/customer/trading-status?symbol=${encodeURIComponent(selected)}`, {
+          credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('Trading status unavailable. Please try again.');
+        const status = await response.json();
+        if (active) { setMarketStatus(status); setStatusError(''); }
+      } catch (error) {
+        if (active) { setMarketStatus(null); setStatusError(error instanceof Error ? error.message : 'Trading status unavailable.'); }
+      }
+    }
+    void loadStatus();
+    const timer = window.setInterval(() => { void loadStatus(); }, 15000);
+    const refresh = () => { if (document.visibilityState === 'visible') void loadStatus(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [selected, customerFetch]);
 
   useEffect(() => {
     let active = true;
@@ -108,40 +152,10 @@ export default function TradeExplore() {
     }
 
     void loadAssets();
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadPortfolio() {
-      try {
-        const response = await customerFetch("/api/customer/portfolio", {
-          credentials: "same-origin",
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Portfolio unavailable");
-        if (active) {
-          setPortfolio(data);
-          setPortfolioError("");
-        }
-      } catch (error) {
-        if (active) {
-          setPortfolioError(
-            error instanceof Error ? error.message : "Portfolio unavailable"
-          );
-        }
-      }
-    }
-
-    void loadPortfolio();
-    const refresh = () => { void loadPortfolio(); };
-    window.addEventListener("portfolio-updated", refresh);
-
-    return () => {
-      active = false;
-      window.removeEventListener("portfolio-updated", refresh);
-    };
+    const refresh = () => { if (document.visibilityState === 'visible') void loadAssets(); };
+    const timer = window.setInterval(refresh,60000);
+    window.addEventListener('focus',refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus',refresh); };
   }, []);
 
   useEffect(() => {
@@ -176,9 +190,13 @@ export default function TradeExplore() {
             symbol: string;
             name?: string;
             currency?: string;
+            exchange?: string;
+            market_code?: string;
             type?: string;
           }) => ({
             symbol: item.symbol,
+            exchange: item.exchange,
+            market_code: item.market_code,
             name: item.name || item.symbol,
             type: item.type || (
               /ETF|exchange.traded fund/i.test(item.name || "")
@@ -207,18 +225,8 @@ export default function TradeExplore() {
     };
   }, [search, assets]);
 
-  useEffect(() => { setVisibleCount(48); }, [search, category]);
+  useEffect(() => { setVisibleCount(48); }, [search, category, exchange]);
   useEffect(() => { trade.setSymbol(selected); }, [selected]);
-
-  useEffect(() => {
-    const syncWatchlist = () => setStarred(getWatchlist());
-    window.addEventListener("russellwealth:watchlist-updated", syncWatchlist);
-    window.addEventListener("storage", syncWatchlist);
-    return () => {
-      window.removeEventListener("russellwealth:watchlist-updated", syncWatchlist);
-      window.removeEventListener("storage", syncWatchlist);
-    };
-  }, []);
 
   useEffect(() => {
     const syncSymbol = () => {
@@ -261,7 +269,7 @@ export default function TradeExplore() {
     }
 
     for (const asset of marketResults) {
-      merged.set(asset.symbol.toUpperCase(), asset);
+      if (!merged.has(asset.symbol.toUpperCase())) merged.set(asset.symbol.toUpperCase(), asset);
     }
 
     return Array.from(merged.values()).sort((a, b) => {
@@ -276,14 +284,15 @@ export default function TradeExplore() {
     return allAssets.filter(asset => {
       const matchesCategory =
         category === "All" || categoryOf(asset) === category;
+      const matchesExchange = exchange === "ALL" || marketCode(asset) === exchange;
       const matchesSearch =
         !query ||
         asset.symbol.toLowerCase().includes(query) ||
         asset.name.toLowerCase().includes(query);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesSearch && matchesExchange;
     });
-  }, [allAssets, category, search]);
+  }, [allAssets, category, search, exchange]);
 
   const current = allAssets.find(
     asset => asset.symbol.toUpperCase() === selected.toUpperCase()
@@ -303,16 +312,19 @@ export default function TradeExplore() {
     asset => asset.symbol.toUpperCase() === current.symbol.toUpperCase()
   );
 
-  const isSupportedType = ["Stocks", "ETFs", "REITs", "Bonds"].includes(
+  const isSupportedType = ["Stocks", "ETFs", "REITs", "Bonds", "Crypto"].includes(
     categoryOf(current)
   );
 
   const owned = portfolio?.holdings.find(
-    holding => holding.symbol.toUpperCase() === current.symbol.toUpperCase()
+    holding => holding.symbol.toUpperCase() === current.symbol.toUpperCase() ||
+      (current.symbol.endsWith('.TO') && holding.exchange === 'TSX' && holding.symbol.toUpperCase() === current.symbol.slice(0, -3))
   );
 
   const canSubmit =
-    isSupportedType &&
+    (pendingAccountId === null || portfolio?.account_id === pendingAccountId) &&
+    Boolean(portfolio?.account_id) && portfolio?.management_mode === 'SELF_DIRECTED' && (portfolio?.account_type !== 'CRYPTO' || current.type === 'CRYPTO') && (current.type !== 'CRYPTO' || ['PERSONAL','CRYPTO'].includes(portfolio?.account_type ?? '')) && isBackendListed && !loading && !assetError && isSupportedType && marketStatus?.is_open === true &&
+    (exchange === "ALL" || marketCode(current) === exchange) &&
     (trade.direction === "BUY" || Number(owned?.quantity ?? 0) > 0) &&
     trade.symbol === current.symbol &&
     !trade.submitting;
@@ -334,7 +346,7 @@ export default function TradeExplore() {
               Trade <span className="italic text-[#BFC8D3]">& Explore</span>
             </h1>
             <p className="mt-3 text-sm text-[#9DA8B7]">
-              Discover assets, inspect your positions, and execute simulated trades.
+              Simulated asset prices refresh daily at midnight in Regina. Prices are in CAD.
             </p>
           </div>
 
@@ -349,6 +361,21 @@ export default function TradeExplore() {
             </p>
           </div>
         </header>
+
+        {watchlistError && <p role="alert" className="mb-4 text-sm text-amber-200">{watchlistError}</p>}
+        <label className="mb-4 flex flex-wrap items-center gap-3 text-sm text-[#C5D1DF]">
+          Stock exchange
+          <select aria-label="Stock exchange" value={exchange} onChange={event => {
+            const code = event.target.value;
+            setExchange(code); setCategory('All'); setSearch('');
+            const next = allAssets.find(asset => code === 'ALL' || marketCode(asset) === code);
+            if (next) selectAsset(next.symbol);
+          }} className="max-w-full rounded-xl border border-[#34404D] bg-[#151B23] px-3 py-3 text-sm">
+            <option value="ALL">All stock exchanges</option>
+            {exchanges.map(market => <option key={market.code} value={market.code}>{market.code} · {market.name}</option>)}
+          </select>
+        </label>
+        {exchange === 'NASDAQ' && <p className="mb-4 text-xs text-[#A6B8CF]">☾ Nasdaq also offers simulated night trading, 8 p.m.–4 a.m. Eastern before eligible trading days.</p>}
 
         <div className="mb-5 rounded-2xl border border-[#303946] bg-[#111720] p-3">
           <div className="flex items-center gap-3">
@@ -444,7 +471,8 @@ export default function TradeExplore() {
                       <p className="mt-1 truncate text-xs text-[#A2ADBA]">
                         {asset.name}
                       </p></div></div>
-                      <p className="mt-3 text-sm font-semibold text-[#E0E8F1]">{formatMoney(asset.price, asset.currency)}<span className="ml-2 text-[10px] font-normal text-[#8795A5]">Simulated price</span></p>
+                      <p className="mt-2 text-[10px] uppercase tracking-wider text-[#A3B7CC]">{marketCode(asset)} · {asset.exchange || marketCode(asset)}</p>
+                      <p className="mt-3 text-sm font-semibold text-[#E0E8F1]">{listed ? formatMoney(asset.price, asset.currency) : "—"}<span className="ml-2 text-[10px] font-normal text-[#8795A5]">Simulated price</span></p>
                       <p className="mt-2 text-[10px] text-[#8795A5]">
                         {categoryOf(asset)} · {asset.exchange || asset.currency}
                         {!listed ? " · Preview" : " · Simulated"}
@@ -461,10 +489,8 @@ export default function TradeExplore() {
                         : `Add ${asset.symbol} to watchlist`
                     }
                     aria-pressed={starred.includes(asset.symbol.toUpperCase())}
-                    onClick={() => {
-                      const next = toggleWatchlist(asset.symbol);
-                      setStarred(next);
-                    }}
+                    disabled={watchlistLoading || watchlistSaving}
+                    onClick={() => void setWatched(asset.symbol, !starred.includes(asset.symbol.toUpperCase()))}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-[#455262] bg-[#222C38] p-2 text-[#D8E0EA] hover:bg-[#344356]"
                   >
                     <Star
@@ -491,6 +517,7 @@ export default function TradeExplore() {
           </section>
 
           <aside className="min-w-0 space-y-5">
+            {!selected ? <section className="rounded-3xl border border-[#3B4654] bg-[#151B23] p-6 text-sm text-[#B3BECC]">Select an investment to explore it. Star an asset to save it to your watchlist.</section> : <>
             <section className="rounded-3xl border border-[#3B4654] bg-gradient-to-b from-[#222C38] to-[#10151C] p-5 sm:p-6">
               <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#A5B3C3]">
                 Asset Overview
@@ -502,6 +529,7 @@ export default function TradeExplore() {
                   <p className="mt-2 text-sm text-[#B6C1CE]">
                     {current.name}
                   </p>
+                  <p className="mt-2 text-xs text-[#91A9BF]">Stock exchange: {marketCode(current)}</p>
                 </div>
                 <span className="rounded-lg border border-[#526071] px-2 py-1 text-[10px]">
                   {categoryOf(current)}
@@ -514,12 +542,12 @@ export default function TradeExplore() {
                     Simulation Price
                   </p>
                   <p className="mt-2 text-lg font-semibold">
-                    {formatMoney(current.price, current.currency)}
+                    {isBackendListed ? formatMoney(current.price, current.currency) : "—"}
                   </p>
                 </div>
                 <div className="rounded-xl bg-[#151C25] p-4">
                   <p className="text-[10px] uppercase tracking-wider text-[#8492A2]">
-                    Shares Owned
+                    {current.type === 'CRYPTO' ? 'Units Owned' : 'Shares Owned'}
                   </p>
                   <p className="mt-2 text-lg font-semibold">
                     {portfolio ? (owned?.quantity ?? "0") : "—"}
@@ -536,15 +564,7 @@ export default function TradeExplore() {
                 </p>
               </div>
 
-              <div className="mt-4 rounded-xl border border-dashed border-[#455262] p-5 text-center">
-                <p className="text-xs font-semibold text-[#C0CBD8]">
-                  Historical Price Chart
-                </p>
-                <p className="mt-2 text-xs leading-5 text-[#8795A5]">
-                  Chart data isn't supplied by the current asset-list API.
-                  No fabricated price history is displayed.
-                </p>
-              </div>
+              <StockPriceHistory key={selected} symbol={selected} />
 
               {portfolioError && (
                 <p className="mt-4 text-xs text-[#F0C89D]">
@@ -560,6 +580,8 @@ export default function TradeExplore() {
                   Simulated Trading
                 </span>
               </div>
+
+              <div className="mb-4"><AccountSelector label="Place order in" disabled={trade.submitting} onSelecting={setPendingAccountId} /></div>
 
               <div className="mb-4 grid grid-cols-2 gap-2">
                 {(["BUY", "SELL"] as const).map(direction => (
@@ -580,13 +602,13 @@ export default function TradeExplore() {
               </div>
 
               <label className="mb-2 block text-xs text-[#AAB6C5]">
-                Quantity (whole shares)
+                {current.type === 'CRYPTO' ? 'Quantity (crypto units)' : 'Quantity (whole shares)'}
               </label>
               <input
                 type="number"
-                min="1"
+                min={current.type === 'CRYPTO' ? '0.00000001' : '1'}
                 max="1000000"
-                step="1"
+                step={current.type === 'CRYPTO' ? '0.00000001' : '1'}
                 value={trade.quantity}
                 onChange={event => trade.setQuantity(event.target.value)}
                 className="mb-4 w-full rounded-xl border border-[#3D4A59] bg-[#0E141C] px-4 py-3 text-base text-white outline-none focus:border-[#A7B8CB]"
@@ -599,16 +621,22 @@ export default function TradeExplore() {
 
               {!isBackendListed && (
                 <p className="mb-4 text-xs leading-5 text-[#D5B58F]">
-                  New assets start at a simulated price of CA$100 per share.
+                  Load the current simulated price before placing an order.
                   Selling requires an existing position.
                 </p>
               )}
 
+              {portfolio?.management_mode && portfolio.management_mode !== 'SELF_DIRECTED' && <p className="mb-4 text-xs text-amber-200">Select a self-directed account to place trades.</p>}
+              {portfolio?.account_type === 'CRYPTO' && current.type !== 'CRYPTO' && <p className="mb-4 text-xs text-amber-200">Your Crypto account supports cryptocurrencies only.</p>}
               {!isSupportedType && (
                 <p className="mb-4 text-xs text-[#D5B58F]">
-                  Crypto trading is not enabled in this version.
+                  Trading is unavailable for this asset type.
                 </p>
               )}
+
+              <p role="status" className="mb-4 text-xs leading-5 text-[#B6C1CE]">
+                {statusError || marketStatus?.message || 'Checking market hours…'}
+              </p>
 
               {trade.error && (
                 <p role="alert" className="mb-4 rounded-xl bg-[#3B2025] p-3 text-xs text-[#FFBEC6]">
@@ -625,7 +653,7 @@ export default function TradeExplore() {
               <button
                 type="button"
                 disabled={!canSubmit}
-                onClick={() => { void trade.submitTrade(); }}
+                onClick={() => { void trade.submitTrade(current.type, portfolio?.account_id); }}
                 className="rw-fintech-primary w-full rounded-xl bg-[#D7DEE7] py-3.5 text-sm font-bold text-[#10151B] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {trade.submitting
@@ -633,10 +661,9 @@ export default function TradeExplore() {
                   : `${trade.direction === "BUY" ? "Buy" : "Sell"} ${current.symbol}`}
               </button>
 
-              <p className="mt-4 text-center text-[11px] leading-5 text-[#8795A5]">
-                Prices and trades are simulated in CAD. New stocks start at CA$100 per share; existing stored prices are retained. No real securities are purchased.
-              </p>
+              <MarketCountdown key={selected} status={marketStatus} error={statusError} />
             </section>
+            </>}
           </aside>
         </div>
       </div>

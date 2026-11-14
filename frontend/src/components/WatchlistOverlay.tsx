@@ -2,44 +2,13 @@ import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Plus, RefreshCw, Search, Star, Trash2, X } from "lucide-react";
 import AssetLogo from "./AssetLogo";
-import { getWatchlist, saveWatchlist, toggleWatchlist } from "../utils/watchlist";
+import { useWatchlist } from "../hooks/useWatchlist";
 
-type Quote = {
-  symbol: string;
-  price: number;
-  currency: string;
-  provider: string;
-  as_of: string | number | null;
-  price_type: string;
-};
-
-type HistoryPoint = {
-  date: string;
-  close: number;
-};
-
-type StockData = {
-  quote?: Quote;
-  change?: number;
-  percent?: number;
-  referenceDate?: string;
-  error?: string;
-};
-
-function money(value: number, currency = "USD") {
-  try {
-    return new Intl.NumberFormat("en-CA", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 2
-    }).format(value);
-  } catch {
-    return value.toFixed(2);
-  }
-}
+import { useWatchlistQuotes } from "../hooks/useWatchlistQuotes";
+import { watchlistMoney as money } from "../utils/watchlistQuote";
 
 function asOf(value: string | number | null) {
-  if (!value) return "Time unavailable";
+  if (!value) return "—";
   const date = typeof value === "number"
     ? new Date(value * 1000)
     : new Date(value);
@@ -59,7 +28,7 @@ export default function WatchlistOverlay() {
   const [open, setOpen] = useState(
     () => window.location.pathname === "/demo/customer" || window.location.hash === "#watchlist"
   );
-  const [symbols, setSymbols] = useState(getWatchlist);
+  const { symbols, loading: watchlistLoading, saving, error: watchlistError, setWatched } = useWatchlist();
   const [input, setInput] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<
@@ -67,9 +36,7 @@ export default function WatchlistOverlay() {
   >([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<Record<string, StockData>>({});
-  const [loading, setLoading] = useState(false);
-  const [refresh, setRefresh] = useState(0);
+  const { data, loading, refresh } = useWatchlistQuotes(symbols, open);
   const [adding, setAdding] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -169,104 +136,6 @@ export default function WatchlistOverlay() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  useEffect(() => {
-    saveWatchlist(symbols);
-  }, [symbols]);
-
-  useEffect(() => {
-    const sync = () => setSymbols(getWatchlist());
-    window.addEventListener("russellwealth:watchlist-updated", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("russellwealth:watchlist-updated", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!open || symbols.length === 0) return;
-
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function load() {
-      setLoading(true);
-
-      const entries = await Promise.all(
-        symbols.map(async (symbol): Promise<[string, StockData]> => {
-          try {
-            const encoded = encodeURIComponent(symbol);
-            const [qr, hr] = await Promise.all([
-              customerFetch(`/api/market/quote?symbol=${encoded}`, {
-                signal: controller.signal
-              }),
-              customerFetch(`/api/market/history?symbol=${encoded}`, {
-                signal: controller.signal
-              })
-            ]);
-
-            if (!qr.ok) throw new Error("Quote unavailable");
-
-            const quote = await qr.json() as Quote;
-            const result: StockData = { quote };
-
-            if (hr.ok) {
-              const payload = await hr.json() as {
-                history?: HistoryPoint[];
-              };
-
-              const points = (payload.history ?? [])
-                .filter(p => Number.isFinite(Number(p.close)) && !!p.date)
-                .sort((a, b) => a.date.localeCompare(b.date));
-
-              if (points.length >= 2) {
-                const previous = Number(points[points.length - 2].close);
-                const latest = Number(points[points.length - 1].close);
-                const quotePrice = Number(quote.price);
-
-                // Only use the quote for the movement calculation
-                // when its date matches the latest history date.
-                const latestDate = points[points.length - 1].date.slice(0, 10);
-                const quoteDate = quote.as_of
-                  ? (typeof quote.as_of === "number"
-                      ? new Date(quote.as_of * 1000).toISOString()
-                      : String(quote.as_of)).slice(0, 10)
-                  : "";
-
-                const comparison = quoteDate === latestDate &&
-                  Number.isFinite(quotePrice)
-                  ? quotePrice
-                  : latest;
-
-                if (previous > 0) {
-                  result.change = comparison - previous;
-                  result.percent = (result.change / previous) * 100;
-                  result.referenceDate = latestDate;
-                }
-              }
-            }
-
-            return [symbol, result];
-          } catch {
-            return [symbol, { error: "Market data unavailable" }];
-          }
-        })
-      );
-
-      if (!cancelled) {
-        setData(Object.fromEntries(entries));
-        setLoading(false);
-      }
-    }
-
-    void load();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [open, symbols, refresh]);
-
   async function addStock() {
     const symbol = input.trim().toUpperCase();
 
@@ -275,7 +144,7 @@ export default function WatchlistOverlay() {
       return;
     }
 
-    if (getWatchlist().includes(symbol)) {
+    if (symbols.includes(symbol)) {
       setMessage("This stock is already on your watchlist.");
       return;
     }
@@ -284,16 +153,7 @@ export default function WatchlistOverlay() {
     setMessage("");
 
     try {
-      const response = await customerFetch(
-        `/api/market/quote?symbol=${encodeURIComponent(symbol)}`
-      );
-
-      if (!response.ok) throw new Error();
-
-      const quote = await response.json() as Quote;
-      if (!Number.isFinite(Number(quote.price))) throw new Error();
-
-      setSymbols(current => [...current, symbol]);
+      if (!await setWatched(symbol, true)) return;
       setInput("");
       setMessage(`${symbol} added to your watchlist.`);
     } catch {
@@ -303,9 +163,8 @@ export default function WatchlistOverlay() {
     }
   }
 
-  function removeStock(symbol: string) {
-    setSymbols(current => current.filter(s => s !== symbol));
-    setMessage(`${symbol} removed.`);
+  async function removeStock(symbol: string) {
+    if (await setWatched(symbol, false)) setMessage(`${symbol} removed.`);
   }
 
   function openMarket(symbol: string) {
@@ -435,9 +294,9 @@ export default function WatchlistOverlay() {
                               : `Add ${symbol} to watchlist`
                           }
                           aria-pressed={watched}
-                          onClick={() => {
-                            const next = toggleWatchlist(symbol);
-                            setSymbols(next);
+                          disabled={saving || watchlistLoading}
+                          onClick={async () => {
+                            if (!await setWatched(symbol, !watched)) return;
                             setMessage(
                               watched
                                 ? `${symbol} removed from watchlist.`
@@ -479,7 +338,7 @@ export default function WatchlistOverlay() {
             <h2 className="font-['Lora'] text-xl">Watched Assets</h2>
             <button
               type="button"
-              onClick={() => setRefresh(v => v + 1)}
+              onClick={refresh}
               disabled={loading}
               className="flex items-center gap-2 text-xs text-[#B8C6D5] hover:text-white disabled:opacity-50"
             >
@@ -488,7 +347,7 @@ export default function WatchlistOverlay() {
             </button>
           </div>
 
-          {symbols.length === 0 ? (
+          {watchlistLoading ? <p className="p-6 text-sm text-[#91A1B4]">Loading your saved watchlist…</p> : symbols.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <p className="font-['Lora'] text-2xl">
                 Your watchlist is empty
@@ -538,10 +397,10 @@ export default function WatchlistOverlay() {
                           ? money(Number(quote.price), quote.currency)
                           : loading
                             ? "Loading..."
-                            : "Unavailable"}
+                            : "—"}
                       </p>
                       <p className="mt-1 text-[11px] text-[#91A1B4]">
-                        {quote?.currency ?? ""}
+                        {stock?.error ? "Refresh failed" : quote?.currency ?? ""}
                       </p>
                     </div>
 
@@ -556,8 +415,8 @@ export default function WatchlistOverlay() {
                               : negative
                                 ? <ArrowDownRight size={17} />
                                 : null}
-                            {change > 0 ? "+" : ""}
-                            {change.toFixed(2)}
+                            {change > 0 ? "+" : change < 0 ? "−" : ""}
+                            {money(Math.abs(change), quote?.currency)}
                           </div>
                           <p className="mt-1 text-xs">
                             {percent > 0 ? "+" : ""}
@@ -565,13 +424,13 @@ export default function WatchlistOverlay() {
                           </p>
                         </>
                       ) : (
-                        <p className="text-xs">Change unavailable</p>
+                        <p className="text-xs">—</p>
                       )}
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => removeStock(symbol)}
+                      disabled={saving} onClick={() => void removeStock(symbol)}
                       aria-label={`Remove ${symbol} from watchlist`}
                       className="rw-watchlist-remove rounded-lg p-2 text-[#91A1B4] hover:bg-[#303039] hover:text-[#F19A9A]"
                     >
@@ -581,7 +440,7 @@ export default function WatchlistOverlay() {
                     <p className="rw-watchlist-quote w-full text-right text-[10px] text-[#738599]">
                       {quote
                         ? `Quote: ${asOf(quote.as_of)} · ${quote.price_type.replaceAll("_", " ")}`
-                        : stock?.error ?? ""}
+                        : ""}
                       {stock?.referenceDate
                         ? ` · Comparison date: ${stock.referenceDate}`
                         : ""}
@@ -593,10 +452,11 @@ export default function WatchlistOverlay() {
           )}
         </div>
 
+        {watchlistError && <p role="alert" className="mt-4 text-sm text-amber-200">{watchlistError}</p>}
         <p className="mt-5 text-xs text-[#738599]">
-          Market data may be delayed. Daily changes use available historical
-          closing prices and may not reflect the current trading session.
-          Watchlist selections are saved in this browser.
+          Simulated prices match Trade and refresh automatically. Daily changes compare
+          today’s price with the previous calendar day in Regina.
+          Watchlist selections are saved to your account and shared across your devices.
         </p>
       </div>
       </div>

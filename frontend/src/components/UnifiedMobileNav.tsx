@@ -1,34 +1,11 @@
+import { useAccountProfile } from "../hooks/useAccountProfile";
 import { useEffect, useState } from "react";
-import type { MouseEvent, ReactNode } from "react";
-import { Network, UsersRound } from "lucide-react";
+import type { MouseEvent } from "react";
+import { customerNavigation, securityNavigation, customerSettings, adminSettings, supportNavigation, type NavigationItem } from "../content/navigationContent";
 import { logout } from "../auth";
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: ReactNode;
-  action?: "Alerts" | "Logs";
-};
-
-const customerItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: "▦" },
-  { label: "Portfolio", href: "/portfolio", icon: "◉" },
-  { label: "Trade & Explore", href: "/markets", icon: "⌁" },
-  { label: "Watchlist", href: "/dashboard#watchlist", icon: "☆" },
-  { label: "Transactions", href: "/transactions", icon: "⇄" },
-  { label: "Add Funds", href: "/deposit", icon: "＋" },
-  { label: "Settings", href: "/customer/settings", icon: "⚙" },
-];
-
-const securityItems: NavItem[] = [
-  { label: "SOC Dashboard", href: "/security", icon: "▦" },
-  { label: "Alerts", href: "/security", icon: "△", action: "Alerts" },
-  { label: "Incidents", href: "/security/incidents", icon: "◈" },
-  { label: "Logs", href: "/security", icon: "≡", action: "Logs" },
-  { label: "Network", href: "/security/network", icon: <Network size={19} aria-hidden="true" /> },
-  { label: "Access", href: "/security/access", icon: <UsersRound size={19} aria-hidden="true" /> },
-  { label: "Admin Settings", href: "/admin/settings", icon: "⚙" },
-];
+const customerItems = [...customerNavigation, customerSettings];
+const securityItems = [...securityNavigation, adminSettings];
 
 export default function UnifiedMobileNav({
   security = false,
@@ -37,6 +14,7 @@ export default function UnifiedMobileNav({
   security?: boolean;
   settingsPlacement?: boolean;
 }) {
+  const { profileName, profilePhoto, initials } = useAccountProfile();
   const [open, setOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [current, setCurrent] = useState(
@@ -120,7 +98,7 @@ export default function UnifiedMobileNav({
     }
   };
 
-  const handleAction = (item: NavItem) => {
+  const handleAction = (item: NavigationItem) => {
     if (!item.action) return;
 
     if (window.location.pathname !== "/security") {
@@ -201,6 +179,12 @@ export default function UnifiedMobileNav({
               </button>
             </header>
 
+            <div className="flex items-center gap-3 px-5 py-3">
+              <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#252a31] text-sm">
+                {profilePhoto ? <img src={profilePhoto} alt={profileName || 'Profile'} className="size-full object-cover" /> : initials}
+              </div>
+              <span className="text-sm text-[#e7edf4]">{profileName || 'Account'}</span>
+            </div>
             <div className="rw-mobile-fullnav-divider" />
 
             <p className="rw-mobile-fullnav-section">
@@ -233,7 +217,7 @@ export default function UnifiedMobileNav({
                     }}
                   >
                     <span className="rw-mobile-fullnav-icon">
-                      {item.icon}
+                      {item.icon.endsWith(".svg") ? <img src={`/assets/${item.icon}`} alt="" className="size-[20px]" /> : item.icon}
                     </span>
                     <span>{item.label}</span>
                     <span className="rw-mobile-fullnav-arrow">›</span>
@@ -244,11 +228,11 @@ export default function UnifiedMobileNav({
 
             {!security && (
               <a
-                href="/help"
+                href={supportNavigation[0].href}
                 className="rw-mobile-fullnav-help"
-                onClick={event => navigate(event, "/help")}
+                onClick={event => navigate(event, supportNavigation[0].href)}
               >
-                Help & Support <span>›</span>
+                {supportNavigation[0].label} <span>›</span>
               </a>
             )}
 

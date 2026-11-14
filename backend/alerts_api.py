@@ -1,5 +1,6 @@
 """SOC-only alert review; retains evidence after resolution."""
 import json
+from access_api import creation_timestamp
 from flask import Blueprint, jsonify, request, session
 from authorization import role_required
 from database import get_db_connection
@@ -13,6 +14,8 @@ def serialize(row):
                  user_id=alert.get('user_id'), event_type=alert['alert_type'],
                  details=alert['description'],
                  status='RESOLVED' if alert['status'] == 'DISMISSED' else alert['review_state'])
+    alert['created_at'] = creation_timestamp(alert.get('created_at'))
+    alert['dismissed_at'] = creation_timestamp(alert.get('dismissed_at'))
     alert['evidence'] = json.loads(alert.pop('evidence_json') or '[]')
     alert.pop('dedupe_key', None)
     return alert
@@ -37,14 +40,28 @@ def alerts():
     if severity:
         clauses.append('a.severity=?'); params.append(severity)
     if state:
-        if state not in ('NEW', 'UNDER_REVIEW', 'RESOLVED'):
+        if state not in ('ACTIVE','NEW', 'UNDER_REVIEW', 'RESOLVED'):
             return jsonify(success=False, error='Invalid status'), 400
-        clauses.append("a.status='DISMISSED'" if state == 'RESOLVED' else "a.status='ACTIVE' AND a.review_state=?")
-        if state != 'RESOLVED': params.append(state)
+        clauses.append("a.status='DISMISSED'" if state == 'RESOLVED' else "a.status='ACTIVE'" if state == 'ACTIVE' else "a.status='ACTIVE' AND a.review_state=?")
+        if state not in ('ACTIVE','RESOLVED'): params.append(state)
+    alert_id = request.args.get('alert', '')
+    if alert_id:
+        try:
+            alert_id = int(alert_id)
+            if alert_id <= 0: raise ValueError()
+        except ValueError:
+            return jsonify(success=False, error='Invalid alert'), 400
+        clauses.append('a.id=?'); params.append(alert_id)
+    search = request.args.get('search', '').strip()[:128]
+    if search:
+        from security_search_api import contains
+        match, values = contains(['a.title','a.description','a.source_ip','a.account_email','a.alert_type','u.name','u.email'], search)
+        clauses.append(match); params.extend(values)
     where = ' WHERE ' + ' AND '.join(clauses) if clauses else ''
     db = get_db_connection()
     try:
-        total = db.execute('SELECT COUNT(*) AS n FROM security_alerts a' + where, params).fetchone()['n']
+        read_snapshot(db)
+        total = db.execute('SELECT COUNT(*) AS n ' + SELECT[SELECT.index('FROM '):] + where, params).fetchone()['n']
         active = db.execute("SELECT COUNT(*) AS n FROM security_alerts WHERE status='ACTIVE'").fetchone()['n']
         rows = db.execute(SELECT + where + ' ORDER BY a.id DESC LIMIT ? OFFSET ?',
                           params + [size, (page-1)*size]).fetchall()
@@ -56,18 +73,28 @@ def alerts():
         db.close()
 
 
+def read_snapshot(db):
+    db.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY' if hasattr(db,'connection') else 'BEGIN')
+
+
 @alerts_bp.get('/api/security/active-alerts')
 @role_required('SOC_ADMIN')
 def active_alerts():
-    db = get_db_connection()
+    severity=request.args.get('severity','').strip().upper()
+    if severity and severity not in ('INFO','LOW','MEDIUM','WARNING','HIGH','CRITICAL'):
+        return jsonify(success=False,error='Choose a valid severity'),400
+    db=get_db_connection()
     try:
-        count = db.execute("SELECT COUNT(*) AS n FROM security_alerts WHERE status='ACTIVE'").fetchone()['n']
-        rows = db.execute(SELECT + " WHERE a.status='ACTIVE' ORDER BY a.id DESC LIMIT 100").fetchall()
-        response = jsonify(success=True, count=count, alerts=[serialize(r) for r in rows])
-        response.headers['Cache-Control'] = 'no-store'
+        read_snapshot(db)
+        count=db.execute("SELECT COUNT(*) AS n FROM security_alerts WHERE status='ACTIVE'").fetchone()['n']
+        condition=" WHERE a.status='ACTIVE'" + (' AND a.severity=?' if severity else '')
+        params=[severity] if severity else []
+        filtered=db.execute('SELECT COUNT(*) AS n FROM security_alerts a'+condition,params).fetchone()['n']
+        rows=db.execute(SELECT+condition+' ORDER BY a.created_at DESC,a.id DESC LIMIT 100',params).fetchall()
+        response=jsonify(success=True,count=count,filtered_count=filtered,alerts=[serialize(row) for row in rows])
+        response.headers['Cache-Control']='private, no-store'
         return response
-    finally:
-        db.close()
+    finally:db.close()
 
 
 @alerts_bp.patch('/api/security/alerts/<int:alert_id>')

@@ -1,3 +1,4 @@
+import { notifyPortfolioUpdated } from "../utils/portfolioSync";
 import { useCustomerFetch } from "../demo/customerDemo";
 import { useState } from 'react';
 
@@ -12,12 +13,14 @@ export function useTrading() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  async function submitTrade() {
+  async function submitTrade(assetType = 'STOCK', accountId?: number) {
     setMessage('');
     setError('');
 
-    if (!/^[1-9]\d*$/.test(quantity) || Number(quantity) > 1000000) {
-      setError('Enter a valid whole-share quantity.');
+    const crypto = assetType === 'CRYPTO';
+    const valid = crypto ? /^(?:\d+(?:\.\d{1,8})?|\.\d{1,8})$/.test(quantity) : /^[1-9]\d*$/.test(quantity);
+    if (!valid || Number(quantity) <= 0 || Number(quantity) > 1000000) {
+      setError(crypto ? 'Enter a positive crypto quantity with up to 8 decimal places.' : 'Enter a valid whole-share quantity.');
       return;
     }
 
@@ -29,6 +32,7 @@ export function useTrading() {
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          account_id: accountId,
           action: direction,
           symbol,
           quantity,
@@ -48,10 +52,10 @@ export function useTrading() {
       }
 
       setMessage(
-        `${direction === 'BUY' ? 'Bought' : 'Sold'} ${quantity} ${symbol} shares successfully.`
+        `${direction === 'BUY' ? 'Bought' : 'Sold'} ${quantity} ${symbol} ${crypto ? 'units' : 'shares'} successfully.`
       );
 
-      window.dispatchEvent(new Event('portfolio-updated'));
+      notifyPortfolioUpdated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Trade failed');
     } finally {

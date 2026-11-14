@@ -1,5 +1,7 @@
+import { notifyProfileUpdated } from "../hooks/useAccountProfile";
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { ShieldLock } from 'lucide-react';
 import { logout } from '../auth';
 
 type Account = {
@@ -10,7 +12,7 @@ type Account = {
   role?: string;
 };
 
-const emptyProfile = { first_name: '', last_name: '', email: '', phone: '', address_line1: '', address_line2: '', city: '', region: '', postal_code: '', country: '' };
+const emptyProfile = { password_hint: '', first_name: '', last_name: '', email: '', phone: '', address_line1: '', address_line2: '', city: '', region: '', postal_code: '', country: '' };
 type Profile = typeof emptyProfile;
 
 const features = [
@@ -60,6 +62,12 @@ async function readProfileResponse(response: Response) {
 }
 
 export default function CustomerSettings() {
+  const [adminNotice, setAdminNotice] = useState(false);
+  const adminDialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (adminNotice) adminDialog.current?.showModal();
+    else adminDialog.current?.close();
+  }, [adminNotice]);
   const [account, setAccount] = useState<Account | null>(null);
   const [uploading, setUploading] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -153,8 +161,7 @@ export default function CustomerSettings() {
       setProfile(updated); setSavedProfile(updated); setCurrentPassword('');
       setAccount(previous => ({...previous, name:data.name, email:data.email}));
       setProfileMessage(data.email !== account?.email ? 'Profile saved. Use your new email address to sign in.' : 'Your profile has been updated.');
-      window.dispatchEvent(new Event('rw-profile-updated'));
-      try { localStorage.setItem('rw-profile-sync', String(Date.now())); } catch { /* Profile save still succeeds if browser storage is unavailable. */ }
+      notifyProfileUpdated();
     } catch (error) {setProfileError(error instanceof Error ? error.message : 'Unable to save profile.');}
     finally {setSavingProfile(false);}
   }
@@ -211,7 +218,7 @@ export default function CustomerSettings() {
         : previous
       );
 
-      window.dispatchEvent(new Event("rw-profile-updated"));
+      notifyProfileUpdated();
     } catch (error) {
       setPhotoError(
         error instanceof Error ? error.message : "Photo upload failed."
@@ -243,7 +250,7 @@ export default function CustomerSettings() {
         : previous
       );
 
-      window.dispatchEvent(new Event("rw-profile-updated"));
+      notifyProfileUpdated();
     } catch (error) {
       setPhotoError(
         error instanceof Error ? error.message : "Could not remove photo."
@@ -382,6 +389,7 @@ export default function CustomerSettings() {
                   <label className="block text-sm text-[#a8b6ad]">Login email<input required type="email" maxLength={254} autoComplete="email" value={profile.email} onChange={event=>setProfile(previous=>({...previous,email:event.target.value}))} className="rw-profile-input"/></label>
                   <p className="text-xs leading-5 text-[#91a498]">Changing this address updates the email you use to sign in and reset your password.</p>
                   {profile.email.trim().toLowerCase() !== savedProfile.email.toLowerCase() && <label className="block text-sm text-[#a8b6ad]">Current password<input required type="password" autoComplete="current-password" maxLength={128} value={currentPassword} onChange={event=>setCurrentPassword(event.target.value)} className="rw-profile-input"/><span className="mt-2 block text-xs text-[#91a498]">Confirm your password to change your login email. Other sessions will be signed out.</span></label>}
+                  <label className="block text-sm text-[#a8b6ad]">Password hint (optional)<input maxLength={200} autoComplete="off" value={profile.password_hint} onChange={event=>setProfile(previous=>({...previous,password_hint:event.target.value}))} className="rw-profile-input"/><span className="mt-2 block text-xs">This reminder appears on sign-in after entering your email. Do not enter your password. Leave blank to remove it.</span></label>
                   <label className="block text-sm text-[#a8b6ad]">Phone number (optional)<input type="tel" maxLength={40} autoComplete="tel" value={profile.phone} onChange={event=>setProfile(previous=>({...previous,phone:event.target.value}))} className="rw-profile-input"/></label>
                 </fieldset>
                 <fieldset><legend className="mb-4 text-lg font-medium">Mailing address (optional)</legend><div className="grid gap-4 sm:grid-cols-2">
@@ -492,12 +500,10 @@ export default function CustomerSettings() {
               </p>
             </a>
           ) : (
-            <div className="rounded-xl border border-[#30343b] bg-[#14171c] p-5">
+            <button type="button" onClick={() => setAdminNotice(true)} className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left transition hover:border-[#777e89]">
               <h3 className="text-[14px] font-semibold">Security Dashboard</h3>
-              <p className="text-[#8c929c] text-[12px] mt-2">
-                Requires SOC Administrator authentication.
-              </p>
-            </div>
+              <p className="text-[#8c929c] text-[12px] mt-2">Learn about access to security operations.</p>
+            </button>
           )}
         </div>
 
@@ -514,6 +520,12 @@ export default function CustomerSettings() {
           </button>
         </div>
       </main>
+      <dialog ref={adminDialog} aria-labelledby="admin-only-title" onCancel={() => setAdminNotice(false)} onClose={() => setAdminNotice(false)} className="m-auto w-[calc(100%_-_40px)] max-w-md rounded-2xl border border-[#465364] bg-[#141b25] p-7 text-[#f5f5f5] shadow-2xl backdrop:bg-black/75">
+        <div className="mb-5 flex size-12 items-center justify-center rounded-xl border border-[#526780] bg-[#243247] text-[#c5d6ed]"><ShieldLock size={25}/></div>
+        <h2 id="admin-only-title" className="text-xl font-semibold">For Russell Wealth admins only</h2>
+        <p className="mt-4 text-sm leading-6 text-[#b4bfce]">This feature is for Russell Wealth admins only. If you want access to this feature, please contact the site administrator.</p>
+        <button type="button" onClick={() => setAdminNotice(false)} className="mt-6 w-full rounded-xl border border-[#647e9e] bg-[#2a3b51] px-4 py-3 text-sm font-medium hover:bg-[#344b68]">Got it</button>
+      </dialog>
     </div>
   );
 }

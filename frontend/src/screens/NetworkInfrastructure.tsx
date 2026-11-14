@@ -30,6 +30,7 @@ const serviceDetails: Record<string, { description: string; url: string }> = {
 };
 
 export default function NetworkInfrastructure() {
+  const selectedService = new URLSearchParams(window.location.search).get("service");
   const [data, setData] = useState<InfrastructureResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -121,7 +122,7 @@ export default function NetworkInfrastructure() {
               status === "degraded" ? "text-[#f6c86b]" : "text-[#8c929c]";
 
             return (
-              <article key={name} className="rounded-2xl border border-[#30343b] bg-[#14171c] p-6">
+              <article key={name} className={`rounded-2xl border bg-[#14171c] p-6 ${selectedService === name ? "border-[#8eafd9] ring-2 ring-[#8eafd9]" : "border-[#30343b]"}`}>
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-xl font-semibold">{name}</h2>
                   <span className={`text-xs font-semibold uppercase ${statusColor}`}>

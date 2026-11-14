@@ -4,7 +4,7 @@ import { ShieldCheck, Search, Users, RefreshCw, X, CalendarDays } from 'lucide-r
 type Account = {
   id: number; name: string; email: string; role: 'CUSTOMER' | 'SOC_ADMIN';
   account_status: string; created_at: string | null;
-  source: string; source_label: string; manageable: boolean; is_self: boolean; access_role: 'CUSTOMER' | 'SOC_ADMIN' | 'BOTH';
+  source: string; source_label: string; manageable: boolean; is_owner?: boolean; is_self: boolean; access_role: 'CUSTOMER' | 'SOC_ADMIN' | 'BOTH';
 };
 type DirectorySource = { key: string; label: string; status: 'connected' | 'unavailable'; count: number | null; manageable: boolean; primary: boolean };
 type Action = { user: Account; kind: 'role' | 'status' | 'delete'; value?: string };
@@ -18,7 +18,7 @@ export default function AccessManagement() {
   const [updatedAt, setUpdatedAt] = useState<Date>();
   const [refreshing, setRefreshing] = useState(false);
   const inFlight = useRef(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,7 +51,7 @@ export default function AccessManagement() {
     setRefreshing(true);
     try {
       const response = await fetch('/api/security/users', { credentials: 'same-origin', cache: 'no-store', signal });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({ error: 'The server could not complete the request. Please try again.' }));
       if (!response.ok) throw new Error(data.error || 'Unable to load accounts');
       if (signal?.aborted) return;
       setUsers(data.users);
@@ -94,22 +94,29 @@ export default function AccessManagement() {
     setBusy(true);
     setError('');
     try {
-      const body = action.kind === 'delete' ? { confirm_email: confirmation }
+      const change = action.kind === 'delete' ? {}
         : action.kind === 'role' ? { role: action.value } : { account_status: action.value };
       const response = await fetch(`/api/security/users/${action.user.id}?source=${encodeURIComponent(action.user.source)}`, {
         method: action.kind === 'delete' ? 'DELETE' : 'PATCH',
-        credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...change, current_password: confirmation }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({ error: 'The server could not complete the request. Please try again.' }));
       if (!response.ok) throw new Error(data.error || 'Unable to update account');
       setAction(null);
       setMessage(`${data.message}: ${action.user.email}`);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to update account');
-    } finally { setBusy(false); }
+    } finally { setConfirmation(''); setBusy(false); }
   }
 
+  const openedSearchAccount = useRef(false);
+  useEffect(() => {
+    if (openedSearchAccount.current || !users.length) return;
+    const account = new URLSearchParams(window.location.search).get('account');
+    const match = users.find(user => `${user.source}:${user.id}` === account);
+    if (match) { setSelectedAccount(match); openedSearchAccount.current = true; }
+  }, [users]);
   const filtered = users.filter(user => `${user.name} ${user.email} ${user.access_role} ${user.account_status} ${user.source_label}`.toLowerCase().includes(query.toLowerCase()));
   const details = selectedAccount ? users.find(user => user.source === selectedAccount.source && user.id === selectedAccount.id) ?? selectedAccount : null;
   const created = details?.created_at ? new Date(details.created_at) : null;
@@ -162,29 +169,29 @@ export default function AccessManagement() {
                 <tbody>{filtered.map(user => {
                   const self = user.is_self || (user.id === currentId && user.source === currentSource);
                   const sourceAdmins = users.filter(account => account.source === user.source && account.role === 'SOC_ADMIN' && account.account_status === 'ACTIVE').length;
-                  const protectedAccount = !user.manageable || self || (user.role === 'SOC_ADMIN' && user.account_status === 'ACTIVE' && sourceAdmins <= 1);
+                  const protectedAccount = !user.manageable || user.is_owner || self || (user.role === 'SOC_ADMIN' && user.account_status === 'ACTIVE' && sourceAdmins <= 1);
                   return <tr key={`${user.source}:${user.id}`} tabIndex={0}
                     onClick={event => { if (!(event.target as HTMLElement).closest('button, a, select, input, label')) setSelectedAccount(user); }}
                     onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); setSelectedAccount(user); } }}
                     className={`cursor-pointer border-b border-[#303B47] last:border-0 hover:bg-[#18212C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#91A9BA] ${expandedAccount === `${user.source}:${user.id}` ? 'rw-account-expanded' : ''}`}>
                     <td className="rw-account-toggle-cell" colSpan={6}><button type="button" aria-expanded={expandedAccount === `${user.source}:${user.id}`} onClick={() => setExpandedAccount(previous => previous === `${user.source}:${user.id}` ? null : `${user.source}:${user.id}`)}>{user.name}</button></td>
-                    <td data-label="Account" className="px-5 py-4"><button type="button" aria-label={`View account details for ${user.email} in ${user.source_label}`} onClick={() => setSelectedAccount(user)} className="text-left font-medium text-[#D8EAF8] hover:underline">{user.name}</button>{self && <span className="ml-2 text-xs text-[#91A1B4]">You</span>}<p className="mt-1 text-xs text-[#91A1B4]">Account #{user.id} · View details</p></td>
+                    <td data-label="Account" className="px-5 py-4"><button type="button" aria-label={`View account details for ${user.email} in ${user.source_label}`} onClick={() => setSelectedAccount(user)} className="text-left font-medium text-[#D8EAF8] hover:underline">{user.name}</button>{self && <span className="ml-2 text-xs text-[#91A1B4]">You</span>}<p className="mt-1 text-xs text-[#91A1B4]">{user.is_owner ? 'ADMIN' : `Account #${user.id}`} · View details</p></td>
                     <td data-label="Email" className="px-5 py-4">{user.email}</td>
                     <td data-label="Database" className="px-5 py-4 text-[#A6BACB]">{user.source_label}</td>
-                    <td data-label="Role" className="px-5 py-4"><select aria-label={`Role for ${user.email} in ${user.source_label}`} className={control} value={user.access_role} disabled={!user.manageable || busy} onChange={event => choose({ user, kind: 'role', value: event.target.value })}>
+                    <td data-label="Role" className="px-5 py-4">{user.is_owner ? <span className="font-semibold text-[#BAD9EF]">ADMIN</span> : <select aria-label={`Role for ${user.email} in ${user.source_label}`} className={control} value={user.access_role} disabled={!user.manageable || user.is_owner || busy} onChange={event => choose({ user, kind: 'role', value: event.target.value })}>
                       <option value="CUSTOMER" disabled={protectedAccount}>Customer</option><option value="SOC_ADMIN" disabled={self}>SOC Administrator</option><option value="BOTH">Customer + SOC Admin</option>
-                    </select></td>
+                    </select>}</td>
                     <td data-label="Status" className="px-5 py-4"><span className={`rounded-full px-3 py-1 text-xs ${user.account_status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-300' : 'bg-amber-950 text-amber-200'}`}>{user.account_status}</span></td>
                     <td data-label="Actions" className="px-5 py-4">{user.manageable ? <div className="flex gap-2">
                       <button disabled={protectedAccount || busy} className={control} onClick={() => choose({ user, kind: 'status', value: user.account_status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' })}>{user.account_status === 'ACTIVE' ? 'Suspend' : 'Reactivate'}</button>
                       <button disabled={protectedAccount || busy} className={`${control} text-red-300`} onClick={() => choose({ user, kind: 'delete' })}>Delete</button>
-                    </div> : <span className="text-xs text-[#91A1B4]">SOC administrator access required in this database</span>}</td>
+                    </div> : <span className="text-xs text-[#91A1B4]">Only ADMIN can change account access</span>}</td>
                   </tr>;
                 })}</tbody>
               </table>
             </div>
             {filtered.length === 0 && <p className="p-6 text-[#91A1B4]">{users.length ? 'No accounts match your search.' : 'No registered accounts.'}</p>}
-            <p className="border-t border-[#303B47] p-4 text-xs text-[#91A1B4]">{filtered.length} of {users.length} account records across {sources.filter(source => source.status === 'connected').length} databases · Matching emails appear once per database. Changes apply to the database shown on each row.  Your own access and the last active SOC administrator are protected. Administrative changes are recorded in security logs.</p>
+            <p className="border-t border-[#303B47] p-4 text-xs text-[#91A1B4]">{filtered.length} of {users.length} account records across {sources.filter(source => source.status === 'connected').length} databases · Matching emails appear once per database. Changes apply to the database shown on each row.  The owner account, your own access and the last active SOC administrator are protected. Only the ADMIN account can make changes, using its own password. Administrative changes are recorded in security logs.</p>
           </>}
         </section>
       </div>
@@ -194,8 +201,8 @@ export default function AccessManagement() {
           <p className="mt-4 text-lg font-medium">{details.name}</p><p className="mt-1 break-words text-sm text-[#A6BACB]">{details.email}</p>
           <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
             <div><dt className="text-[#91A1B4]">Database</dt><dd className="mt-1">{details.source_label}</dd></div>
-            <div><dt className="text-[#91A1B4]">Account ID</dt><dd className="mt-1">#{details.id}</dd></div>
-            <div><dt className="text-[#91A1B4]">Role</dt><dd className="mt-1">{details.access_role === 'BOTH' ? 'Customer + SOC Admin' : details.access_role === 'SOC_ADMIN' ? 'SOC Admin' : 'Customer'}</dd></div>
+            <div><dt className="text-[#91A1B4]">Account ID</dt><dd className="mt-1">{details.is_owner ? "ADMIN" : `#${details.id}`}</dd></div>
+            <div><dt className="text-[#91A1B4]">Role</dt><dd className="mt-1">{details.is_owner ? 'ADMIN' : details.access_role === 'BOTH' ? 'Customer + SOC Admin' : details.access_role === 'SOC_ADMIN' ? 'SOC Admin' : 'Customer'}</dd></div>
             <div><dt className="text-[#91A1B4]">Status</dt><dd className="mt-1">{details.account_status}</dd></div>
           </dl>
           <section className="mt-6 rounded-xl border border-[#34404D] bg-[#18212C] p-4" aria-label="Account creation information">
@@ -216,10 +223,10 @@ export default function AccessManagement() {
           <h2 id="access-confirm-title" className="text-xl font-semibold">{action.kind === 'delete' ? 'Delete account?' : action.kind === 'role' ? 'Change account role?' : action.value === 'SUSPENDED' ? 'Suspend account?' : 'Reactivate account?'}</h2>
           <p className="mt-3 break-words text-sm text-[#A6BACB]">{action.user.name} · {action.user.email} · {action.user.source_label}</p>
           <p className="mt-4 text-sm text-[#A6BACB]">{action.kind === 'delete' ? 'This permanently deletes the account, its portfolio, holdings and transaction records. Security history is retained. This cannot be undone.' : action.kind === 'role' ? `Set this account to ${action.value === 'BOTH' ? 'Customer + SOC Admin, with its own customer portfolio and access to both dashboards' : action.value === 'SOC_ADMIN' ? 'SOC Administrator, with access to security operations and account administration' : 'Customer, with access to its customer account only'}. The account can sign in using its existing email and password. Role changes apply on its next sign-in.` : action.value === 'SUSPENDED' ? action.user.source === currentSource ? 'Block sign-in and existing sessions until this account is reactivated.' : 'Block new sign-ins until this account is reactivated.' : 'Allow this account to sign in again.'}</p>
-          {action.kind === 'delete' && <label className="mt-5 block text-sm">Type {action.user.email} to confirm<input autoFocus autoComplete="off" value={confirmation} onChange={event => setConfirmation(event.target.value)} className={`${control} mt-2 w-full`} /></label>}
+          {<label className="mt-5 block text-sm">ADMIN account password<input type="password" autoFocus autoComplete="current-password" maxLength={1024} value={confirmation} onChange={event => setConfirmation(event.target.value)} className={`${control} mt-2 w-full`} /></label>}
           {error && <p role="alert" className="mt-4 text-sm text-red-300">{error}</p>}
           <div className="mt-6 flex justify-end gap-3"><button autoFocus={action.kind !== 'delete'} disabled={busy} className={control} onClick={() => setAction(null)}>Cancel</button>
-            <button disabled={busy || (action.kind === 'delete' && confirmation !== action.user.email)} className={`${control} ${action.kind === 'delete' ? 'border-red-700 text-red-300' : 'text-emerald-300'}`} onClick={() => void apply()}>{busy ? 'Saving…' : 'Confirm'}</button></div>
+            <button disabled={busy || !confirmation} className={`${control} ${action.kind === 'delete' ? 'border-red-700 text-red-300' : 'text-emerald-300'}`} onClick={() => void apply()}>{busy ? 'Saving…' : 'Confirm'}</button></div>
         </section>
       </div>}
     </main>

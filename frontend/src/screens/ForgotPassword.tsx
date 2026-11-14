@@ -60,9 +60,9 @@ export default function ForgotPassword() {
         <button type="button" className="text-[#c2edce] underline" onClick={()=>{setStep('request');setError('');}}>Use another email or request a new link</button>
       </div>}
       {step === 'confirm' && <form onSubmit={resetPassword} className="mt-6 space-y-5">
-        <p className="text-sm leading-6 text-[#a8b6ad]">Choose a new password for <span className="break-all">{email}</span>. Use 12–128 characters.</p>
-        <label className="block text-sm">New password<input className={input} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} /></label>
-        <label className="block text-sm">Confirm new password<input className={input} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} /></label>
+        <p className="text-sm leading-6 text-[#a8b6ad]">Choose a new password for <span className="break-all">{email}</span>. Use 7–128 characters.</p>
+        <label className="block text-sm">New password<input className={input} type="password" required minLength={7} maxLength={128} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} /></label>
+        <label className="block text-sm">Confirm new password<input className={input} type="password" required minLength={7} maxLength={128} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} /></label>
         <button className={button} disabled={busy}>{busy ? 'Updating…' : 'Reset password'}</button>
         <button type="button" className="w-full text-sm text-[#a8b6ad] underline" onClick={()=>{setStep('request');setError('');}}>Expired link? Request a new one</button>
       </form>}

@@ -1,4 +1,7 @@
 import { SecurityDemoContext, useSecurityFetch } from "../demo/securityDemo";
+import SocSearch from '../components/SocSearch';
+import { useActiveAlerts } from '../hooks/useActiveAlerts';
+import { severityLabel, statusLabel, formatReginaAlertTime } from '../utils/securityAlerts';
 import AnimatedValue from '../components/ui/AnimatedValue';
 import SecurityInvestigationDrawer from '../components/ui/SecurityInvestigationDrawer';
 import SecurityThreatChart from '../components/charts/SecurityThreatChart';
@@ -24,7 +27,6 @@ const imgShieldAlert = `${assetPathPrefix}/74b18.svg`;
 const imgClipboardCheck = `${assetPathPrefix}/40640.svg`;
 const imgChartNoAxesCombined = `${assetPathPrefix}/5a555.svg`;
 const imgChartNoAxesColumnIncreasing = `${assetPathPrefix}/c92f1.svg`;
-const imgSearch = `${assetPathPrefix}/3f600.svg`;
 const imgNotifications = `${assetPathPrefix}/86790.svg`;
 const imgChevronDown = `${assetPathPrefix}/efa8c.svg`;
 const imgTriangleAlert1 = `${assetPathPrefix}/72350.svg`;
@@ -60,46 +62,13 @@ const imgCloud1 = `${assetPathPrefix}/802a4.svg`;
 const imgEventStatus = `${assetPathPrefix}/e4758.svg`;
 
 
-function formatReginaAlertTime(value: string | null | undefined) {
-  if (!value) return { date: '—', time: '—' };
-
-  const normalized = value.trim().replace(' ', 'T');
-  const iso = /(?:Z|[+-]\\d{2}:?\\d{2})$/i.test(normalized)
-    ? normalized
-    : normalized + 'Z';
-
-  const timestamp = new Date(iso);
-
-  if (Number.isNaN(timestamp.getTime())) {
-    return { date: '—', time: '—' };
-  }
-
-  return {
-    date: new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Regina',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(timestamp),
-
-    time: new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Regina',
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    }).format(timestamp)
-  };
-}
-
 export default function RussellWealthSecurityAnalyticsDashboard() {
   const securityFetch = useSecurityFetch();
   const demo = useContext(SecurityDemoContext);
-  const [showAllAlerts, setShowAllAlerts] = useState(false);
   const [severityFilter, setSeverityFilter] = useState('All');
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
-  const [showSecurityLogs, setShowSecurityLogs] = useState(false);
-  const [showSecurityAlerts, setShowSecurityAlerts] = useState(false);
+  const [showSecurityLogs, setShowSecurityLogs] = useState(() => new URLSearchParams(window.location.search).get("panel") === "logs");
+  const [showSecurityAlerts, setShowSecurityAlerts] = useState(() => new URLSearchParams(window.location.search).get("panel") === "alerts");
 
   useEffect(() => {
     const panel = showSecurityLogs
@@ -176,50 +145,14 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
     };
   }, []);
 
-  const [activeAlertCount, setActiveAlertCount] = useState(0);
-  const [investigationEventId, setInvestigationEventId] = useState<number | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const refreshActiveAlerts = async () => {
-      try {
-        const response = await securityFetch('/api/security/active-alerts', {
-          credentials: 'include',
-          cache: 'no-store'
-        });
-
-        if (!response.ok) return;
-
-        const result = await response.json();
-
-        if (mounted && result.success) {
-          setActiveAlertCount(result.alerts.length);
-        }
-      } catch (error) {
-        console.error('Unable to refresh active alerts:', error);
-      }
-    };
-
-    refreshActiveAlerts();
-
-    const interval = window.setInterval(refreshActiveAlerts, 5000);
-
-    const handleCleared = () => refreshActiveAlerts();
-    window.addEventListener('security-alerts-cleared', handleCleared);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(interval);
-      window.removeEventListener('security-alerts-cleared', handleCleared);
-    };
-  }, []);
-
+  const {count:activeAlertCount,alerts:activeAlerts,filteredCount,loading:alertsLoading,error:alertsError,updatedAt:alertsUpdatedAt}=useActiveAlerts(severityFilter);
+  const [investigationEventId,setInvestigationEventId]=useState<number|null>(null);
 
   const { data: security, error: securityError } = useSecurityOverview();
 
   const metrics = security?.metrics;
-  const monitoringOnline = Boolean(security) && !securityError;
+  const monitoringConnecting = !security && !securityError && alertsLoading && !alertsError;
+  const monitoringOnline = Boolean(security) && !securityError && activeAlertCount!==null && !alertsError;
   const events = security?.recent_events ?? [];
   const investigationEvent = events.find(event => event.id === investigationEventId) ?? null;
   const sources = security?.top_sources ?? [];
@@ -230,10 +163,10 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
       <div
         className="rw-soc-monitoring-status"
         role="status"
-        aria-label={monitoringOnline ? 'Security monitoring connected' : 'Security monitoring unavailable'}
+        aria-label={monitoringConnecting ? 'Connecting to security monitoring' : monitoringOnline ? 'Security monitoring connected' : 'Security monitoring unavailable'}
       >
         <span className={monitoringOnline ? 'rw-monitoring-dot' : 'rw-monitoring-dot offline'} />
-        <span>{window.location.pathname.startsWith('/demo/') ? 'DEMO MONITORING' : monitoringOnline ? 'LIVE MONITORING' : 'MONITORING UNAVAILABLE'}</span>
+        <span>{window.location.pathname.startsWith('/demo/') ? 'DEMO MONITORING' : monitoringConnecting ? 'CONNECTING TO MONITORING' : monitoringOnline ? 'LIVE MONITORING' : 'MONITORING UNAVAILABLE'}</span>
       </div>
       {/* RW_INTERACTIVE_INVESTIGATION */}
       <SecurityInvestigationDrawer
@@ -293,7 +226,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 </p>
                 <div className="bg-[#8f202b] content-stretch flex items-start overflow-clip px-[8px] py-[2px] relative rounded-[20px] shrink-0" data-node-id="15:2937" data-name="Alert count">
                   <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f5f5f5] text-[12px] whitespace-nowrap" data-node-id="15:2938">
-                    {activeAlertCount}
+                    {activeAlertCount ?? '—'}
                   </p>
                 </div>
               </button>
@@ -399,8 +332,8 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
       </div>
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[18px] items-start min-w-px overflow-clip px-[20px] py-[24px] relative" data-node-id="15:2984" data-name="Security analytics">
         <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:2985" data-name="Dashboard overview">
-          <div className="content-stretch flex h-[69px] items-start justify-between overflow-clip px-[8px] relative shrink-0 w-full" data-node-id="15:2986" data-name="Dashboard header">
-            <div className="[word-break:break-word] content-stretch flex flex-col gap-[7px] items-start leading-[normal] overflow-clip relative shrink-0 whitespace-nowrap" data-node-id="15:2987" data-name="Dashboard introduction">
+          <div className="relative flex w-full flex-wrap items-start justify-between gap-5 px-2" data-node-id="15:2986" data-name="Dashboard header">
+            <div className="relative flex min-w-0 flex-1 flex-col items-start gap-[7px] leading-normal sm:min-w-[260px]" data-node-id="15:2987" data-name="Dashboard introduction">
               <p className="font-['Lora:Bold'] font-bold relative shrink-0 text-[#f5f5f5] text-[32px]" data-node-id="15:2988">
                 Security Analytics Dashboard
               </p>
@@ -408,15 +341,8 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 Russell Wealth — Real-Time Threat Detection, Investigation, and Response
               </p>
             </div>
-            <div className="content-stretch flex gap-[22px] items-center overflow-clip relative shrink-0" data-node-id="15:2990" data-name="Header tools">
-              <div className="bg-[#1a1d22] border border-[#30343b] border-solid content-stretch flex gap-[12px] h-[48px] items-center overflow-clip px-[16px] relative rounded-[8px] shrink-0 w-[380px]" data-node-id="15:2991" data-name="Search">
-                <div className="relative shrink-0 size-[20px]" data-node-id="15:3421" data-name="search">
-                  <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSearch} />
-                </div>
-                <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#8c929c] text-[14px] whitespace-nowrap" data-node-id="15:2993">
-                  Search alerts, IPs, users, or assets...
-                </p>
-              </div>
+            <div className="relative flex w-full max-w-full shrink-0 items-center sm:w-[380px]" data-node-id="15:2990" data-name="Header tools">
+              <SocSearch />
 
             </div>
           </div>
@@ -438,10 +364,10 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   Active Alerts
                 </p>
                 <p className="text-[#f5f5f5] text-[36px] font-semibold leading-none">
-                  {activeAlertCount}
+                  {activeAlertCount ?? '—'}
                 </p>
                 <p className="text-[#8c929c] text-[11px]">
-                  Recorded failed-login alerts
+                  Detected alerts awaiting resolution
                 </p>
               </div>
             </div>
@@ -471,9 +397,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         </div>
         <div className="content-stretch flex gap-[18px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:3054" data-name="Live alerts and global activity">
           <div
-            className={`bg-[#14171c] border border-[#30343b] border-solid flex flex-col gap-[14px] items-start overflow-hidden pb-[10px] pt-[18px] px-[20px] relative rounded-[14px] shrink-0 w-[888px] ${
-              showAllAlerts ? 'min-h-[290px]' : 'h-[290px]'
-            }`}
+            className="bg-[#14171c] border border-[#30343b] border-solid flex flex-col gap-[14px] items-start overflow-hidden pb-[10px] pt-[18px] px-[20px] relative rounded-[14px] shrink-0 w-[888px] min-h-[290px]"
             data-name="Real-time alerts"
           >
             <div className="flex items-center justify-between w-full">
@@ -483,11 +407,11 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
               <button
                 type="button"
-                onClick={() => setShowAllAlerts(!showAllAlerts)}
+                onClick={() => setShowSecurityAlerts(true)}
                 className="flex items-center gap-[6px] text-[#b4b8c0] hover:text-white text-[12px] cursor-pointer"
               >
-                {showAllAlerts ? 'Show Less' : 'View All'}
-                <span>{showAllAlerts ? '↑' : '→'}</span>
+                View All
+                <span>→</span>
               </button>
             </div>
 
@@ -498,15 +422,16 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 onChange={(e) => setSeverityFilter(e.target.value)}
                 className="bg-[#1a1d22] border border-[#30343b] text-[#f5f5f5] rounded-[8px] px-3 py-1 text-[12px]"
               >
-                {['All', 'Critical', 'High', 'Medium', 'Low'].map((level) => (
+                {['All', 'Critical', 'High', 'Warning', 'Medium', 'Low', 'Info'].map((level) => (
                   <option key={level} value={level}>{level}</option>
                 ))}
               </select>
               <span className="text-[#8c929c] text-[11px]">
-                Refreshes every 5 seconds
+                Refreshes every 5 seconds{alertsUpdatedAt ? ` · Updated ${alertsUpdatedAt.toLocaleTimeString()}` : ""}
               </span>
             </div>
 
+            <p className="text-[#8c929c] text-[11px]">Showing {Math.min(activeAlerts.length,5)} of {filteredCount} matching active alerts</p>
             <div className="w-full overflow-x-auto">
               <div className="min-w-[880px]">
                 <div className="bg-[#1a1d22] flex items-center gap-[10px] h-[32px] px-[4px] text-[#8c929c] text-[12px]">
@@ -519,36 +444,14 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 </div>
 
                 {(() => {
-                  const alerts = events
-                    .filter((event) => event.event_type === 'LOGIN_FAILED')
-                    .map((event) => ({
-                      ...event,
-                      displaySeverity: event.severity === 'CRITICAL'
-                        ? 'Critical'
-                        : event.severity === 'HIGH'
-                          ? 'High'
-                          : event.severity === 'WARNING'
-                            ? 'Low'
-                            : 'Low'
-                    }))
-                    .filter((event) =>
-                      severityFilter === 'All' || event.displaySeverity === severityFilter
-                    );
-
-                  const visibleAlerts = showAllAlerts ? alerts : alerts.slice(0, 5);
-
-                  if (securityError) {
-                    return <p className="text-[#ff454f] text-[12px] py-4">{securityError}</p>;
-                  }
-
-                  if (!security) {
-                    return <p className="text-[#8c929c] text-[12px] py-4">Loading alerts...</p>;
-                  }
+                  const visibleAlerts = activeAlerts.slice(0,5);
+                  if (alertsError) return <p role="alert" className="text-[#ff454f] text-[12px] py-4">{alertsError}</p>;
+                  if (alertsLoading) return <p className="text-[#8c929c] text-[12px] py-4">Loading alerts...</p>;
 
                   if (visibleAlerts.length === 0) {
                     return (
                       <p className="text-[#8c929c] text-[12px] py-4">
-                        No recorded alerts match this severity.
+                        No active alerts match this severity. Individual sign-in attempts are recorded in Logs.
                       </p>
                     );
                   }
@@ -562,9 +465,9 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                         }
                         className="border-b border-[#30343b] flex items-center gap-[10px] min-h-[36px] px-[4px] w-full text-left hover:bg-[#1a1d22] cursor-pointer"
                       >
-                        <span className="flex items-center gap-[8px] w-[105px] shrink-0 text-[#58a6ff] text-[12px]">
-                          <span className="bg-[#58a6ff] size-[8px] rounded-full" />
-                          {event.displaySeverity}
+                        <span className={`flex items-center gap-[8px] w-[105px] shrink-0 text-[12px] ${event.severity === "CRITICAL" ? "text-[#ff454f]" : ["WARNING","HIGH"].includes(event.severity) ? "text-[#f5b942]" : "text-[#9ab8d9]"}`}>
+                          <span className="bg-current size-[8px] rounded-full" />
+                          {severityLabel(event.severity)}
                         </span>
 
                         <span className="text-[#b4b8c0] text-[11px] w-[105px] shrink-0 whitespace-nowrap">
@@ -576,22 +479,22 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                         </span>
 
                         <span className="text-[#f5f5f5] text-[12px] w-[280px] shrink-0">
-                          Failed Login Attempt
+                          {event.title || event.event_type.replaceAll("_", " ")}
                         </span>
 
                         <span className="text-[#b4b8c0] text-[12px] w-[205px] shrink-0 truncate">
-                          {event.email ?? event.details ?? 'Unknown account'}
+                          {event.email || event.source_ip || 'No account recorded'}
                         </span>
 
                         <span className="text-[#f5b942] text-[11px] w-[112px] shrink-0">
-                          Recorded
+                          {statusLabel(event.status)}
                         </span>
                       </button>
 
                       {selectedAlertId === event.id && (
                         <div className="bg-[#1a1d22] border-b border-[#30343b] p-3 text-[12px] text-[#b4b8c0] space-y-1">
-                          <p>Event ID: {event.id}</p>
-                          <p>Account: {event.email ?? event.details ?? 'Unknown'}</p>
+                          <p>Alert ID: {event.id}</p>
+                          <p>Account: {event.email || 'No account recorded'}</p>
                           <p>Source IP: {event.source_ip ?? 'Unknown'}</p>
                           <p>Date (Regina): {formatReginaAlertTime(event.created_at).date}</p>
                           <p>Time (CST): {formatReginaAlertTime(event.created_at).time}</p>

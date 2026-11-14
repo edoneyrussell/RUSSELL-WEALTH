@@ -1,6 +1,8 @@
+import { usePortfolio } from "../hooks/usePortfolio";
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useMemo, useState } from "react";
 import AssetLogo from "../components/AssetLogo";
+import { buildPositionAllocation } from "../utils/portfolioAllocation";
 import {
   ArrowUpRight, ChevronDown, ChevronRight, Layers3,
   Search, Wallet, BriefcaseBusiness, PieChart as PieIcon,
@@ -20,21 +22,6 @@ type Holding = {
   price: string;
   market_value: string;
 };
-
-type PortfolioData = {
-  account_name: string;
-  currency: string;
-  cash_balance: string;
-  invested_value: string;
-  total_value: string;
-  holdings: Holding[];
-};
-
-const colors = [
-  "#B6C8DF", "#718DAF", "#526B87",
-  "#8D9CA8", "#D5DCE4", "#53606D",
-  "#8C83A4", "#547D78"
-];
 
 const money = (value: number | string) =>
   new Intl.NumberFormat("en-CA", {
@@ -86,80 +73,20 @@ function Panel({
 
 export default function PortfolioExperience() {
   const customerFetch = useCustomerFetch();
-  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
+  const { portfolio, loading, error, refresh } = usePortfolio();
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("search") ?? "");
   const [sort, setSort] = useState("value");
   const [filter, setFilter] = useState("All");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [hideBalance, setHideBalance] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      try {
-        const response = await customerFetch("/api/customer/portfolio", {
-          credentials: "same-origin"
-        });
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || "Unable to load portfolio");
-        }
-
-        if (active) {
-          setPortfolio(result);
-          setError("");
-        }
-      } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : "Portfolio unavailable");
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    void load();
-
-    const refresh = () => { void load(); };
-    window.addEventListener("portfolio-updated", refresh);
-    window.addEventListener("rw:portfolio-updated", refresh);
-
-    return () => {
-      active = false;
-      window.removeEventListener("portfolio-updated", refresh);
-      window.removeEventListener("rw:portfolio-updated", refresh);
-    };
-  }, [refreshKey]);
-
+  const [showAllPositions, setShowAllPositions] = useState(false);
   const holdings = portfolio?.holdings ?? [];
   const total = Number(portfolio?.total_value ?? 0);
-  const invested = Number(portfolio?.invested_value ?? 0);
+  const invested = holdings.reduce((sum, h) => sum + Number(h.market_value), 0);
   const cash = Number(portfolio?.cash_balance ?? 0);
 
-  const allocation = useMemo(() => {
-    const grouped = new Map<string, number>();
-
-    for (const h of holdings) {
-      const type = assetClass(h);
-      grouped.set(type, (grouped.get(type) ?? 0) + Number(h.market_value));
-    }
-
-    if (cash > 0) grouped.set("Cash", cash);
-
-    return Array.from(grouped.entries())
-      .map(([name, value], index) => ({
-        name,
-        value,
-        color: colors[index % colors.length]
-      }))
-      .filter(item => item.value > 0)
-      .sort((a, b) => b.value - a.value);
-  }, [holdings, cash]);
+  const allocation = useMemo(() => buildPositionAllocation(holdings), [holdings]);
+  const visiblePositions = showAllPositions ? allocation : allocation.slice(0, 4);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -225,7 +152,7 @@ export default function PortfolioExperience() {
     }).format(Number(value) * rate);
   };
 
-  const shownMoney = (value: number | string) => portfolioMoney(value);
+  const shownMoney = (value: number | string) => hideBalance ? "••••••" : portfolioMoney(value);
 
   const card = "rounded-[20px] border border-[#2D3742] bg-[#161D26] p-5";
   const label = "text-[10px] font-semibold uppercase tracking-[0.17em] text-[#8E9BAA]";
@@ -255,7 +182,7 @@ export default function PortfolioExperience() {
             </button>
             <button
               type="button"
-              onClick={() => setRefreshKey(k => k + 1)}
+              onClick={() => { void refresh(); }}
               aria-label="Refresh portfolio"
               className="rounded-xl border border-[#34404D] bg-[#171E27] p-3 hover:bg-[#26313D]"
             >
@@ -327,7 +254,7 @@ export default function PortfolioExperience() {
                 { title: "Invested Assets", value: shownMoney(invested), icon: BriefcaseBusiness, detail: pct(total ? invested / total * 100 : 0) + " of portfolio" },
                 { title: "Available Cash", value: shownMoney(cash), icon: Wallet, detail: pct(total ? cash / total * 100 : 0) + " of portfolio" },
                 { title: "Active Holdings", value: String(holdings.length), icon: Layers3, detail: "Individual positions" },
-                { title: "Largest Position", value: largest?.symbol ?? "—", icon: PieIcon, detail: largest ? pct(total ? Number(largest.market_value) / total * 100 : 0) + " of portfolio" : "No positions" }
+                { title: "Largest Position", value: largest?.symbol ?? "—", icon: PieIcon, detail: largest ? pct(invested ? Number(largest.market_value) / invested * 100 : 0) + " of portfolio" : "No positions" }
               ].map(item => (
                 <div key={item.title} className={card}>
                   <div className="flex items-center justify-between">
@@ -347,6 +274,7 @@ export default function PortfolioExperience() {
                 <div className="mb-6">
                   <p className={label}>Portfolio Composition</p>
                   <h2 className="mt-2 text-xl font-semibold">Asset Allocation</h2>
+                  <p className="mt-2 text-xs text-[#8E9BAB]">Every holding, with its current value and share of invested assets · Cash shown separately.</p>
                 </div>
 
                 <div className="grid items-center gap-5 sm:grid-cols-[240px_1fr]">
@@ -358,23 +286,27 @@ export default function PortfolioExperience() {
                             <Pie
                               data={allocation}
                               dataKey="value"
-                              nameKey="name"
+                              nameKey="symbol"
                               innerRadius={77}
                               outerRadius={108}
-                              paddingAngle={3}
+                              paddingAngle={0}
                               stroke="none"
                             >
                               {allocation.map(item => (
-                                <Cell key={item.name} fill={item.color} />
+                                <Cell key={item.symbol} fill={item.color} />
                               ))}
                             </Pie>
                             <Tooltip
-                              formatter={value => money(Number(value))}
-                              contentStyle={{
-                                background: "#202A35",
-                                border: "1px solid #465362",
-                                borderRadius: 12,
-                                color: "#F2F4F7"
+                              content={({ active, payload }) => {
+                                const item = payload?.[0]?.payload as (typeof allocation)[number] | undefined;
+                                if (!active || !item) return null;
+                                return (
+                                  <div className="max-w-[260px] rounded-xl border border-[#465362] bg-[#202A35] p-3 text-xs text-[#F2F4F7] shadow-xl">
+                                    <p className="font-semibold">{item.symbol} · {item.name}</p>
+                                    <p className="mt-2">{shownMoney(item.value)} · {pct(item.weight)}</p>
+                                    <p className="mt-1 text-[#CBD5E0]">{number(item.quantity)} units</p>
+                                  </div>
+                                );
                               }}
                             />
                           </PieChart>
@@ -393,20 +325,20 @@ export default function PortfolioExperience() {
 
                   <div className="space-y-4">
                     {allocation.map(item => (
-                      <div key={item.name}>
+                      <div key={item.symbol} data-allocation-symbol={item.symbol}>
                         <div className="mb-2 flex items-center justify-between gap-3 text-xs">
                           <span className="flex items-center gap-2 text-[#CBD5E0]">
-                            <i className="size-2.5 rounded-full" style={{ background: item.color }} />
-                            {item.name}
+                            <i className="size-2.5 shrink-0 rounded-full" style={{ background: item.color }} />
+                            <span><strong>{item.symbol}</strong><span className="mt-1 block text-[11px] text-[#8E9BAB]">{item.name}</span></span>
                           </span>
-                          <span className="font-semibold">{pct(total ? item.value / total * 100 : 0)}</span>
+                          <span className="shrink-0 text-right"><strong className="block">{pct(item.weight)}</strong><span className="mt-1 block text-[11px] text-[#AAB8C8]">{shownMoney(item.value)}</span></span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-[#29323D]">
                           <div
                             className="h-full rounded-full"
                             style={{
                               background: item.color,
-                              width: `${total ? item.value / total * 100 : 0}%`
+                              width: `${item.weight}%`
                             }}
                           />
                         </div>
@@ -420,15 +352,12 @@ export default function PortfolioExperience() {
                 <p className={label}>Portfolio Insights</p>
                 <h2 className="mt-2 text-xl font-semibold">Position Breakdown</h2>
                 <p className="mt-2 text-xs text-[#8E9BAB]">
-                  Based on current recorded asset values.
+                  Showing {Math.min(visiblePositions.length, holdings.length)} of {holdings.length} holdings · Percentages of invested assets; cash excluded.
                 </p>
 
-                <div className="mt-7 space-y-5">
-                  {[...holdings]
-                    .sort((a, b) => Number(b.market_value) - Number(a.market_value))
-                    .slice(0, 5)
-                    .map((h, index) => (
-                      <div key={h.symbol}>
+                <div id="position-breakdown" className="mt-7 space-y-5">
+                  {visiblePositions.map((h, index) => (
+                      <div key={h.symbol} data-position-symbol={h.symbol}>
                         <div className="mb-2 flex items-center justify-between gap-3">
                           <div className="flex min-w-0 items-center gap-3">
                             <span className="text-[11px] text-[#738293]">
@@ -438,14 +367,15 @@ export default function PortfolioExperience() {
                             <span className="truncate text-sm font-semibold">{h.symbol}</span>
                           </div>
                           <span className="text-xs text-[#BBC7D5]">
-                            {pct(total ? Number(h.market_value) / total * 100 : 0)}
+                            {pct(invested ? Number(h.market_value) / invested * 100 : 0)}
                           </span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-[#28313B]">
                           <div
-                            className="h-full rounded-full bg-[#9BB1CA]"
+                            className="h-full rounded-full"
                             style={{
-                              width: `${total ? Number(h.market_value) / total * 100 : 0}%`
+                              background: h.color,
+                              width: `${h.weight}%`
                             }}
                           />
                         </div>
@@ -456,15 +386,28 @@ export default function PortfolioExperience() {
                   )}
                 </div>
 
+                {holdings.length > 4 && (
+                  <button
+                    type="button"
+                    aria-expanded={showAllPositions}
+                    aria-controls="position-breakdown"
+                    onClick={() => setShowAllPositions(value => !value)}
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-[#415063] px-4 py-3 text-sm text-[#D0DAE6] hover:bg-[#25313F]"
+                  >
+                    {showAllPositions ? "Show less" : `View more (${holdings.length - 4} more)`}
+                    <ChevronDown size={16} className={showAllPositions ? "rotate-180" : ""} />
+                  </button>
+                )}
+
                 <div className="mt-7 border-t border-[#303A45] pt-5">
                   <div className="flex justify-between text-xs">
                     <span className="text-[#9BA8B7]">Portfolio concentration</span>
                     <span className="font-medium">
-                      {largest ? pct(total ? Number(largest.market_value) / total * 100 : 0) : "—"}
+                      {largest ? pct(invested ? Number(largest.market_value) / invested * 100 : 0) : "—"}
                     </span>
                   </div>
                   <p className="mt-2 text-[11px] text-[#788797]">
-                    Share of total portfolio held in your largest position.
+                    Share of invested assets held in your largest position.
                   </p>
                 </div>
               </Panel>
@@ -531,7 +474,7 @@ export default function PortfolioExperience() {
               <div className="space-y-2 p-3 sm:p-5">
                 {filtered.map(h => {
                   const active = expanded === h.symbol;
-                  const weight = total ? Number(h.market_value) / total * 100 : 0;
+                  const weight = invested ? Number(h.market_value) / invested * 100 : 0;
 
                   return (
                     <div
@@ -587,7 +530,7 @@ export default function PortfolioExperience() {
                           </div>
                           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                             <p className="text-xs text-[#9DABBA]">
-                              {pct(weight)} of total portfolio · {assetClass(h)}
+                              {pct(weight)} of invested assets · {assetClass(h)}
                             </p>
                             <button
                               type="button"

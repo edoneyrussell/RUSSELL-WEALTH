@@ -115,7 +115,7 @@ function Badge({ value }: { value: string }) {
 
 export default function RussellWealthIncidentInvestigation() {
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(() => { const id=Number(new URLSearchParams(window.location.search).get("incident")); return Number.isInteger(id) && id>0 ? id : null; });
   const [detail, setDetail] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

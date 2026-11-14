@@ -30,8 +30,9 @@ def read_log_source(source, primary, event_type, severity, search, limit):
         if search:
             # Search joined emails, immutable snapshots and legacy event details.
             escaped = search.lower().replace('!', '!!').replace('%', '!%').replace('_', '!_')
-            conditions.append(f"(LOWER(COALESCE({snapshot}, '')) LIKE ? ESCAPE '!' OR LOWER(COALESCE(u.email, '')) LIKE ? ESCAPE '!' OR LOWER(COALESCE(e.details, '')) LIKE ? ESCAPE '!')")
-            params.extend([f'%{escaped}%'] * 3)
+            columns = [snapshot, 'u.name', 'u.email', 'e.details', 'e.source_ip', 'e.event_type', 'e.severity']
+            conditions.append('(' + ' OR '.join(f"LOWER(COALESCE({column}, '')) LIKE ? ESCAPE '!'" for column in columns) + ')')
+            params.extend([f'%{escaped}%'] * len(columns))
         where = 'WHERE ' + ' AND '.join(conditions) if conditions else ''
         base = f'FROM security_events e LEFT JOIN users u ON u.id=e.user_id {where}'
         total = db.execute(f'SELECT COUNT(*) AS n {base}', params).fetchone()['n']

@@ -130,7 +130,7 @@ export default function CustomerAccountManagement() {
             <label className="block text-xs text-[#a6b3c1]">
               New password
               <input className={input} type="password"
-                autoComplete="new-password" minLength={12} maxLength={128}
+                autoComplete="new-password" minLength={7} maxLength={128}
                 required value={newPassword}
                 onChange={e => setNewPassword(e.target.value)} />
             </label>

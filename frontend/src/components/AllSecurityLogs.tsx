@@ -52,11 +52,11 @@ export default function AllSecurityLogs({ onClose }: Props) {
   const [page, setPage] = useState(1);
   const [eventType, setEventType] = useState('');
   const [severity, setSeverity] = useState('');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
   const [data, setData] = useState<LogsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('event'));
 
   useEffect(() => {
     const controller = new AbortController();
@@ -148,7 +148,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
         <div className="rw-security-logs-panel bg-[#14171c] border border-[#30343b] rounded-xl p-5">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
             <div className="rw-security-logs-filters flex flex-wrap gap-3">
-              <input aria-label="Search logs by account email" type="search" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} placeholder="Search account email…" className="bg-[#1a1d22] text-[#f5f5f5] border border-[#30343b] rounded-lg px-3 py-2 text-sm" />
+              <input aria-label="Search security logs" type="search" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} placeholder="Search names, emails, IPs or events…" className="bg-[#1a1d22] text-[#f5f5f5] border border-[#30343b] rounded-lg px-3 py-2 text-sm" />
               <select
                 aria-label="Filter log event type"
                 value={eventType}
@@ -206,7 +206,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
                     <div><dt>Date &amp; time (CST)</dt><dd>{timestamp.date} · {timestamp.time}</dd></div>
                     <div><dt>Database · Event ID</dt><dd>{event.source_label} · #{event.id}</dd></div>
                   </dl>
-                  <details>
+                  <details open={selectedId === event.event_key || undefined}>
                     <summary>Event details</summary>
                     <p>{event.details || 'No additional details'}</p>
                     <p>User ID: {event.user_id ?? 'Unknown'}</p>

@@ -67,7 +67,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_deleting_an_account_removes_its_contact_details(self):
         self.assertEqual(self.customer.put('/api/me/profile',json={'phone':'306-555-0100'}).status_code,200)
-        response=self.admin.delete('/api/security/users/103?source=local',json={'confirm_email':'user103@example.com'})
+        response=self.admin.delete('/api/security/users/103?source=local',json={'current_password': 'test-password-12345', 'confirm_email':'user103@example.com'})
         self.assertEqual(response.status_code,200)
         db=database.get_db_connection()
         self.assertIsNone(db.execute('SELECT * FROM user_profiles WHERE user_id=103').fetchone())

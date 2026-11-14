@@ -1,4 +1,5 @@
 from account_access import customer_user_id
+from customer_accounts import selected_account
 
 from flask import Blueprint, jsonify, request, session
 from authorization import role_required
@@ -71,6 +72,7 @@ def initialize(conn):
                 direction IN ('DEPOSIT', 'WITHDRAW')
             ),
             amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
+            account_id BIGINT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -92,10 +94,11 @@ def initialize(conn):
     """)
 
 def customer_id():
-    uid = session.get("user_id")
-    if uid is None:
-        return None
-    return 2 if int(uid) in (1, 2) else uid
+    conn = get_db_connection()
+    try:
+        return customer_user_id(conn)
+    finally:
+        conn.close()
 
 def ensure_banks(conn, uid):
     for code, _, _ in BANKS:
@@ -113,21 +116,8 @@ def ensure_banks(conn, uid):
                 VALUES (?, ?, ?)
             """, (uid, code, INITIAL_CENTS))
 
-def get_account(conn, uid):
-    postgres = hasattr(conn, "connection")
-
-    query = """
-        SELECT id, cash_balance_cents
-        FROM investment_accounts
-        WHERE user_id = ?
-        ORDER BY id
-        LIMIT 1
-    """
-
-    if postgres:
-        query += " FOR UPDATE"
-
-    return conn.execute(query, (uid,)).fetchone()
+def get_account(conn, uid, requested=None):
+    return selected_account(conn, uid, requested, lock=True)
 
 def money(cents):
     return str(Decimal(cents) / Decimal(100))
@@ -158,12 +148,19 @@ def demo_banking_status():
             SELECT transfer_id, bank_code, direction,
                    amount_cents, created_at
             FROM rw_demo_bank_transfers
-            WHERE user_id = ?
+            WHERE user_id = ? AND (account_id=? OR (account_id IS NULL AND ?=(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)))
             ORDER BY id DESC
             LIMIT 30
-        """, (uid,)).fetchall()
+        """, (uid,account['id'],account['id'],uid)).fetchall()
 
+        from account_limits import MAX_ACCOUNT_CENTS, invested_cents
+        capacity=max(Decimal(0),Decimal(MAX_ACCOUNT_CENTS)-account['cash_balance_cents']-invested_cents(conn,account['id']))
         result = {
+            "account_id": account['id'],
+            "account_name": account['account_name'],
+            "account_type": account['account_type'],
+            "deposit_capacity": money(int(capacity)),
+            "max_account_value": money(MAX_ACCOUNT_CENTS),
             "simulated": True,
             "currency": "CAD",
             "cash_balance": money(account["cash_balance_cents"]),
@@ -235,7 +232,7 @@ def demo_banking_transfer():
         initialize(conn)
 
         # Serialize transfers for this investment account on PostgreSQL.
-        account = get_account(conn, uid)
+        account = get_account(conn, uid, data.get('account_id'))
 
         if account is None:
             conn.rollback()
@@ -244,14 +241,15 @@ def demo_banking_transfer():
         ensure_banks(conn, uid)
 
         previous = conn.execute("""
-            SELECT transfer_id, direction, amount_cents, bank_code
+            SELECT transfer_id, direction, amount_cents, bank_code, account_id
             FROM rw_demo_bank_transfers
             WHERE user_id = ? AND request_id = ?
         """, (uid, request_id)).fetchone()
 
         if previous:
             if (
-                previous["direction"] != direction
+                (previous["account_id"] is not None and previous["account_id"] != account["id"])
+                or previous["direction"] != direction
                 or previous["bank_code"] != code
                 or previous["amount_cents"] != cents
             ):
@@ -278,6 +276,10 @@ def demo_banking_transfer():
             conn.rollback()
             return jsonify(error="Account unavailable"), 404
 
+        from account_limits import MAX_ACCOUNT_CENTS, invested_cents
+        if direction == 'DEPOSIT' and account['cash_balance_cents'] + cents + invested_cents(conn,account['id']) > MAX_ACCOUNT_CENTS:
+            return jsonify(error='Your total account value cannot exceed CA$900 million through deposits.'),400
+
         if direction == "DEPOSIT":
             # Demo funding: add simulated investment cash
             # without deducting the selected bank balance.
@@ -290,10 +292,6 @@ def demo_banking_transfer():
 
             bank_delta = cents
             cash_delta = -cents
-
-        if False:
-            conn.rollback()
-            return jsonify(error="Maximum bank balance is $900,000 CAD"), 400
 
         if direction == "DEPOSIT":
             # Demo funding does not change the simulated bank balance.
@@ -322,9 +320,9 @@ def demo_banking_transfer():
 
         conn.execute("""
             INSERT INTO rw_demo_bank_transfers
-            (transfer_id, request_id, user_id, bank_code, direction, amount_cents)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (transfer_id, request_id, uid, code, direction, cents))
+            (transfer_id, request_id, user_id, bank_code, direction, amount_cents, account_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (transfer_id, request_id, uid, code, direction, cents, account["id"]))
 
         conn.commit()
 

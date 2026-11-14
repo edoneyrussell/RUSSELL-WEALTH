@@ -1,12 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useAccountProfile } from "../hooks/useAccountProfile";
 import { logout } from '../auth';
-
-type Account = {
-  authenticated?: boolean;
-  name?: string;
-  email?: string;
-  role?: string;
-};
 
 const features = [
   { title: 'Customer Dashboard', description: 'Open your investment dashboard', icon: '◫', href: '/dashboard' },
@@ -19,22 +12,8 @@ const features = [
 ];
 
 export default function AdminSettings() {
-  const [account, setAccount] = useState<Account | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    fetch('/api/me', { credentials: 'same-origin' })
-      .then((response) => response.ok ? response.json() : null)
-      .then((data: Account | null) => {
-        if (active) setAccount(data);
-      })
-      .catch(() => {});
-    return () => { active = false; };
-  }, []);
-
-  const name = account?.name || 'Administrator';
-  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2)
-    .map((part) => part[0].toUpperCase()).join('') || 'ER';
+  const { profile: account, profileName, profilePhoto, initials } = useAccountProfile();
+  const name = profileName || 'Administrator';
 
   return (
     <div className="min-h-screen bg-[#080a0d] text-[#f5f5f5] font-['Inter']">
@@ -62,7 +41,7 @@ export default function AdminSettings() {
         <section className="rounded-xl border border-[#30343b] bg-[#14171c] p-6 mb-8">
           <div className="flex flex-wrap items-center gap-5">
             <div className="flex size-[76px] items-center justify-center rounded-full bg-[#292e36] text-[23px] font-semibold">
-              {initials}
+              {profilePhoto ? <img src={profilePhoto} alt={name} className="size-full rounded-full object-cover" /> : initials}
             </div>
             <div className="flex-1 min-w-[170px]">
               <h2 className="text-[20px] font-semibold">{name}</h2>
@@ -70,7 +49,7 @@ export default function AdminSettings() {
               <p className="text-[#b4b8c0] text-[11px] mt-2">SOC Administrator</p>
             </div>
             <span className="rounded-lg border border-[#30343b] px-4 py-2 text-[#8c929c] text-[12px]">
-              Photo upload coming next
+              Shared with your customer profile
             </span>
           </div>
         </section>

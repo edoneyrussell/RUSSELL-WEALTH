@@ -43,27 +43,21 @@ export default function RussellWealthMobileLandingPage() {
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex h-[48px] items-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="68:997" data-name="Sign in action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:998">
-              Sign In
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:998">{landingContent.signIn}</p>
           </div>
         </div>
 <LanguageSelector />
         <div className="[word-break:break-word] content-stretch flex flex-col gap-[20px] items-center overflow-clip pt-[16px] relative shrink-0 text-center w-full" data-node-id="68:1003" data-name="Hero copy">
-          <p className="font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[9px] tracking-[1.1px] w-full whitespace-pre-wrap" data-node-id="68:1004">{`RUSSELL WEALTH  |  EST. NOVEMBER 1ST, 2026`}</p>
+          <p className="font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[9px] tracking-[1.1px] w-full whitespace-pre-wrap" data-node-id="68:1004">{landingContent.establishment}</p>
           <div className="font-['Lora:SemiBold'] font-semibold leading-[0] relative shrink-0 text-[#f2f2f3] text-[32px] tracking-[-0.8px] w-full" data-node-id="68:1005">
-            <p className="leading-[1.15] mb-0">Where Wealth Meets</p>
-            <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.15]">Innovation.</p>
+            <p className="leading-[1.15] mb-0">{landingContent.heroTitle}</p>
+            <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.15]">{landingContent.heroEmphasis}</p>
           </div>
-          <p className="font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1006">
-            A modern investment experience built at the intersection of finance, business, technology, and cybersecurity.
-          </p>
+          <p className="font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1006">{landingContent.heroDescription}</p>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1007" data-name="Hero actions">
           <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1008" data-name="Action" onClick={() => window.location.assign("#rw-platform")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("#rw-platform"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1009">
-              Explore Platform
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1009">{landingContent.explorePlatform}</p>
             <div className="relative shrink-0 size-[20px]" data-node-id="68:1010" data-name="Symbol">
               <div className="absolute inset-[-3.75%_-5.3%_-3.75%_-3.75%]">
                 <img alt="" className="block max-w-none size-full" src={imgSymbol} />
@@ -71,9 +65,7 @@ export default function RussellWealthMobileLandingPage() {
             </div>
           </div>
           <div className="bg-[rgba(0,0,0,0)] border border-[#30363f] border-solid content-stretch flex h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 w-full" data-node-id="68:1011" data-name="Action" onClick={() => window.location.assign("#rw-founder")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("#rw-founder"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1012">
-              Discover the Vision
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1012">{landingContent.discoverTheVision}</p>
           </div>
         </div>
         <div className="h-[275px] overflow-clip relative rounded-[16px] shrink-0 w-[353px]" data-node-id="68:1013" data-name="Silver monogram">
@@ -89,23 +81,15 @@ export default function RussellWealthMobileLandingPage() {
                   <img alt="" className="block max-w-none size-full" src={imgSymbol1} />
                 </div>
               </div>
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1019">
-                Invest
-              </p>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1020">
-                Trade, grow, and manage your portfolio.
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1019">{landingContent.invest}</p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1020">{landingContent.investDescription}</p>
             </div>
             <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px overflow-clip p-[16px] relative rounded-[16px] self-stretch" data-node-id="68:1021" data-name="Platform pillar">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1022" data-name="Symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSymbol2} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1023">
-                Protect
-              </p>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1024">
-                Built with a security-first mindset.
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1023">{landingContent.protect}</p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1024">{landingContent.protectDescription}</p>
             </div>
           </div>
           <div className="content-stretch flex gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1025" data-name="Pillar group">
@@ -115,23 +99,15 @@ export default function RussellWealthMobileLandingPage() {
                   <img alt="" className="block max-w-none size-full" src={imgSymbol3} />
                 </div>
               </div>
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1028">
-                Analyze
-              </p>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1029">
-                Monitor performance and manage risk.
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1028">{landingContent.analyze}</p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1029">{landingContent.analyzeDescription}</p>
             </div>
             <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-[1_0_0] flex-col gap-[10px] items-start min-w-px overflow-clip p-[16px] relative rounded-[16px] self-stretch" data-node-id="68:1030" data-name="Platform pillar">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1031" data-name="Symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSymbol4} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1032">
-                Learn
-              </p>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1033">
-                A project that brings together business, finance, and cybersecurity.
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-full not-italic relative shrink-0 text-[#f2f2f3] text-[16px] w-[min-content]" data-node-id="68:1032">{landingContent.learn}</p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.45] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content]" data-node-id="68:1033">{landingContent.learnDescription}</p>
             </div>
           </div>
         </div>
@@ -149,14 +125,12 @@ export default function RussellWealthMobileLandingPage() {
         </div>
         <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1038" data-name="Section introduction">
           <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[24px]" data-node-id="68:1039" data-name="Intro rule" />
-          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1040">
-            BEYOND THE INTERFACE
-          </p>
+          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1040">{landingContent.beyondTheInterface}</p>
           <div className="bg-[#30363f] flex-[1_0_0] h-px min-w-px relative" data-node-id="68:1041" data-name="Intro rule" />
         </div>
         <div className="[word-break:break-word] font-['Lora:SemiBold'] font-semibold leading-[0] min-w-full relative shrink-0 text-[#f2f2f3] text-[20px] w-[min-content]" data-node-id="68:1042">
-          <p className="leading-[1.3] mb-0">The Story Behind</p>
-          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">Russell Wealth</p>
+          <p className="leading-[1.3] mb-0">{landingContent.theStoryBehind}</p>
+          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">{landingContent.russellWealth}</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1043">
           {landingContent.founderStory}
@@ -168,14 +142,12 @@ export default function RussellWealthMobileLandingPage() {
             </div>
           </div>
           <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip px-[4px] relative shrink-0 w-full" data-node-id="68:1047" data-name="Founder identity">
-            <p className="[word-break:break-word] font-['Lora:Regular'] font-normal leading-[normal] min-w-full relative shrink-0 text-[#f2f2f3] text-[26px] w-[min-content]" data-node-id="68:1048">
-              Edoney Russell
-            </p>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[3px] whitespace-nowrap" data-node-id="68:1049">{`FOUNDER & CREATOR`}</p>
+            <p className="[word-break:break-word] font-['Lora:Regular'] font-normal leading-[normal] min-w-full relative shrink-0 text-[#f2f2f3] text-[26px] w-[min-content]" data-node-id="68:1048">{landingContent.founderName}</p>
+            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[3px] whitespace-nowrap" data-node-id="68:1049">{landingContent.founderCreator}</p>
             <div className="bg-[#30363f] h-px relative shrink-0 w-[52px]" data-node-id="68:1050" data-name="Identity rule" />
             <div className="[word-break:break-word] font-['Inter:Italic'] font-normal italic leading-[0] min-w-full relative shrink-0 text-[#b9bdc4] text-[14px] w-[min-content] whitespace-pre-wrap" data-node-id="68:1051">
-              <p className="leading-[1.5] mb-0">{`Computer Science Student  •  Business Graduate`}</p>
-              <p className="leading-[1.5]">{landingContent.text_003_aspiring_cybersecurity_professional}</p>
+              <p className="leading-[1.5] mb-0">{landingContent.founderEducation}</p>
+              <p className="leading-[1.5]">{landingContent.founderCareer}</p>
             </div>
           </div>
         </div>
@@ -185,11 +157,9 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[44px]" data-node-id="68:1055" data-name="Discipline symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDisciplineSymbol} />
               </div>
-              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1057">{`Business & Finance`}</p>
+              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1057">{landingContent.businessFinance}</p>
             </div>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1058">
-              My Business Administration background and interest in investing inspired the financial platform and its core features, from portfolio management to performance analysis.
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1058">{landingContent.businessDescription}</p>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1059" data-name="Discipline">
             <div className="content-stretch flex gap-[14px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1060" data-name="Discipline heading">
@@ -198,26 +168,18 @@ export default function RussellWealthMobileLandingPage() {
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCodeXml} />
                 </div>
               </div>
-              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1063">
-                Computer Science
-              </p>
+              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1063">{landingContent.computerScience}</p>
             </div>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1064">
-              The application demonstrates how I can translate business requirements into a functioning technical product, connecting system design, development, and user experience.
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1064">{landingContent.computerScienceDescription}</p>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1065" data-name="Discipline">
             <div className="content-stretch flex gap-[14px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1066" data-name="Discipline heading">
               <div className="relative shrink-0 size-[44px]" data-node-id="68:1067" data-name="Discipline symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDisciplineSymbol1} />
               </div>
-              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1069">
-                Cybersecurity
-              </p>
+              <p className="[word-break:break-word] flex-[1_0_0] font-['Inter:Semi_Bold'] font-semibold leading-[normal] min-w-px not-italic relative text-[#f2f2f3] text-[16px]" data-node-id="68:1069">{landingContent.cybersecurity}</p>
             </div>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1070">
-              The security environment demonstrates authentication monitoring, attack detection, incident investigation, defensive controls, and retesting.
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1070">{landingContent.cybersecurityDescription}</p>
           </div>
         </div>
       </div>
@@ -227,14 +189,12 @@ export default function RussellWealthMobileLandingPage() {
         </div>
         <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1073" data-name="Section introduction">
           <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[24px]" data-node-id="68:1074" data-name="Intro rule" />
-          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1075">
-            03 — THE PLATFORM
-          </p>
+          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1075">{landingContent.platformEyebrow}</p>
           <div className="bg-[#30363f] flex-[1_0_0] h-px min-w-px relative" data-node-id="68:1076" data-name="Intro rule" />
         </div>
         <div className="[word-break:break-word] font-['Lora:SemiBold'] font-semibold leading-[0] min-w-full relative shrink-0 text-[#f2f2f3] text-[20px] w-[min-content]" data-node-id="68:1077">
-          <p className="leading-[1.3] mb-0">The Russell Wealth</p>
-          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">Platform</p>
+          <p className="leading-[1.3] mb-0">{landingContent.theRussellWealth}</p>
+          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">{landingContent.platform}</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1078">
           {landingContent.platformDescription}
@@ -250,10 +210,8 @@ export default function RussellWealthMobileLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCapabilitySymbol} />
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1085" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1086">{`Invest & Trade`}</p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1087">
-                Buy and sell stocks and ETFs, track market movements, and manage trades in real time.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1086">{landingContent.investTrade}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1087">{landingContent.tradeDescription}</p>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex gap-[14px] items-start overflow-clip p-[16px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1088" data-name="Capability">
@@ -261,12 +219,8 @@ export default function RussellWealthMobileLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCapabilitySymbol1} />
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1091" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1092">
-                Portfolio Monitoring
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1093">
-                View total value, performance, returns, and detailed holdings all in one place.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1092">{landingContent.portfolioMonitoring}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1093">{landingContent.portfolioDescription}</p>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex gap-[14px] items-start overflow-clip p-[16px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1094" data-name="Capability">
@@ -276,20 +230,14 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1097" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1098">
-                Account Management
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1099">
-                Manage cash balances, transfers, deposits, withdrawals, and account activity securely.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1098">{landingContent.accountManagement}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1099">{landingContent.accountDescription}</p>
             </div>
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1100" data-name="Platform actions">
           <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1101" data-name="Action" onClick={() => window.location.assign("/demo/customer")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/demo/customer"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1102">
-              Explore the Platform
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1102">{landingContent.exploreThePlatform}</p>
             <div className="relative shrink-0 size-[20px]" data-node-id="68:1103" data-name="Symbol">
               <div className="absolute inset-[-3.75%_-5.3%_-3.75%_-3.75%]">
                 <img alt="" className="block max-w-none size-full" src={imgSymbol} />
@@ -305,14 +253,12 @@ export default function RussellWealthMobileLandingPage() {
         </div>
         <div className="content-stretch flex gap-[12px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1108" data-name="Section introduction">
           <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[24px]" data-node-id="68:1109" data-name="Intro rule" />
-          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1110">
-            04 — BEHIND THE SECURITY
-          </p>
+          <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#b9bdc4] text-[10px] tracking-[2.1px] whitespace-nowrap" data-node-id="68:1110">{landingContent.securityEyebrow}</p>
           <div className="bg-[#30363f] flex-[1_0_0] h-px min-w-px relative" data-node-id="68:1111" data-name="Intro rule" />
         </div>
         <div className="[word-break:break-word] font-['Lora:SemiBold'] font-semibold leading-[0] min-w-full relative shrink-0 text-[#f2f2f3] text-[20px] w-[min-content]" data-node-id="68:1112">
-          <p className="leading-[1.3] mb-0">Behind the Security</p>
-          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">of Russell Wealth</p>
+          <p className="leading-[1.3] mb-0">{landingContent.behindTheSecurity}</p>
+          <p className="font-['Lora:Bold_Italic'] font-bold italic leading-[1.3]">{landingContent.ofRussellWealth}</p>
         </div>
         <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="68:1113">
           {landingContent.securityDescription}
@@ -330,12 +276,8 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1120" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1121">
-                Detect
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1122">
-                Monitor activity, identify suspicious logins, and flag potential threats in real time.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1121">{landingContent.detect}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1122">{landingContent.detectDescription}</p>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex gap-[14px] items-start overflow-clip p-[16px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1123" data-name="Capability">
@@ -343,12 +285,8 @@ export default function RussellWealthMobileLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCapabilitySymbol1} />
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1126" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1127">
-                Investigate
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1128">
-                Analyze alerts, trace the source, and determine impact through structured investigation.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1127">{landingContent.investigate}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1128">{landingContent.investigateDescription}</p>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex gap-[14px] items-start overflow-clip p-[16px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1129" data-name="Capability">
@@ -356,12 +294,8 @@ export default function RussellWealthMobileLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCapabilitySymbol2} />
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1132" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1133">
-                Defend
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1134">
-                Implement and validate security controls to contain and mitigate risk.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1133">{landingContent.defend}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1134">{landingContent.defendDescription}</p>
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex gap-[14px] items-start overflow-clip p-[16px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1135" data-name="Capability">
@@ -371,20 +305,14 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
             <div className="[word-break:break-word] content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-start min-w-px not-italic overflow-clip relative" data-node-id="68:1138" data-name="Capability details">
-              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1139">
-                Retest
-              </p>
-              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1140">
-                Simulate attacks, verify protection, and ensure ongoing resilience.
-              </p>
+              <p className="font-['Inter:Semi_Bold'] font-semibold leading-[normal] relative shrink-0 text-[#f2f2f3] text-[15px] w-full" data-node-id="68:1139">{landingContent.retest}</p>
+              <p className="font-['Inter:Regular'] font-normal leading-[1.45] relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1140">{landingContent.retestDescription}</p>
             </div>
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1141" data-name="Security actions">
           <div className="bg-gradient-to-b border border-[#ccd1d8] border-solid content-stretch flex from-[#f4f5f6] gap-[12px] h-[50px] items-center justify-center overflow-clip relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%] w-full" data-node-id="68:1142" data-name="Action" onClick={() => window.location.assign("/demo/security")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/demo/security"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
-            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1143">
-              Explore Security Environment
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#11151a] text-[14px] whitespace-nowrap" data-node-id="68:1143">{landingContent.exploreSecurityEnvironment}</p>
             <div className="relative shrink-0 size-[20px]" data-node-id="68:1144" data-name="Symbol">
               <div className="absolute inset-[-3.75%_-5.3%_-3.75%_-3.75%]">
                 <img alt="" className="block max-w-none size-full" src={imgSymbol} />
@@ -396,21 +324,17 @@ export default function RussellWealthMobileLandingPage() {
       </div>
       <div className="content-stretch flex flex-col gap-[32px] h-[407px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1147" data-name="Footer">
         <div className="border-[#30363f] border-solid border-t content-stretch flex flex-col gap-[24px] items-start overflow-clip pt-[32px] px-[20px] relative shrink-0 w-full" data-node-id="68:1148" data-name="Project and connections">
-          <p className="[word-break:break-word] font-['Lora:Regular'] font-normal leading-[normal] relative shrink-0 text-[#f2f2f3] text-[23px] tracking-[1px] w-full" data-node-id="68:1149">
-            RUSSELL WEALTH
-          </p>
+          <p className="[word-break:break-word] font-['Lora:Regular'] font-normal leading-[normal] relative shrink-0 text-[#f2f2f3] text-[23px] tracking-[1px] w-full" data-node-id="68:1149">{landingContent.brandName}</p>
           <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[0] not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1150">
-            <span className="leading-[1.5]">{`Designed & Developed by `}</span>
-            <span className="font-['Inter:Semi_Bold'] font-semibold leading-[1.5] text-[#f2f2f3]">{landingContent.text_004_edoney_russell}</span>
+            <span className="leading-[1.5]">{landingContent.designedDevelopedBy}</span>
+            <span className="font-['Inter:Semi_Bold'] font-semibold leading-[1.5] text-[#f2f2f3]">{landingContent.founderName}</span>
           </p>
           <div className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[0] not-italic relative shrink-0 text-[#b9bdc4] text-[14px] w-full" data-node-id="68:1151">
-            <p className="leading-[1.5] mb-0">{landingContent.text_001_a_fictional_fintech_and_cybersecurity}</p>
-            <p className="leading-[1.5]">{landingContent.text_002_no_real_investments_or_transactions}</p>
+            <p className="leading-[1.5] mb-0">{landingContent.projectDisclaimer}</p>
+            <p className="leading-[1.5]">{landingContent.transactionDisclaimer}</p>
           </div>
           <div className="content-stretch flex gap-[16px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1152" data-name="Connect heading">
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] tracking-[3px] whitespace-nowrap" data-node-id="68:1153">
-              CONNECT
-            </p>
+            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] tracking-[3px] whitespace-nowrap" data-node-id="68:1153">{landingContent.connect}</p>
             <div className="bg-[#30363f] flex-[1_0_0] h-px min-w-px relative" data-node-id="68:1154" data-name="Connect rule" />
           </div>
           <div className="content-stretch flex gap-[12px] items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1155" data-name="Social links">
@@ -418,9 +342,7 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1199" data-name="github">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGithub} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1158">
-                GitHub
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1158">{landingContent.github}</p>
               <div className="relative shrink-0 size-[14px]" data-node-id="68:1202" data-name="arrow-up-right">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
               </div>
@@ -429,21 +351,15 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1205" data-name="linkedin">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLinkedin} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1162">
-                LinkedIn
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:1162">{landingContent.linkedin}</p>
               <div className="relative shrink-0 size-[14px]" data-node-id="68:1208" data-name="arrow-up-right">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowUpRight} />
               </div>
             </a>
           </div>
           <div className="[word-break:break-word] border-[#30363f] border-solid border-t content-stretch flex flex-col font-['Inter:Regular'] font-normal gap-[12px] items-start leading-[normal] not-italic overflow-clip pb-[8px] pt-[24px] relative shrink-0 text-[#9299a3] w-full" data-node-id="68:1164" data-name="Copyright">
-            <p className="relative shrink-0 text-[11px] w-full" data-node-id="68:1165">
-              © 2026 Russell Wealth. All Rights Reserved.
-            </p>
-            <p className="relative shrink-0 text-[10px] tracking-[1.5px] w-full" data-node-id="68:1166">
-              EST. NOVEMBER 1ST, 2026
-            </p>
+            <p className="relative shrink-0 text-[11px] w-full" data-node-id="68:1165">{landingContent.copyright}</p>
+            <p className="relative shrink-0 text-[10px] tracking-[1.5px] w-full" data-node-id="68:1166">{landingContent.establishedDate}</p>
           </div>
         </div>
         <div className="bg-[#14171c] border-[#30363f] border-solid border-t content-stretch flex flex-col items-start overflow-clip relative shrink-0 w-full" data-node-id="68:1167" data-name="Bottom navigation and safe area">
@@ -452,17 +368,13 @@ export default function RussellWealthMobileLandingPage() {
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1211" data-name="house">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgHouse} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[10px] whitespace-nowrap" data-node-id="68:1171">
-                Home
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Semi_Bold'] font-semibold leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[10px] whitespace-nowrap" data-node-id="68:1171">{landingContent.home}</p>
             </div>
             <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-center min-w-px overflow-clip relative" data-node-id="68:1172" data-name="Navigation link">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1214" data-name="user-round">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgUserRound} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1174">
-                About
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1174">{landingContent.about}</p>
             </div>
             <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-center min-w-px overflow-clip relative" data-node-id="68:1175" data-name="Navigation link">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1176" data-name="Symbol">
@@ -470,25 +382,19 @@ export default function RussellWealthMobileLandingPage() {
                   <img alt="" className="block max-w-none size-full" src={imgSymbol6} />
                 </div>
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1177">
-                Platform
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1177">{landingContent.platform}</p>
             </div>
             <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-center min-w-px overflow-clip relative" data-node-id="68:1178" data-name="Navigation link">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1179" data-name="Symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgSymbol7} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1180">
-                Security
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1180">{landingContent.security}</p>
             </div>
             <div className="content-stretch flex flex-[1_0_0] flex-col gap-[6px] items-center min-w-px overflow-clip relative" data-node-id="68:1181" data-name="Navigation link">
               <div className="relative shrink-0 size-[22px]" data-node-id="68:1217" data-name="code-xml">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCodeXml1} />
               </div>
-              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1183">
-                Project
-              </p>
+              <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[normal] not-italic relative shrink-0 text-[#9299a3] text-[10px] whitespace-nowrap" data-node-id="68:1183">{landingContent.project}</p>
             </div>
           </div>
           <div className="content-stretch flex h-[34px] items-center justify-center overflow-clip relative shrink-0 w-full" data-node-id="68:1184" data-name="Safe area">

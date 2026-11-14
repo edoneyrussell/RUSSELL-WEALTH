@@ -20,6 +20,7 @@ app = Flask(__name__)
 
 from access_api import access_bp
 import security_logs_api
+import security_search_api
 app.register_blueprint(access_bp)
 
 
@@ -54,10 +55,28 @@ from dotenv import load_dotenv
 load_dotenv()
 from access_api import initialize_access_schema
 initialize_access_schema()
+from account_limits import initialize_account_limits
+initialize_account_limits()
+from owner_protection import initialize_owner_protection
+initialize_owner_protection()
+from portfolio_history import initialize_portfolio_history
+initialize_portfolio_history()
 from security import initialize_security_email_schema
 initialize_security_email_schema()
-from password_hints import initialize_password_hint_schema
+from password_hints import initialize_password_hint_schema, password_hints_bp
+app.register_blueprint(password_hints_bp)
 initialize_password_hint_schema()
+from watchlist_api import watchlist_bp, initialize_watchlist
+initialize_watchlist()
+app.register_blueprint(watchlist_bp)
+from customer_accounts import accounts_bp, initialize_customer_accounts, AccountError
+initialize_customer_accounts()
+app.register_blueprint(accounts_bp)
+
+@app.errorhandler(AccountError)
+def account_request_error(error):
+    return jsonify(error=error.message), error.status
+
 # Trust forwarded client IPs only when the deployment explicitly configures its proxy chain.
 from werkzeug.middleware.proxy_fix import ProxyFix
 trusted_proxy_hops = int(os.environ.get('RW_TRUSTED_PROXY_HOPS', '0'))
@@ -298,7 +317,7 @@ def api_me():
             "role": session["role"],
             "roles": session.get("roles", [session["role"]]),
             "profile_photo": photo
-        })
+        }), 200, {"Cache-Control": "private, no-store"}
     finally:
         db.close()
 
@@ -1011,8 +1030,8 @@ def rw_customer_account_management():
                 return jsonify(error="Enter both passwords"), 400
             if not check_password_hash(user["password_hash"], current):
                 return jsonify(error="Current password is incorrect"), 400
-            if not 12 <= len(new) <= 128:
-                return jsonify(error="New password must contain 12–128 characters"), 400
+            if not 7 <= len(new) <= 128:
+                return jsonify(error="New password must contain 7–128 characters"), 400
             if check_password_hash(user["password_hash"], new):
                 return jsonify(error="Choose a different password"), 400
 

@@ -1,13 +1,14 @@
+import { landingContent } from "../content/landingContent";
 import { useEffect, useState } from "react";
 import "../persistent-nav.css";
 
 type Tab = "home" | "about" | "platform" | "security";
 
 const tabs: { label: string; key: Tab }[] = [
-  { label: "Home", key: "home" },
-  { label: "About", key: "about" },
-  { label: "Platform", key: "platform" },
-  { label: "Security", key: "security" },
+  { label: landingContent.home, key: "home" },
+  { label: landingContent.about, key: "about" },
+  { label: landingContent.platform, key: "platform" },
+  { label: landingContent.security, key: "security" },
 ];
 
 function findSection(key: Tab): HTMLElement | null {

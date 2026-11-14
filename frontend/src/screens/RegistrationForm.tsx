@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 
+import { Eye, EyeOff } from "lucide-react";
+
 type Props = { mobile?: boolean };
 
 export default function RegistrationForm({ mobile = false }: Props) {
@@ -7,6 +9,8 @@ export default function RegistrationForm({ mobile = false }: Props) {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [passwordHint, setPasswordHint] = useState("");
   const [confirm, setConfirm] = useState("");
   const [code, setCode] = useState("");
@@ -45,8 +49,8 @@ export default function RegistrationForm({ mobile = false }: Props) {
       setError("Passwords do not match");
       return;
     }
-    if (password.length < 12) {
-      setError("Use a password with at least 12 characters");
+    if (password.length < 7) {
+      setError("Use a password with at least 7 characters");
       return;
     }
     if (!agreed) {
@@ -166,20 +170,26 @@ export default function RegistrationForm({ mobile = false }: Props) {
 
               <label className="text-xs text-[#f5f5f5]">
                 Password
-                <input className={inputClass + " mt-2"} type="password"
+                <div className="relative mt-2">
+                <input className={inputClass + " pr-12"} type={showPassword ? "text" : "password"}
                   placeholder="Password" autoComplete="new-password"
-                  required minLength={12} maxLength={128}
+                  required minLength={7} maxLength={128}
                   value={password} onChange={e => setPassword(e.target.value)} />
+                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} onClick={() => setShowPassword(value => !value)} className="absolute inset-y-0 right-3 flex items-center text-[#b4b8c0]">{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                </div>
                 <span className="mt-2 block leading-4 text-[#8c929c]">
-                  Use at least 12 characters.
+                  Use at least 7 characters.
                 </span>
               </label>
 
               <label className="text-xs text-[#f5f5f5]">
                 Confirm Password
-                <input className={inputClass + " mt-2"} type="password"
+                <div className="relative mt-2">
+                <input className={inputClass + " pr-12"} type={showConfirm ? "text" : "password"}
                   placeholder="Confirm Password" autoComplete="new-password"
-                  required value={confirm} onChange={e => setConfirm(e.target.value)} />
+                  required minLength={7} maxLength={128} value={confirm} onChange={e => setConfirm(e.target.value)} />
+                <button type="button" aria-label={showConfirm ? "Hide confirmed password" : "Show confirmed password"} aria-pressed={showConfirm} onClick={() => setShowConfirm(value => !value)} className="absolute inset-y-0 right-3 flex items-center text-[#b4b8c0]">{showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                </div>
               </label>
 
               <label className="text-xs text-[#f5f5f5]">
@@ -189,7 +199,7 @@ export default function RegistrationForm({ mobile = false }: Props) {
                   autoComplete="off" maxLength={200} aria-describedby="password-hint-help"
                   value={passwordHint} onChange={e => setPasswordHint(e.target.value)} />
                 <span id="password-hint-help" className="mt-2 block leading-4 text-[#8c929c]">
-                  Don’t enter your password. Your hint will appear in password reset emails.
+                  Don’t enter your password. Your hint appears on sign-in after you enter your email, and in password reset emails.
                 </span>
               </label>
 

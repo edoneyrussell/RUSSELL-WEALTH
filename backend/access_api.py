@@ -4,6 +4,8 @@ from pathlib import Path
 import sqlite3
 from datetime import datetime, timezone
 from roles import access_role
+from werkzeug.security import check_password_hash
+
 from urllib.parse import urlsplit
 
 import database
@@ -11,6 +13,13 @@ import database
 from flask import Blueprint, current_app, jsonify, request, session
 from authorization import role_required
 from database import get_db_connection
+from owner_protection import OWNER_EMAIL
+
+
+def is_owner(email):
+    return str(email).strip().lower() == OWNER_EMAIL
+
+ACCESS_ADMIN_EMAIL = OWNER_EMAIL
 
 access_bp = Blueprint('access', __name__)
 def ensure_access_schema(db, source):
@@ -40,8 +49,6 @@ def directory_sources():
     sources = [primary]
     if primary == 'local' and os.environ.get('DATABASE_URL'):
         sources.append('live')
-    elif primary == 'live' and Path(database.DATABASE).is_file():
-        sources.append('local')
     return primary, sources
 
 
@@ -101,7 +108,7 @@ def read_directory_source(source, primary):
         for record in records:
             record['created_at'] = creation_timestamp(record['created_at'])
             record.update(access_role=access_role(db, record['id'], record['role']),
-                          manageable=actor is not None, is_self=actor is not None and actor['id'] == record['id'])
+                          is_owner=is_owner(record['email']), manageable=actor is not None and actor['email'].lower() == ACCESS_ADMIN_EMAIL, is_self=actor is not None and actor['id'] == record['id'])
         return records
     finally:
         if db is not None:
@@ -110,7 +117,26 @@ def read_directory_source(source, primary):
 
 def valid_origin():
     origin = request.headers.get('Origin')
-    return not origin or urlsplit(origin).netloc == request.host
+    if not origin:
+        return request.headers.get('Sec-Fetch-Site') != 'cross-site'
+
+    def normalized(value):
+        try:
+            parsed = urlsplit(value)
+            if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+                return None
+            port = parsed.port or (443 if parsed.scheme == 'https' else 80)
+            return parsed.scheme, parsed.hostname.lower(), port
+        except ValueError:
+            return None
+
+    # The public frontend and API have different hosts behind Vercel/Render.
+    # Trust explicit configuration, never client-supplied forwarded-host headers.
+    allowed = {normalized(request.host_url)}
+    allowed.add(normalized(os.environ.get('RW_PUBLIC_APP_URL', 'https://russell-wealth.vercel.app')))
+    allowed.update(normalized(value.strip()) for value in os.environ.get('RW_ALLOWED_ORIGINS', '').split(',') if value.strip())
+    candidate = normalized(origin)
+    return candidate is not None and candidate in allowed
 
 
 @access_bp.get('/api/security/users')
@@ -156,6 +182,18 @@ def manage_user(user_id):
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify(error='A JSON request is required'), 400
+    password = data.pop('current_password', None)
+    if not isinstance(password, str) or not password or len(password) > 1024:
+        return jsonify(error='Enter your administrator password to confirm this action.'), 400
+    identity_db = get_db_connection()
+    try:
+        identity = identity_db.execute('SELECT email,password_hash FROM users WHERE id=?', (session['user_id'],)).fetchone()
+    finally:
+        identity_db.close()
+    if identity is None or identity['email'].lower() != ACCESS_ADMIN_EMAIL:
+        return jsonify(error='Only the ADMIN account can change account access.'), 403
+    if not check_password_hash(identity['password_hash'], password):
+        return jsonify(error='Your administrator password is incorrect.'), 403
     primary, sources = directory_sources()
     source = request.args.get('source', primary)
     if source not in sources:
@@ -179,6 +217,8 @@ def manage_user(user_id):
         target = db.execute(f'SELECT {USER_FIELDS} FROM users WHERE id=?', (user_id,)).fetchone()
         if target is None:
             return jsonify(error='Account not found'), 404
+        if is_owner(target['email']):
+            return jsonify(error='The owner account is protected. Its access cannot be changed or deleted here.'), 403
         role, status = access_role(db, user_id, target['role']), target['account_status']
         if request.method == 'PATCH':
             if not data or set(data) - {'role', 'account_status'}:
@@ -187,8 +227,6 @@ def manage_user(user_id):
             status = data.get('account_status', status)
             if role not in ('CUSTOMER', 'SOC_ADMIN', 'BOTH') or status not in ('ACTIVE', 'SUSPENDED'):
                 return jsonify(error='Invalid role or account status'), 400
-        elif data.get('confirm_email') != target['email']:
-            return jsonify(error='Enter the account email to confirm deletion'), 400
 
         removing_admin = request.method == 'DELETE' or role not in ('SOC_ADMIN', 'BOTH') or status != 'ACTIVE'
         if target['role'] == 'SOC_ADMIN' and target['account_status'] == 'ACTIVE' and removing_admin:
@@ -218,10 +256,10 @@ def manage_user(user_id):
             "SELECT table_name AS name FROM information_schema.tables WHERE table_schema=current_schema()"
             if source == 'live'
             else "SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        for table in ('holdings', 'transactions'):
+        for table in ('holdings', 'transactions', 'portfolio_snapshots'):
             if table in tables:
                 db.execute(f'DELETE FROM {table} WHERE account_id IN (SELECT id FROM investment_accounts WHERE user_id=?)', (user_id,))
-        for table in ('investment_accounts', 'rw_demo_bank_accounts', 'rw_demo_bank_transfers', 'customer_preferences', 'user_profiles'):
+        for table in ('customer_account_selection', 'customer_account_transfers', 'investment_accounts', 'rw_demo_bank_accounts', 'rw_demo_bank_transfers', 'customer_preferences', 'user_profiles', 'customer_watchlist', 'market_clock_preferences'):
             if table in tables:
                 db.execute(f'DELETE FROM {table} WHERE user_id=?', (user_id,))
         if 'admin_customer_links' in tables:

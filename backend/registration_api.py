@@ -166,8 +166,8 @@ def start_registration():
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email) or len(email) > 254:
         return jsonify(error="Enter a valid email address"), 400
 
-    if len(password) < 12 or len(password) > 128:
-        return jsonify(error="Password must contain 12–128 characters"), 400
+    if len(password) < 7 or len(password) > 128:
+        return jsonify(error="Password must contain 7–128 characters"), 400
 
     if data.get("acceptedTerms") is not True:
         return jsonify(error="You must accept the agreement to continue"), 400

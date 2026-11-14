@@ -1,6 +1,6 @@
 
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 const assetPathPrefix = '/assets';
 const imgOriginalLogoImage = `${assetPathPrefix}/c8aca.png`;
@@ -20,6 +20,24 @@ export default function RussellWealthMobileLogin() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [hint, setHint] = useState<{email:string; text:string} | null>(null);
+  const hintEmail = email.trim().toLowerCase();
+  useEffect(() => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hintEmail)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch('/api/password-hint', {
+          method:'POST',credentials:'same-origin',cache:'no-store',signal:controller.signal,
+          headers:{'Content-Type':'application/json'},body:JSON.stringify({email:hintEmail}),
+        });
+        const body = response.ok ? await response.json() : null;
+        if (!controller.signal.aborted) setHint({email:hintEmail,text:typeof body?.hint === 'string' ? body.hint : ''});
+      } catch { if (!controller.signal.aborted) setHint(null); }
+    },500);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  },[hintEmail]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -224,6 +242,8 @@ export default function RussellWealthMobileLogin() {
               </button>
             </div>
           </div>
+
+          {hint?.email === hintEmail && hint.text && <p role="status" className="w-full break-words text-sm text-[#b4b8c0]">Password hint: {hint.text}</p>}
 
           {/* Remember Me and Forgot Password */}
           <div className="flex items-center gap-3 w-full">

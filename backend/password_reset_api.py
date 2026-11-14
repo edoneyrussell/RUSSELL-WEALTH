@@ -209,8 +209,8 @@ def confirm_reset():
         credential = code
     else:
         return jsonify(error="Invalid reset link. Request a new link."), 400
-    if not isinstance(password, str) or not 12 <= len(password) <= 128:
-        return jsonify(error="Password must contain 12–128 characters"), 400
+    if not isinstance(password, str) or not 7 <= len(password) <= 128:
+        return jsonify(error="Password must contain 7–128 characters"), 400
 
     db = get_db_connection()
     try:
