@@ -1,3 +1,4 @@
+import { getLocale } from '../../i18n/language.ts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 type Props = {
@@ -40,7 +41,7 @@ export default function PortfolioAllocation({
             </Pie>
             <Tooltip
               formatter={value =>
-                new Intl.NumberFormat('en-CA', {
+                new Intl.NumberFormat(getLocale(), {
                   style: 'currency',
                   currency: 'CAD',
                 }).format(Number(value))
@@ -58,7 +59,7 @@ export default function PortfolioAllocation({
         <div className="rw-allocation-center">
           <span>Portfolio</span>
           <strong>
-            {total.toLocaleString('en-CA', {
+            {total.toLocaleString(getLocale(), {
               style: 'currency',
               currency: 'CAD',
               maximumFractionDigits: 0,

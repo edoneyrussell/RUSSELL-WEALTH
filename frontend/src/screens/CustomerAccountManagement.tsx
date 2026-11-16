@@ -1,3 +1,4 @@
+import LanguagePreferences from '../components/LanguagePreferences';
 import { useEffect, useState } from "react";
 import { logout } from "../auth";
 
@@ -38,6 +39,12 @@ export default function CustomerAccountManagement() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (loaded && window.location.hash.startsWith('#languages')) {
+      document.getElementById('languages')?.scrollIntoView({ block: 'start' });
+    }
+  }, [loaded]);
 
   useEffect(() => {
     let active = true;
@@ -153,6 +160,12 @@ export default function CustomerAccountManagement() {
       )
     },
     {
+      id: "languages",
+      title: "Languages",
+      subtitle: "Choose English or French for the website",
+      content: <LanguagePreferences />
+    },
+    {
       title: "Notifications & Preferences",
       subtitle: "Save your personal account preferences",
       content: (
@@ -238,7 +251,7 @@ export default function CustomerAccountManagement() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#080a0d] text-[#f2f5f8]">
+    <div className="rw-fintech-workspace rw-account-management min-h-screen bg-[#080a0d] text-[#f2f5f8]">
       <main className="mx-auto max-w-[1050px] px-5 py-10">
         <div className="mb-9 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -268,7 +281,7 @@ export default function CustomerAccountManagement() {
         {loaded && (
           <div className="space-y-5">
             {sections.map((section, index) => (
-              <details key={section.title} className={panel} open={index === 0}>
+              <details key={section.title} id={section.id} className={`rw-fintech-panel scroll-mt-6 ${panel}`} open={index === 0 || (section.id === 'languages' && window.location.hash.startsWith('#languages'))}>
                 <summary className="cursor-pointer list-none">
                   <div className="flex items-center justify-between gap-4">
                     <div>

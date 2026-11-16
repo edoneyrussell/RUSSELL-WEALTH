@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import AccountSelector from "../components/AccountSelector";
 import { notifyPortfolioUpdated } from "../utils/portfolioSync";
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
@@ -118,7 +119,7 @@ function BankLogo({
 }
 
 function cad(value: string | number) {
-  return new Intl.NumberFormat("en-CA", {
+  return new Intl.NumberFormat(getLocale(), {
     style: "currency", currency: "CAD"
   }).format(Number(value));
 }
@@ -384,7 +385,7 @@ export default function DemoBanking() {
                             : ""
                         }`}
                       >
-                        ${n.toLocaleString("en-CA")}
+                        ${n.toLocaleString(getLocale())}
                       </button>
                     ))}
                   </div>

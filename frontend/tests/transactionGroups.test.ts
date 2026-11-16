@@ -16,3 +16,10 @@ test('bank transfers remain individual and fractional crypto is preserved',()=>{
   assert.equal(groups.length,3);
   assert.equal(groups[2].quantity,0.00000003);
 });
+
+test('same-day trades in different accounts stay separate in all-account history', () => {
+  const groups = groupTransactions([entry(1, {account_id: 2}), entry(2, {account_id: 7}), entry(3, {account_id: 2})]);
+  assert.equal(groups.length, 2);
+  assert.equal(groups[0].entries.length, 2);
+  assert.equal(groups[1].entries.length, 1);
+});

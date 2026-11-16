@@ -1,3 +1,4 @@
+import { t } from '../i18n/language.ts';
 import { useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X, ArrowUpRight } from 'lucide-react';
@@ -32,7 +33,7 @@ export default function SocSearch() {
   const root = useRef<HTMLDivElement>(null), input = useRef<HTMLInputElement>(null), popup = useRef<HTMLDivElement>(null);
   const listId = useId();
   const term=query.trim();
-  const tabs=pages.filter(row => (!demo || ['overview','logs','alerts'].includes(row.key)) && `${row.title} ${row.description}`.toLowerCase().includes(term.toLowerCase())).map(row=>demo ? {...row,href:row.href.replace('/security','/demo/security')} : row);
+  const tabs=pages.filter(row => (!demo || ['overview','logs','alerts'].includes(row.key)) && `${row.title} ${row.description} ${t(row.title)} ${t(row.description)}`.toLowerCase().includes(term.toLowerCase())).map(row=>demo ? {...row,href:row.href.replace('/security','/demo/security')} : row);
   const results=[...tabs,...(data.query===term ? data.results : [])];
   useEffect(()=>{
     if (!open || !term) return;

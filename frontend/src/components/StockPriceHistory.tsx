@@ -1,9 +1,11 @@
+import { t } from '../i18n/language.ts';
+import { getLocale } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useCustomerFetch } from '../demo/customerDemo';
 import { historyRanges, normalizePriceHistory, priceHistoryRange, type HistoryRange, type PricePoint } from '../utils/stockHistory';
 
-const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en-CA', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
+const dateLabel = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(getLocale(), { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
 
 export default function StockPriceHistory({ symbol }: { symbol: string }) {
   const customerFetch = useCustomerFetch();
@@ -61,7 +63,7 @@ export default function StockPriceHistory({ symbol }: { symbol: string }) {
   }, [symbol, customerFetch, retry]);
 
   const points = priceHistoryRange(history, range);
-  const money = (value: number) => new Intl.NumberFormat('en-CA', { style: 'currency', currency }).format(value);
+  const money = (value: number) => new Intl.NumberFormat(getLocale(), { style: 'currency', currency }).format(value);
   const first = points[0];
   const last = points[points.length - 1];
   return (
@@ -80,7 +82,7 @@ export default function StockPriceHistory({ symbol }: { symbol: string }) {
               <CartesianGrid stroke="#2B3746" strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" tickFormatter={date => date.slice(5)} minTickGap={45} tick={{ fill: '#91A0B0', fontSize: 10 }} />
               <YAxis width={52} tickFormatter={value => Number(value) >= 1000 ? `${(Number(value) / 1000).toFixed(0)}k` : String(value)} tick={{ fill: '#91A0B0', fontSize: 10 }} domain={['auto', 'auto']} />
-              <Tooltip labelFormatter={label => dateLabel(String(label))} formatter={value => [money(Number(value)), 'Daily price']} contentStyle={{ background: '#202A35', border: '1px solid #465362', borderRadius: 12, color: '#F2F4F7' }} />
+              <Tooltip labelFormatter={label => dateLabel(String(label))} formatter={value => [money(Number(value)), t('Daily price')]} contentStyle={{ background: '#202A35', border: '1px solid #465362', borderRadius: 12, color: '#F2F4F7' }} />
               <Line type="linear" dataKey="close" stroke="#8DBBFF" strokeWidth={2} dot={points.length === 1 ? { r: 4 } : false} activeDot={{ r: 5 }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>

@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Search, Users, RefreshCw, X, CalendarDays } from 'lucide-react';
 
@@ -208,8 +209,8 @@ export default function AccessManagement() {
           <section className="mt-6 rounded-xl border border-[#34404D] bg-[#18212C] p-4" aria-label="Account creation information">
             <h3 className="flex items-center gap-2 font-medium"><CalendarDays size={18} />Account created</h3>
             {validCreated ? <>
-              <p className="mt-3 text-base">{new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Regina', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(validCreated)}</p>
-              <p className="mt-1 text-lg font-semibold"><time dateTime={details.created_at!}>{new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Regina', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZoneName: 'short' }).format(validCreated)}</time></p>
+              <p className="mt-3 text-base">{new Intl.DateTimeFormat(getLocale(), { timeZone: 'America/Regina', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(validCreated)}</p>
+              <p className="mt-1 text-lg font-semibold"><time dateTime={details.created_at!}>{new Intl.DateTimeFormat(getLocale(), { timeZone: 'America/Regina', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZoneName: 'short' }).format(validCreated)}</time></p>
               <p className="mt-1 text-xs text-[#A6BACB]">Regina, Saskatchewan · America/Regina (UTC−06:00)</p>
               <p className="mt-3 break-all text-xs text-[#91A1B4]">Recorded timestamp (UTC): {details.created_at}</p>
             </> : <p className="mt-3 text-sm text-[#A6BACB]">The creation date was not recorded for this account.</p>}

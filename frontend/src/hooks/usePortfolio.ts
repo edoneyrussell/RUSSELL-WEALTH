@@ -1,11 +1,12 @@
+import { getLocale } from '../i18n/language.ts';
 import { subscribePortfolioUpdates } from "../utils/portfolioSync";
 import { useCustomerFetch } from "../demo/customerDemo";
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type Portfolio = {
-  account_id?: number;
+  account_id?: number | null;
   account_type?: string;
-  management_mode?: string;
+  management_mode?: string | null;
   account_name: string;
   currency: string;
   cash_balance: string;
@@ -25,7 +26,9 @@ export type Portfolio = {
   }>;
 };
 
-export function usePortfolio() {
+export type AccountScope = 'all' | number;
+
+export function usePortfolio(scope?: AccountScope) {
   const customerFetch = useCustomerFetch();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [error, setError] = useState('');
@@ -40,7 +43,7 @@ export function usePortfolio() {
     const controller = new AbortController();
     pending.current = controller;
     try {
-      const response = await customerFetch('/api/customer/portfolio', {
+      const response = await customerFetch('/api/customer/portfolio' + (scope === undefined ? '' : `?account_id=${scope}`), {
         credentials: 'same-origin',
         cache: 'no-store',
         signal: controller.signal,
@@ -69,9 +72,13 @@ export function usePortfolio() {
         if (queued.current) { queued.current = false; void refresh(); }
       }
     }
-  }, [customerFetch]);
+  }, [customerFetch, scope]);
 
   useEffect(() => {
+    setPortfolio(null);
+    setLoading(true);
+    setError('');
+    queued.current = false;
     void refresh();
     const unsubscribe = subscribePortfolioUpdates(() => { void refresh(); });
     return () => {
@@ -84,7 +91,7 @@ export function usePortfolio() {
 }
 
 export function formatCAD(value: string) {
-  return new Intl.NumberFormat('en-CA', {
+  return new Intl.NumberFormat(getLocale(), {
     style: 'currency',
     currency: 'CAD',
   }).format(Number(value));

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sourceText } from '../i18n/language.ts';
 import { LayoutDashboard, PieChart, ArrowLeftRight, Star, List, Plus, CircleHelp, Menu } from 'lucide-react';
 import { CustomerDemoContext } from '../demo/customerDemo';
 import Dashboard from './Dashboard';
@@ -32,7 +33,7 @@ export default function CustomerDemo() {
       const href=element.getAttribute('href')||'';
       if(href.startsWith('/')) {event.preventDefault();event.stopPropagation();if(href in screens) choose(href);else setNotice('This account feature is disabled in the public demo.');}
     }
-    const label=element.textContent?.trim()||'';
+    const label=sourceText(element).trim();
     const map:Record<string,string>={'Search Markets':'/markets','Trade':'/markets','Trade & Explore':'/markets','Explore & Trade':'/markets','Add money':'/deposit','Deposit Funds':'/deposit','My Portfolio':'/portfolio','View Portfolio':'/portfolio','View portfolio':'/portfolio','View All':'/portfolio','← Back to Dashboard':'/dashboard','Dashboard':'/dashboard'};
     const key=Object.keys(map).find(key=>label===key || label.replace(/[↗›]/g,'').trim()===key);
     if(key){event.preventDefault();event.stopPropagation();choose(map[key]);}

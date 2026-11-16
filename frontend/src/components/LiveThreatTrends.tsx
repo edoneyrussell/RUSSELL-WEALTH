@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 
 export type TrendBucket = {
@@ -132,7 +133,7 @@ export default function LiveThreatTrends({ trends = [] }: Props) {
             fontSize="10"
             fill="#8c929c"
           >
-            {new Intl.DateTimeFormat('en-CA', {
+            {new Intl.DateTimeFormat(getLocale(), {
               timeZone: 'America/Regina',
               hour: '2-digit',
               minute: '2-digit',

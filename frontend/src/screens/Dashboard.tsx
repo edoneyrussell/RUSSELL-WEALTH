@@ -1,4 +1,6 @@
+import { getLocale } from '../i18n/language.ts';
 import AccountOverview from "../components/AccountOverview";
+import AccountSelector from "../components/AccountSelector";
 import { useAccountProfile } from "../hooks/useAccountProfile";
 import { CustomerDemoContext, useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import GlobalMarketsClock from "../components/GlobalMarketsClock";
@@ -23,7 +25,7 @@ import { getGreeting } from "../utils/greeting";
 import CustomerSearch from "../components/CustomerSearch";
 import HoldingsList from "../components/HoldingsList";
 import { useTrading } from "../hooks/useTrading";
-import { usePortfolio } from "../hooks/usePortfolio";
+import { usePortfolio, type AccountScope } from "../hooks/usePortfolio";
 
 function navigate(path: string) {
   if (customerDemoNavigate(path)) return;
@@ -47,7 +49,8 @@ const field =
 export default function Dashboard() {
   const customerFetch = useCustomerFetch();
   const demo = useContext(CustomerDemoContext);
-  const { portfolio, error } = usePortfolio();
+  const [accountScope, setAccountScope] = useState<AccountScope>('all');
+  const { portfolio, error } = usePortfolio(accountScope);
   const trading = useTrading();
   const [showBalances, setShowBalances] = useState(true);
 
@@ -92,7 +95,7 @@ export default function Dashboard() {
 
   const money = (value: string | number) =>
     showBalances
-      ? new Intl.NumberFormat("en-CA", {
+      ? new Intl.NumberFormat(getLocale(), {
           style: "currency",
           currency: displayCurrency,
         }).format(
@@ -247,9 +250,7 @@ export default function Dashboard() {
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[#425266] bg-[#263342] px-3 py-1.5 text-[11px] text-[#CFDBE8]">
-                  {portfolio?.account_name || "Investment Account"}
-                </span>
+                <AccountSelector compact scope={accountScope} onScopeChange={setAccountScope} label="Dashboard account" accountName={portfolio?.account_name} />
 
                 <span className="text-xs text-[#8D9BAB]">
                   {holdings.length} active positions
@@ -358,7 +359,7 @@ export default function Dashboard() {
               </div>
 
               <div className="w-full overflow-x-auto">
-                <HoldingsList limit={4} />
+                <HoldingsList limit={4} scope={accountScope} />
               </div>
             </div>
 
@@ -390,7 +391,7 @@ export default function Dashboard() {
                         : 0;
 
                     return (
-                      <div key={holding.symbol}>
+                      <div key={holding.symbol} className="rw-dashboard-stock">
                         <div className="mb-2 flex items-center justify-between gap-3">
                           <div>
                             <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="text-sm font-semibold">
@@ -434,7 +435,7 @@ export default function Dashboard() {
 
 
         {/* BOTTOM ACCOUNT & ACTION CARDS */}
-        <section className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+        <section className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
           <AccountOverview money={money} />
           <div className={`${panel} h-full p-5 sm:p-6`}>
               <p className={label}>EXPLORE</p>
@@ -447,7 +448,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => navigate("/markets")}
-                  className="flex flex-col items-start gap-4 rounded-xl border border-[#34404D] bg-[#171E27] p-4 text-left transition hover:bg-[#26313D]"
+                  className="rw-fintech-tile flex flex-col items-start gap-4 rounded-xl border border-[#34404D] bg-[#171E27] p-4 text-left transition hover:bg-[#26313D]"
                 >
                   <ArrowLeftRight
                     size={20}
@@ -461,7 +462,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => navigate("/portfolio")}
-                  className="flex flex-col items-start gap-4 rounded-xl border border-[#34404D] bg-[#171E27] p-4 text-left transition hover:bg-[#26313D]"
+                  className="rw-fintech-tile flex flex-col items-start gap-4 rounded-xl border border-[#34404D] bg-[#171E27] p-4 text-left transition hover:bg-[#26313D]"
                 >
                   <TrendingUp
                     size={20}

@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 export function severityLabel(severity:string) {
   const text=severity.trim().toLowerCase();
   return text?text[0].toUpperCase()+text.slice(1):'Unknown';
@@ -14,5 +15,5 @@ export function formatReginaAlertTime(value:string|null|undefined) {
   }
   const timestamp=new Date(normalized);
   if(Number.isNaN(timestamp.getTime()))return {date:'—',time:'—'};
-  return {date:new Intl.DateTimeFormat('en-US',{timeZone:'America/Regina',month:'short',day:'numeric',year:'numeric'}).format(timestamp),time:new Intl.DateTimeFormat('en-US',{timeZone:'America/Regina',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(timestamp)};
+  return {date:new Intl.DateTimeFormat(getLocale('en-US'),{timeZone:'America/Regina',month:'short',day:'numeric',year:'numeric'}).format(timestamp),time:new Intl.DateTimeFormat(getLocale('en-US'),{timeZone:'America/Regina',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:getLocale() !== 'fr-CA'}).format(timestamp)};
 }

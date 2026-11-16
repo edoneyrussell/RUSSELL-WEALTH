@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 
 type Quote = {
@@ -149,7 +150,7 @@ export default function Markets() {
           <section className="mt-8 rounded-2xl border border-gray-800 bg-[#101216] p-6">
             <p className="text-gray-400">{quote.symbol}</p>
             <h2 className="mt-2 text-4xl font-semibold">
-              {Number(quote.price).toLocaleString('en-CA', {
+              {Number(quote.price).toLocaleString(getLocale(), {
                 style: 'currency',
                 currency: quote.currency
               })}

@@ -1,3 +1,4 @@
+import type { AccountScope } from './usePortfolio';
 import { useCustomerFetch } from '../demo/customerDemo';
 import { useEffect, useState } from 'react';
 import { subscribePortfolioUpdates } from '../utils/portfolioSync';
@@ -13,21 +14,26 @@ export type Transaction = {
   created_at: string;
   category?: string;
   bank_code?: string | null;
+  account_id?: number;
+  account_name?: string;
 };
 
-export function useTransactions() {
+export function useTransactions(scope?: AccountScope) {
   const customerFetch = useCustomerFetch();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   useEffect(() => {
+    setTransactions([]);
+    setLoading(true);
+    setError(false);
     const controller = new AbortController();
     let pending = false, queued = false;
     const refresh = async () => {
       if (pending) { queued = true; return; }
       pending = true;
       try {
-        const response = await customerFetch('/api/customer/transactions', {
+        const response = await customerFetch('/api/customer/transactions' + (scope === undefined ? '' : `?account_id=${scope}`), {
           credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
         });
         if (!response.ok) throw new Error('Failed to load transactions');
@@ -47,6 +53,6 @@ export function useTransactions() {
     void refresh();
     const unsubscribe = subscribePortfolioUpdates(() => { void refresh(); });
     return () => { controller.abort(); unsubscribe(); };
-  }, [customerFetch]);
+  }, [customerFetch, scope]);
   return { transactions, loading, error };
 }

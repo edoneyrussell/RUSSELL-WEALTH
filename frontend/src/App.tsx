@@ -1,4 +1,5 @@
 import { landingContent } from "./content/landingContent"
+import { getLanguage, sourceText, t } from './i18n/language.ts'
 import CustomerDemo from "./screens/CustomerDemo"
 import SecurityDemo from "./screens/SecurityDemo"
 import DemoBanking from './screens/DemoBanking'
@@ -109,6 +110,16 @@ function currentPath() {
 }
 
 export default function App() {
+  const [language, setLanguage] = useState(getLanguage);
+  useEffect(() => {
+    const update = (event: Event) => setLanguage((event as CustomEvent<'en' | 'fr'>).detail);
+    window.addEventListener('rw-language-changed', update);
+    return () => window.removeEventListener('rw-language-changed', update);
+  }, []);
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = t('Russell Wealth | Where Wealth Meets Innovation');
+  }, [language]);
   const [path, setPath] = useState(currentPath)
   const [hash, setHash] = useState(() => window.location.hash)
   const isMobile = useMediaQuery('(max-width: 700px)')
@@ -195,7 +206,7 @@ export default function App() {
     )
 
     for (const element of pathElements) {
-      const label = element.textContent?.trim()
+      const label = sourceText(element).trim()
 
       if (label && navigationByLabel[label]) {
         navigate(navigationByLabel[label])
@@ -320,7 +331,7 @@ export default function App() {
         path === '/dashboard'))
 
   return (
-    <>
+    <div key={language} className="contents">
       {showPublicNavigation && <RWPersistentNav />}
       {isProtectedRoute && customerAccess && socAccess && (
         <nav aria-label="Switch dashboard" className="flex justify-end gap-3 border-b border-[#30343b] bg-[#10151C] px-5 py-2 text-sm text-[#BAD9EF]">
@@ -371,6 +382,6 @@ export default function App() {
       )}
       <GlobalToastHost />
     </main>
-    </>
+    </div>
   )
 }

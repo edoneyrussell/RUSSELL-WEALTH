@@ -1,10 +1,13 @@
+import { getLocale } from '../i18n/language.ts';
+import AccountSelector from '../components/AccountSelector';
+import type { AccountScope } from '../hooks/usePortfolio';
 import { useTransactions } from '../hooks/useTransactions';
 import { useState } from 'react';
 import { groupTransactions } from '../utils/transactionGroups';
 import { ChevronDown, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 const money = (value: string | number) =>
-  new Intl.NumberFormat('en-CA', {
+  new Intl.NumberFormat(getLocale(), {
     style: 'currency',
     currency: 'CAD',
   }).format(Number(value));
@@ -54,6 +57,8 @@ type HistoryEntry = {
   created_at: string;
   category?: string;
   bank_code?: string | null;
+  account_id?: number;
+  account_name?: string;
 };
 
 function TransactionLogo({ entry }: { entry: HistoryEntry }) {
@@ -83,7 +88,8 @@ function TransactionLogo({ entry }: { entry: HistoryEntry }) {
 }
 
 export default function Transactions() {
-  const { transactions, loading, error } = useTransactions();
+  const [accountScope, setAccountScope] = useState<AccountScope>('all');
+  const { transactions, loading, error } = useTransactions(accountScope);
   const entries = transactions as HistoryEntry[];
   const search = new URLSearchParams(window.location.search).get('search')?.toLowerCase() ?? '';
   const matching = entries.filter(entry => `${entry.symbol} ${entry.name} ${entry.action} ${entry.total} ${entry.created_at}`.toLowerCase().includes(search));
@@ -104,9 +110,10 @@ export default function Transactions() {
             ← Back to Dashboard
           </button>
 
-          <h1 className="font-['Lora'] text-3xl font-normal">
-            Transaction History
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-['Lora'] text-3xl font-normal">Transaction History</h1>
+            <AccountSelector compact label="Transaction history account" scope={accountScope} onScopeChange={setAccountScope} />
+          </div>
           <p className="mt-2 text-sm text-[#8c929c]">
             Your complete simulated banking and investment activity
           </p>
@@ -120,9 +127,9 @@ export default function Transactions() {
             <p className="p-8 text-[#f09a9a]">
               Unable to load transaction history.
             </p>
-          ) : entries.length === 0 ? (
+          ) : matching.length === 0 ? (
             <p className="p-8 text-[#b4b8c0]">
-              No transactions recorded yet.
+              {search ? 'No transactions match your search.' : 'No transactions recorded for this account selection.'}
             </p>
           ) : (
             <div className="divide-y divide-[#30343b]">
@@ -153,13 +160,14 @@ export default function Transactions() {
 
                       <p className="mt-1 truncate text-xs text-[#8c929c]">
                         {entry.name}
+                        {entry.account_name ? ` · ${entry.account_name}` : ''}
                         {isTrade && entry.quantity
                           ? multiple ? ` · ${group.quantity} ${entry.category === 'CRYPTO' ? 'units' : 'shares'} · ${group.entries.length} transactions` : ` · ${entry.quantity} ${entry.category === 'CRYPTO' ? 'units' : 'shares'} at ${money(entry.price ?? 0)}`
                           : ''}
                       </p>
 
                       <p className="mt-1 text-xs text-[#71808e]">
-                        {new Date(entry.created_at).toLocaleString('en-CA')}
+                        {new Date(entry.created_at).toLocaleString(getLocale())}
                       </p>
                     </div>
 
@@ -180,7 +188,7 @@ export default function Transactions() {
                   <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden" aria-label={`${entry.action} ${entry.symbol}: ${group.entries.length} transactions`}>{row}</summary>
                   <div className="space-y-3 border-t border-[#30343b] bg-[#101419] px-6 py-4 sm:pl-24">
                     {group.entries.map(item => <div key={item.id} className="flex flex-wrap justify-between gap-2 text-xs text-[#b4b8c0]">
-                      <span>{new Date(item.created_at).toLocaleString('en-CA')} · {item.quantity} {item.category === 'CRYPTO' ? 'units' : 'shares'} at {money(item.price ?? 0)}</span>
+                      <span>{new Date(item.created_at).toLocaleString(getLocale())} · {item.quantity} {item.category === 'CRYPTO' ? 'units' : 'shares'} at {money(item.price ?? 0)}</span>
                       <span>{money(item.total)}</span>
                     </div>)}
                   </div>

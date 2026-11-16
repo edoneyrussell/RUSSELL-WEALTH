@@ -1,3 +1,5 @@
+import { t } from '../i18n/language.ts';
+import { getLocale } from '../i18n/language.ts';
 import { CustomerDemoContext } from "../demo/customerDemo";
 import { useContext, useMemo, useState } from "react";
 import {
@@ -16,7 +18,7 @@ const emptyHistory: Point[] = [];
 const ranges: Range[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
 
 const formatMoney = (value: number) =>
-  new Intl.NumberFormat("en-CA", {
+  new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: "CAD",
   }).format(value);
@@ -137,7 +139,7 @@ export default function PortfolioHistoryChart({
                 domain={["dataMin", "dataMax"]}
                 scale="time"
                 tickFormatter={(time: number) =>
-                  new Date(time).toLocaleDateString("en-CA", {
+                  new Date(time).toLocaleDateString(getLocale(), {
                     month: "short",
                     day: "numeric",
                   })
@@ -169,11 +171,11 @@ export default function PortfolioHistoryChart({
                   color: "#F0F3F7",
                 }}
                 labelFormatter={label =>
-                  new Date(Number(label)).toLocaleString("en-CA")
+                  new Date(Number(label)).toLocaleString(getLocale())
                 }
                 formatter={number => [
                   formatMoney(Number(number)),
-                  "Portfolio Value",
+                  t("Portfolio Value"),
                 ]}
               />
 

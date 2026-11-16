@@ -136,3 +136,59 @@ class CustomerAccountsTests(unittest.TestCase):
             for target in (cash,crypto):
                 result=self.customer.post('/api/customer/trade',json={'account_id':target,'symbol':'MSFT','action':'BUY','quantity':'1'})
                 self.assertEqual(result.status_code,400,result.json)
+
+    def test_all_accounts_combines_holdings_and_cash_without_changing_selection(self):
+        target = self.open()
+        payload = {'from_account_id': self.original, 'to_account_id': target,
+                   'amount': '300', 'request_id': 'aggregate-funding-123'}
+        self.assertEqual(self.customer.post('/api/customer/accounts/transfer', json=payload).status_code, 200)
+        with patch('trading_api.market_status', return_value={'is_open': True}):
+            for account, quantity in ((self.original, '2'), (target, '1')):
+                result = self.customer.post('/api/customer/trade', json={
+                    'account_id': account, 'symbol': 'MSFT', 'action': 'BUY', 'quantity': quantity})
+                self.assertEqual(result.status_code, 200, result.json)
+        self.select(target)
+        with patch('simulation_prices.stock_price_cents', return_value=25000):
+            response = self.customer.get('/api/customer/portfolio?account_id=all')
+            self.assertEqual(response.status_code, 200, response.json)
+            portfolio = response.json
+            self.assertEqual(portfolio['account_name'], 'All accounts')
+            self.assertIsNone(portfolio['account_id'])
+            self.assertEqual(Decimal(portfolio['cash_balance']), Decimal('700'))
+            self.assertEqual(Decimal(portfolio['invested_value']), Decimal('750'))
+            self.assertEqual(Decimal(portfolio['total_value']), Decimal('1450'))
+            self.assertEqual(len(portfolio['holdings']), 1)
+            self.assertEqual(Decimal(portfolio['holdings'][0]['quantity']), Decimal('3'))
+            self.assertAlmostEqual(portfolio['history'][-1]['value'], 1450)
+            self.assertEqual(self.customer.get('/api/customer/accounts').json['selected_account_id'], target)
+            single = self.customer.get(f'/api/customer/portfolio?account_id={target}').json
+            self.assertEqual(Decimal(single['holdings'][0]['quantity']), Decimal('1'))
+            self.assertIn('no-store', response.headers['Cache-Control'])
+
+    def test_all_transaction_history_combines_accounts_and_keeps_account_identity(self):
+        target = self.open()
+        for account, amount in ((self.original, '10'), (target, '20')):
+            result = self.customer.post('/api/customer/demo-banking/transfer', json={
+                'account_id': account, 'bank_code': 'TD', 'direction': 'DEPOSIT',
+                'amount': amount, 'request_id': f'aggregate-history-{account}'})
+            self.assertEqual(result.status_code, 200, result.json)
+        all_entries = self.customer.get('/api/customer/transactions?account_id=all').json['transactions']
+        self.assertEqual({entry['account_id'] for entry in all_entries}, {self.original, target})
+        self.assertEqual({entry['account_name'] for entry in all_entries}, {'Existing', 'My savings'})
+        for account in (self.original, target):
+            entries = self.customer.get(f'/api/customer/transactions?account_id={account}').json['transactions']
+            self.assertTrue(entries)
+            self.assertTrue(all(entry['account_id'] == account for entry in entries))
+        self.assertEqual(len(all_entries), 2)
+
+    def test_all_accounts_empty_and_unauthenticated(self):
+        for path in ('/api/customer/portfolio?account_id=all', '/api/customer/transactions?account_id=all'):
+            self.assertEqual(self.app.test_client().get(path).status_code, 401)
+        db = database.get_db_connection()
+        db.execute('DELETE FROM investment_accounts WHERE user_id=103')
+        db.commit()
+        db.close()
+        portfolio = self.customer.get('/api/customer/portfolio?account_id=all').json
+        self.assertEqual(portfolio['holdings'], [])
+        self.assertEqual(portfolio['total_value'], '0')
+        self.assertEqual(self.customer.get('/api/customer/transactions?account_id=all').json['transactions'], [])

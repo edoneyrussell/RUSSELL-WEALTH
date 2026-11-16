@@ -1878,14 +1878,14 @@ html.rw-refresh-entering #root {
 
   /* Logo */
   .rw-unified-customer-layout:not(.rw-unified-soc-layout)
-  .rw-unified-sidebar [aria-label="Refresh Russell Wealth"] img {
+  .rw-unified-sidebar .rw-brand-refresh img {
     transition:
       transform 420ms cubic-bezier(.2,.8,.2,1),
       filter 420ms ease;
   }
 
   .rw-unified-customer-layout:not(.rw-unified-soc-layout)
-  .rw-unified-sidebar [aria-label="Refresh Russell Wealth"]:hover img {
+  .rw-unified-sidebar .rw-brand-refresh:hover img {
     transform: scale(1.035);
     filter: brightness(1.13);
   }
@@ -2926,13 +2926,13 @@ html.rw-refresh-entering #root {
 
 /* Customer navigation gets a subtle emerald interaction */
 .rw-unified-sidebar:not(.rw-soc-shared-sidebar)
-nav[aria-label="Customer navigation"] a:hover {
+nav.rw-customer-nav a:hover {
   background: rgba(22,199,132,.085);
   border-color: rgba(22,199,132,.18);
 }
 
 .rw-unified-sidebar:not(.rw-soc-shared-sidebar)
-nav[aria-label="Customer navigation"] a:focus-visible {
+nav.rw-customer-nav a:focus-visible {
   outline: 2px solid #16c784;
   outline-offset: 2px;
 }
@@ -4469,6 +4469,51 @@ body:has(.rw-fintech-dashboard) .rw-unified-sidebar nav a { font-family: Inter, 
 }
 
 /* Shared customer workspace, matching the dashboard design. */
+.rw-fintech-dashboard, .rw-fintech-workspace {
+  --rw-surface: #13191a;
+  --rw-surface-inset: #0f1614;
+  --rw-border: #283332;
+  --rw-control-border: #34483b;
+  --rw-tile: #171f1c;
+  --rw-tile-hover: #1b2822;
+  --rw-text: #ecf1ed;
+  --rw-muted: #91a498;
+  --rw-accent: #c2edce;
+}
+.rw-fintech-workspace .rw-fintech-panel {
+  background: var(--rw-surface);
+  border-color: var(--rw-border);
+  border-radius: 18px;
+  box-shadow: none;
+}
+.rw-fintech-dashboard .rw-fintech-tile, .rw-fintech-workspace .rw-fintech-tile {
+  background: var(--rw-tile);
+  border-color: var(--rw-border);
+  color: var(--rw-text);
+}
+.rw-fintech-dashboard .rw-fintech-tile:hover, .rw-fintech-workspace .rw-fintech-tile:hover {
+  background: var(--rw-tile-hover);
+  border-color: var(--rw-control-border);
+}
+.rw-fintech-workspace .rw-fintech-field {
+  background: var(--rw-surface-inset);
+  border-color: var(--rw-control-border);
+  color: var(--rw-text);
+  outline: none;
+}
+.rw-fintech-dashboard .rw-account-selector, .rw-fintech-workspace .rw-account-selector {
+  background: var(--rw-surface);
+  border-color: var(--rw-border);
+}
+.rw-fintech-dashboard .rw-account-selector select, .rw-fintech-workspace .rw-account-selector select {
+  background: var(--rw-surface-inset);
+  border-color: var(--rw-control-border);
+  color: var(--rw-text);
+}
+.rw-fintech-dashboard summary:focus-visible, .rw-fintech-dashboard a:focus-visible {
+  outline: 2px solid var(--rw-accent);
+  outline-offset: 3px;
+}
 .rw-fintech-workspace {
   background: #0c1011 !important;
   background-image: none !important;
@@ -4665,3 +4710,66 @@ body:has(.rw-fintech-workspace) .rw-unified-sidebar nav a { font-family: Inter, 
 .rw-alert-select { background:#202c24; border:1px solid #3a4a3f; border-radius:10px; padding:10px 12px; color:#e7eee9; min-height:42px; }
 .rw-alert-select:disabled { opacity:.45; }
 @media(max-width:600px) { .rw-alert-card { padding:16px; } .rw-alert-summary { min-width:0; flex:1; } }
+
+/* Keep the same type scale and responsive geometry in both supported languages. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+.screen-shell:has(.rw-fintech-dashboard, .rw-fintech-workspace) {
+  min-width: 0;
+}
+.rw-fintech-dashboard header > div:first-child,
+.rw-fintech-dashboard .rw-fintech-balance > div:first-child {
+  min-width: 0;
+  flex: 1 1 340px;
+}
+.rw-fintech-dashboard .rw-fintech-hero-actions {
+  flex-shrink: 0;
+}
+.rw-unified-nav-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rw-language-preferences select { font: inherit; }
+.rw-account-management details > summary h2 {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.rw-landing-alive [data-name="Hero actions"] {
+  flex-wrap: wrap;
+}
+.rw-landing-alive [data-name="Hero actions"] [data-name="Action"] {
+  max-width: 100%;
+}
+.rw-landing-alive [data-name="Hero actions"] [data-name="Action"] p {
+  white-space: normal;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .rw-language-preferences select,
+  .rw-account-management :is(input, select, textarea) {
+    font-size: 16px;
+  }
+  .rw-fintech-dashboard .rw-fintech-hero-actions {
+    flex-shrink: 1;
+    width: 100%;
+  }
+}
+
+/* A small, single bounce on dashboard stock rows and watchlist cards. */
+@keyframes rw-stock-bounce {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-4px); }
+  65% { transform: translateY(1px); }
+  82% { transform: translateY(-1px); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .rw-fintech-dashboard .rw-dashboard-stock:hover {
+    animation: rw-stock-bounce 380ms ease-out;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rw-fintech-dashboard .rw-dashboard-stock { animation: none !important; }
+}

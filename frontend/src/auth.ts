@@ -1,3 +1,4 @@
+import { t } from './i18n/language.ts';
 export async function logout() {
   try {
     const response = await fetch('/api/logout', {
@@ -12,6 +13,6 @@ export async function logout() {
     window.location.replace('/');
   } catch (error) {
     console.error('Logout error:', error);
-    alert('Unable to log out. Please try again.');
+    alert(t('Unable to log out. Please try again.'));
   }
 }

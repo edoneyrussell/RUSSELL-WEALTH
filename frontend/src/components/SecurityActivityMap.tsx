@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -30,7 +31,7 @@ function reginaTime(value: string) {
 
   if (Number.isNaN(date.getTime())) return 'Unknown time';
 
-  return new Intl.DateTimeFormat('en-CA', {
+  return new Intl.DateTimeFormat(getLocale(), {
     timeZone: 'America/Regina',
     month: 'short',
     day: 'numeric',

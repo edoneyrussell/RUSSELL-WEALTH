@@ -1,3 +1,4 @@
+import { t } from '../i18n/language.ts';
 import { useMemo, useState } from "react";
 import {
   Search, ChevronDown, ArrowUpRight, ShieldCheck,
@@ -61,7 +62,7 @@ export default function HelpSupport() {
     const q = query.trim().toLowerCase();
     return faqs.filter(item =>
       (category === "All" || item.category === category) &&
-      (!q || (item.question + " " + item.answer + " " + item.category)
+      (!q || (t(item.question) + " " + t(item.answer) + " " + t(item.category))
         .toLowerCase().includes(q))
     );
   }, [query, category]);

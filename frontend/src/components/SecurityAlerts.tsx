@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useSecurityFetch } from "../demo/securityDemo";
 import * as React from 'react';
 import { useEffect, useState } from 'react';
@@ -31,18 +32,18 @@ function reginaTime(value: string) {
   }
 
   return {
-    date: new Intl.DateTimeFormat('en-US', {
+    date: new Intl.DateTimeFormat(getLocale('en-US'), {
       timeZone: 'America/Regina',
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     }).format(date),
-    time: new Intl.DateTimeFormat('en-US', {
+    time: new Intl.DateTimeFormat(getLocale('en-US'), {
       timeZone: 'America/Regina',
       hour: 'numeric',
       minute: '2-digit',
       second: '2-digit',
-      hour12: true
+      hour12: getLocale() !== 'fr-CA'
     }).format(date)
   };
 }

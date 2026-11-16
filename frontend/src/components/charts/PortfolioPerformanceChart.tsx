@@ -1,3 +1,4 @@
+import { getLocale } from '../../i18n/language.ts';
 import {
   Area,
   AreaChart,
@@ -23,7 +24,7 @@ export default function PortfolioPerformanceChart({
   currency = 'CAD',
 }: Props) {
   const formatMoney = (value: number) =>
-    new Intl.NumberFormat('en-CA', {
+    new Intl.NumberFormat(getLocale(), {
       style: 'currency',
       currency,
       maximumFractionDigits: 2,

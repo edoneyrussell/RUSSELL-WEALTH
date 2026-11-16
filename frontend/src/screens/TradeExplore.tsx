@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import AccountSelector from "../components/AccountSelector";
 import StockPriceHistory from "../components/StockPriceHistory";
 import { useExchanges } from "../hooks/useExchanges";
@@ -64,7 +65,7 @@ function categoryOf(asset: Asset): Category {
 function formatMoney(value: string | number, currency = "CAD") {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "—";
-  return new Intl.NumberFormat("en-CA", {
+  return new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency,
   }).format(amount);
@@ -653,7 +654,7 @@ export default function TradeExplore() {
               <button
                 type="button"
                 disabled={!canSubmit}
-                onClick={() => { void trade.submitTrade(current.type, portfolio?.account_id); }}
+                onClick={() => { void trade.submitTrade(current.type, portfolio?.account_id ?? undefined); }}
                 className="rw-fintech-primary w-full rounded-xl bg-[#D7DEE7] py-3.5 text-sm font-bold text-[#10151B] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {trade.submitting

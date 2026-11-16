@@ -1,4 +1,6 @@
-import { usePortfolio } from "../hooks/usePortfolio";
+import { getLocale } from '../i18n/language.ts';
+import { usePortfolio, type AccountScope } from "../hooks/usePortfolio";
+import AccountSelector from "../components/AccountSelector";
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useMemo, useState } from "react";
 import AssetLogo from "../components/AssetLogo";
@@ -24,14 +26,14 @@ type Holding = {
 };
 
 const money = (value: number | string) =>
-  new Intl.NumberFormat("en-CA", {
+  new Intl.NumberFormat(getLocale(), {
     style: "currency",
     currency: "CAD",
     maximumFractionDigits: 2
   }).format(Number(value));
 
 const number = (value: number | string) =>
-  Number(value).toLocaleString("en-CA", {
+  Number(value).toLocaleString(getLocale(), {
     maximumFractionDigits: 6
   });
 
@@ -73,7 +75,11 @@ function Panel({
 
 export default function PortfolioExperience() {
   const customerFetch = useCustomerFetch();
-  const { portfolio, loading, error, refresh } = usePortfolio();
+  const [accountScope, setAccountScope] = useState<AccountScope>(() => {
+    const account = new URLSearchParams(window.location.search).get('account_id');
+    return account && /^\d+$/.test(account) && Number(account) > 0 ? Number(account) : 'all';
+  });
+  const { portfolio, loading, error, refresh } = usePortfolio(accountScope);
   const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("search") ?? "");
   const [sort, setSort] = useState("value");
   const [filter, setFilter] = useState("All");
@@ -145,7 +151,7 @@ export default function PortfolioExperience() {
 
     if (rate === null) return "FX unavailable";
 
-    return new Intl.NumberFormat("en-CA", {
+    return new Intl.NumberFormat(getLocale(), {
       style: "currency",
       currency: displayCurrency,
       maximumFractionDigits: 2,
@@ -231,9 +237,7 @@ export default function PortfolioExperience() {
                     {shownMoney(total)}
                   </p>
                   <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <span className="rounded-full border border-[#425266] bg-[#263342] px-3 py-1.5 text-[11px] text-[#CFDBE8]">
-                      {portfolio.account_name || "Investment Account"}
-                    </span>
+                    <AccountSelector compact scope={accountScope} onScopeChange={setAccountScope} label="Portfolio account" accountName={portfolio.account_name} />
                     <span className="text-xs text-[#8D9BAB]">
                       {holdings.length} active positions
                     </span>

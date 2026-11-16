@@ -60,6 +60,7 @@ function NavItem({
   return (
     <a
       href={href}
+      title={label}
       onClick={e => go(e, href)}
       aria-current={active ? "page" : undefined}
       className={
@@ -95,7 +96,7 @@ export default function CustomerSidebar() {
       className="rw-unified-sidebar flex w-[208px] shrink-0 flex-col gap-[30px] border-r border-[#30343b] bg-[#0b0d11] px-[16px] pb-[24px] pt-[26px]"
     >
       <div
-        className="relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
+        className="rw-brand-refresh relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
         onClick={() => window.location.reload()}
         onKeyDown={e => {
           if (e.key === "Enter" || e.key === " ") {
@@ -116,7 +117,7 @@ export default function CustomerSidebar() {
 
       <nav
         aria-label="Customer navigation"
-        className="rw-motion-nav relative flex flex-col gap-[10px]"
+        className="rw-customer-nav rw-motion-nav relative flex flex-col gap-[10px]"
         onMouseLeave={() => setHoveredItem(null)}
       >
         <span
@@ -367,7 +368,7 @@ function SocSidebar() {
       className="rw-unified-sidebar rw-soc-shared-sidebar flex w-[208px] min-w-[208px] max-w-[208px] shrink-0 flex-col border-r border-[#30343b] bg-[#0b0d11] px-[16px] pb-[24px] pt-[26px]"
     >
       <div
-        className="relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
+        className="rw-brand-refresh relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
         role="button"
         tabIndex={0}
         aria-label="Russell Wealth SOC Dashboard"

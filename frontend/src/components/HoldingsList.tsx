@@ -1,8 +1,8 @@
 import AssetLogo from "./AssetLogo";
-import { usePortfolio, formatCAD } from '../hooks/usePortfolio';
+import { usePortfolio, formatCAD, type AccountScope } from '../hooks/usePortfolio';
 
-export default function HoldingsList({ limit }: { limit?: number }) {
-  const { portfolio, error } = usePortfolio();
+export default function HoldingsList({ limit, scope }: { limit?: number; scope?: AccountScope }) {
+  const { portfolio, error } = usePortfolio(scope);
 
   if (error && !portfolio) {
     return (
@@ -34,7 +34,7 @@ export default function HoldingsList({ limit }: { limit?: number }) {
       {[...portfolio.holdings].sort((a, b) => Number(b.market_value) - Number(a.market_value)).slice(0, limit).map(holding => (
         <div
           key={holding.symbol}
-          className="rw-dashboard-holding border-b border-[#30343b] py-3 flex items-center gap-3"
+          className="rw-dashboard-stock rw-dashboard-holding border-b border-[#30343b] py-3 flex items-center gap-3"
         >
           <div className="rw-holding-identity flex-1 min-w-0">
             <div className="flex min-w-0 items-center gap-3"><AssetLogo symbol={holding.symbol} name={holding.name} /><div className="min-w-0"><p className="text-[#f5f5f5] font-semibold text-[12px]">

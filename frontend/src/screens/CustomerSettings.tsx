@@ -29,6 +29,12 @@ const features = [
     href: '/customer/account-settings',
   },
   {
+    title: 'Languages',
+    description: 'Choose English or French for the website',
+    icon: '文',
+    href: '/customer/account-settings#languages',
+  },
+  {
     title: 'Security & Activity',
     description: 'Your personal security and transaction activity',
     icon: '◇',

@@ -1,3 +1,5 @@
+import { t } from '../../i18n/language.ts';
+import { getLocale } from '../../i18n/language.ts';
 import { useMemo } from 'react';
 import {
   Area,
@@ -27,7 +29,7 @@ export default function SecurityThreatChart({ events }: Props) {
 
       buckets.push({
         timestamp: hour.getTime(),
-        hour: hour.toLocaleTimeString('en-CA', {
+        hour: hour.toLocaleTimeString(getLocale(), {
           hour: '2-digit',
           hour12: false,
         }),
@@ -114,7 +116,7 @@ export default function SecurityThreatChart({ events }: Props) {
           <Area
             type="monotone"
             dataKey="failed"
-            name="Failed logins"
+            name={t("Failed logins")}
             stroke="#ff454f"
             strokeWidth={2}
             fill="url(#rwFailedGradient)"
@@ -124,7 +126,7 @@ export default function SecurityThreatChart({ events }: Props) {
           <Area
             type="monotone"
             dataKey="successful"
-            name="Successful logins"
+            name={t("Successful logins")}
             stroke="#25e487"
             strokeWidth={2}
             fill="none"

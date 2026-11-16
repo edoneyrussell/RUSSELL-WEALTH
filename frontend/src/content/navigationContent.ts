@@ -8,7 +8,7 @@ export type NavigationItem = {
 
 export const customerNavigation: NavigationItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: '50fa9.svg' },
-  { label: 'Accounts', href: '/accounts', icon: '70fb9.svg' },
+  { label: 'Accounts', href: '/accounts', icon: 'accounts-wallet.svg' },
   { label: 'Portfolio', href: '/portfolio', icon: '70fb9.svg' },
   { label: 'Trade', href: '/markets', icon: '74de4.svg' },
   { label: 'Watchlist', href: '/dashboard#watchlist', icon: '18ed1.svg' },

@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useEffect, useState } from "react";
 import "./PortfolioColors.css";
 // RW_PORTFOLIO_COLOR_V1
@@ -65,7 +66,7 @@ export default function RussellWealthPortfolioHoldings() {
 
     if (rate === null) return "FX unavailable";
 
-    return new Intl.NumberFormat("en-CA", {
+    return new Intl.NumberFormat(getLocale(), {
       style: "currency",
       currency: displayCurrency,
     }).format(Number(value) * rate);

@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 import { useExchanges } from "../hooks/useExchanges";
 import { useCustomerFetch } from "../demo/customerDemo";
 import { useEffect, useRef, useState } from "react";
@@ -43,22 +44,22 @@ export default function GlobalMarketsClock() {
 
   const market = markets[selected] ?? markets[0];
   const status = market.status;
-  const opens = status?.next_open ? new Intl.DateTimeFormat('en-CA', {
-    timeZone: market.zone, weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: true,
+  const opens = status?.next_open ? new Intl.DateTimeFormat(getLocale(), {
+    timeZone: market.zone, weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: getLocale() !== 'fr-CA',
   }).format(new Date(status.next_open)) : null;
-  const closes = status?.closes_at ? new Intl.DateTimeFormat('en-CA', {
-    timeZone: market.zone, hour: 'numeric', minute: '2-digit', hour12: true,
+  const closes = status?.closes_at ? new Intl.DateTimeFormat(getLocale(), {
+    timeZone: market.zone, hour: 'numeric', minute: '2-digit', hour12: getLocale() !== 'fr-CA',
   }).format(new Date(status.closes_at)) : null;
 
-  const time = new Intl.DateTimeFormat("en-CA", {
+  const time = new Intl.DateTimeFormat(getLocale(), {
     timeZone: market.zone,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: true,
+    hour12: getLocale() !== 'fr-CA',
   }).format(now);
 
-  const date = new Intl.DateTimeFormat("en-CA", {
+  const date = new Intl.DateTimeFormat(getLocale(), {
     timeZone: market.zone,
     weekday: "short",
     month: "short",

@@ -1,3 +1,4 @@
+import { t } from '../i18n/language.ts';
 export type CustomerSearchResult = {key:string; title:string; detail:string; href:string; kind:string};
 export const customerSearchPages: CustomerSearchResult[] = [
   ['Dashboard','Overview balance cash portfolio value','/dashboard'],
@@ -17,5 +18,5 @@ export const customerSearchPages: CustomerSearchResult[] = [
 
 export function matchCustomerResults(results: readonly CustomerSearchResult[], query: string) {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  return results.filter(result => terms.every(term => `${result.title} ${result.detail} ${result.kind}`.toLowerCase().includes(term)));
+  return results.filter(result => terms.every(term => `${result.title} ${result.detail} ${result.kind} ${t(result.title)} ${t(result.detail)} ${t(result.kind)}`.toLowerCase().includes(term)));
 }

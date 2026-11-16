@@ -281,14 +281,17 @@ def transaction_history():
     conn = get_db_connection()
     try:
         uid = customer_user_id(conn)
-        account = selected_account(conn, uid)
-        if account is None:
+        all_accounts = request.args.get('account_id') == 'all'
+        account = None if all_accounts else selected_account(conn, uid)
+        if account is None and not all_accounts:
             return jsonify(transactions=[])
+        target = None if all_accounts else account['id']
 
         trades = conn.execute("""
             SELECT
                 'stock-' || t.id AS id,
                 t.transaction_type AS action,
+                ia.id AS account_id, ia.account_name,
                 t.quantity,
                 t.amount_cents,
                 t.created_at,
@@ -298,8 +301,8 @@ def transaction_history():
             FROM transactions t
             JOIN investment_accounts ia ON t.account_id = ia.id
             LEFT JOIN assets a ON t.asset_id = a.id
-            WHERE ia.id = ? AND ia.user_id=?
-        """, (account["id"],uid)).fetchall()
+            WHERE ia.user_id=? AND (?=1 OR ia.id=?)
+        """, (uid,int(all_accounts),target)).fetchall()
 
         banking = conn.execute("""
             SELECT
@@ -307,10 +310,13 @@ def transaction_history():
                 direction AS action,
                 amount_cents,
                 created_at,
-                bank_code
+                bank_code,
+                COALESCE(account_id,(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)) AS account_id
             FROM rw_demo_bank_transfers
-            WHERE user_id = ? AND (account_id=? OR (account_id IS NULL AND ?=(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)))
-        """, (uid,account['id'],account['id'],uid)).fetchall()
+            WHERE user_id = ? AND (?=1 OR account_id=? OR (account_id IS NULL AND ?=(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)))
+        """, (uid,uid,int(all_accounts),target,target,uid)).fetchall()
+        account_names = {row['id']: row['account_name'] for row in conn.execute(
+            'SELECT id, account_name FROM investment_accounts WHERE user_id=?', (uid,)).fetchall()}
 
         from access_api import creation_timestamp
         result = []
@@ -321,6 +327,8 @@ def transaction_history():
 
             result.append({
                 "id": row["id"],
+                "account_id": row["account_id"],
+                "account_name": account_names.get(row["account_id"], "Account"),
                 "action": row["action"],
                 "symbol": row["symbol"] or "RUSSELL WEALTH",
                 "name": row["name"] or "Investment Account",
@@ -335,6 +343,8 @@ def transaction_history():
         for row in banking:
             result.append({
                 "id": row["id"],
+                "account_id": row["account_id"],
+                "account_name": account_names.get(row["account_id"], "Account"),
                 "action": "DEPOSIT" if row["action"] == "DEPOSIT" else "WITHDRAWAL",
                 "symbol": row["bank_code"],
                 "name": row["bank_code"] + " · Simulated Bank",

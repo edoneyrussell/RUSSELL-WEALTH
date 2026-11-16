@@ -1,3 +1,4 @@
+import { getLocale } from '../i18n/language.ts';
 export type WatchlistQuote = {
   symbol: string;
   price: number;
@@ -40,5 +41,5 @@ export function readWatchlistQuote(value: unknown, symbol: string): WatchlistPri
 }
 
 export function watchlistMoney(value: number, currency = 'CAD') {
-  return new Intl.NumberFormat('en-CA', {style:'currency', currency, maximumFractionDigits:2}).format(value);
+  return new Intl.NumberFormat(getLocale(), {style:'currency', currency, maximumFractionDigits:2}).format(value);
 }
