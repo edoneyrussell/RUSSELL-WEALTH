@@ -32,4 +32,5 @@ export const securityNavigation: NavigationItem[] = [
   { label: 'Logs', href: '/security', icon: '0df54.svg', action: 'Logs' },
   { label: 'Network', href: '/security/network', icon: '8a4d1.svg' },
   { label: 'Access', href: '/security/access', icon: 'e2640.svg' },
+  { label: 'Active Sessions', href: '/security/sessions', icon: 'e2150.svg' },
 ];

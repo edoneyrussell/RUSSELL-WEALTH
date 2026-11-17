@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSecurityFetch } from '../demo/securityDemo';
 import type { SecurityEvent } from './useSecurityOverview';
-type Snapshot={count:number;filtered_count:number;alerts:SecurityEvent[]};
+type Snapshot={escalated_count?:number;sla_minutes?:number;count:number;filtered_count:number;alerts:SecurityEvent[]};
 export function useActiveAlerts(severity:string) {
   const request=useSecurityFetch();
   const [snapshot,setSnapshot]=useState<{severity:string;data:Snapshot}|null>(null);
@@ -25,5 +25,5 @@ export function useActiveAlerts(severity:string) {
     window.addEventListener('security-alerts-cleared',load);window.addEventListener('focus',visible);window.addEventListener('online',visible);document.addEventListener('visibilitychange',visible);
     return()=>{controller.abort();window.clearInterval(timer);window.removeEventListener('security-alerts-cleared',load);window.removeEventListener('focus',visible);window.removeEventListener('online',visible);document.removeEventListener('visibilitychange',visible);};
   },[request,severity]);
-  return {count:snapshot?.data.count??null,alerts:snapshot?.severity===severity?snapshot.data.alerts:[],filteredCount:snapshot?.severity===severity?snapshot.data.filtered_count:0,loading:snapshot?.severity!==severity,error,updatedAt};
+  return {escalatedCount:snapshot?.data.escalated_count??0,slaMinutes:snapshot?.data.sla_minutes??15,count:snapshot?.data.count??null,alerts:snapshot?.severity===severity?snapshot.data.alerts:[],filteredCount:snapshot?.severity===severity?snapshot.data.filtered_count:0,loading:snapshot?.severity!==severity,error,updatedAt};
 }

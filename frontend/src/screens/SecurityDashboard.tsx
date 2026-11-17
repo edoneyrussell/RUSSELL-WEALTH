@@ -4,7 +4,7 @@ import { useActiveAlerts } from '../hooks/useActiveAlerts';
 import { severityLabel, statusLabel, formatReginaAlertTime } from '../utils/securityAlerts';
 import AnimatedValue from '../components/ui/AnimatedValue';
 import SecurityInvestigationDrawer from '../components/ui/SecurityInvestigationDrawer';
-import SecurityThreatChart from '../components/charts/SecurityThreatChart';
+import LiveThreatTrends from '../components/LiveThreatTrends';
 import { useNewSecurityEvents } from '../hooks/useNewSecurityEvents';
 import SecurityCoverage from '../components/SecurityCoverage';
 import SecurityAlerts from '../components/SecurityAlerts';
@@ -68,6 +68,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
   const [severityFilter, setSeverityFilter] = useState('All');
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null);
   const [showSecurityLogs, setShowSecurityLogs] = useState(() => new URLSearchParams(window.location.search).get("panel") === "logs");
+  const [showEscalations,setShowEscalations]=useState(false);
   const [showSecurityAlerts, setShowSecurityAlerts] = useState(() => new URLSearchParams(window.location.search).get("panel") === "alerts");
 
   useEffect(() => {
@@ -145,7 +146,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
     };
   }, []);
 
-  const {count:activeAlertCount,alerts:activeAlerts,filteredCount,loading:alertsLoading,error:alertsError,updatedAt:alertsUpdatedAt}=useActiveAlerts(severityFilter);
+  const {escalatedCount,slaMinutes,count:activeAlertCount,alerts:activeAlerts,filteredCount,loading:alertsLoading,error:alertsError,updatedAt:alertsUpdatedAt}=useActiveAlerts(severityFilter);
   const [investigationEventId,setInvestigationEventId]=useState<number|null>(null);
 
   const { data: security, error: securityError } = useSecurityOverview();
@@ -178,7 +179,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         <AllSecurityLogs onClose={() => setShowSecurityLogs(false)} />
       )}
       {showSecurityAlerts && (
-        <SecurityAlerts
+        <SecurityAlerts initialEscalated={showEscalations}
           onClose={() => {
             setShowSecurityAlerts(false);
             setShowSecurityLogs(false);
@@ -196,6 +197,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
           }}
         />
       )}
+    {!showSecurityLogs && !showSecurityAlerts && <div>
     <div className="soc-dashboard bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] items-start min-h-[1080px] overflow-clip pb-[24px] pt-[27px] px-[24px] relative shrink-0 w-[324px]" data-node-id="15:2924" data-name="Sidebar">
         <div className="h-[78px] overflow-clip relative shrink-0 w-[242px]" data-node-id="15:2925" data-name="Russell Wealth logo">
@@ -217,7 +219,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                   SOC Dashboard
                 </p>
               </div>
-              <button type="button" onClick={() => setShowSecurityAlerts(true)} className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full text-left cursor-pointer hover:bg-[#292e36]" data-node-id="15:2934" data-name="Navigation item">
+              <button type="button" onClick={() => {setShowEscalations(false);setShowSecurityAlerts(true);}} className="bg-[rgba(0,0,0,0)] content-stretch flex gap-[18px] h-[44px] items-center overflow-clip px-[20px] relative rounded-[8px] shrink-0 w-full text-left cursor-pointer hover:bg-[#292e36]" data-node-id="15:2934" data-name="Navigation item">
                 <div className="relative shrink-0 size-[21px]" data-node-id="15:3379" data-name="triangle-alert">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgTriangleAlert} />
                 </div>
@@ -337,7 +339,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
               <p className="font-['Lora:Bold'] font-bold relative shrink-0 text-[#f5f5f5] text-[32px]" data-node-id="15:2988">
                 Security Analytics Dashboard
               </p>
-              <p className="font-['Inter:Regular'] font-normal not-italic relative shrink-0 text-[#b4b8c0] text-[16px]" data-node-id="15:2989">
+              <p className="rw-soc-dashboard-subtitle font-['Inter:Regular'] font-normal not-italic relative shrink-0 text-[#b4b8c0] text-[16px]" data-node-id="15:2989">
                 Russell Wealth — Real-Time Threat Detection, Investigation, and Response
               </p>
             </div>
@@ -407,7 +409,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
               <button
                 type="button"
-                onClick={() => setShowSecurityAlerts(true)}
+                onClick={() => {setShowEscalations(false);setShowSecurityAlerts(true);}}
                 className="flex items-center gap-[6px] text-[#b4b8c0] hover:text-white text-[12px] cursor-pointer"
               >
                 View All
@@ -431,6 +433,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
               </span>
             </div>
 
+            {escalatedCount>0&&<button type="button" onClick={()=>{setShowEscalations(true);setShowSecurityAlerts(true);}} className="w-full rounded-lg border border-[#8f303b] bg-[#35161b] p-3 text-left text-xs text-[#ff8585]">{escalatedCount} overdue critical alerts · {slaMinutes}-minute deadline · Open escalation queue</button>}
             <p className="text-[#8c929c] text-[11px]">Showing {Math.min(activeAlerts.length,5)} of {filteredCount} matching active alerts</p>
             <div className="w-full overflow-x-auto">
               <div className="min-w-[880px]">
@@ -487,13 +490,15 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                         </span>
 
                         <span className="text-[#f5b942] text-[11px] w-[112px] shrink-0">
-                          {statusLabel(event.status)}
+                          {event.is_overdue ? "Escalated" : statusLabel(event.status)}
                         </span>
                       </button>
 
                       {selectedAlertId === event.id && (
                         <div className="bg-[#1a1d22] border-b border-[#30343b] p-3 text-[12px] text-[#b4b8c0] space-y-1">
                           <p>Alert ID: {event.id}</p>
+                          <p>Assigned analyst: {event.assigned_name||event.assigned_email||'Unassigned'}</p>
+                          {event.is_overdue&&<p className="text-[#ff8585]">Overdue critical alert · Escalation queue</p>}
                           <p>Account: {event.email || 'No account recorded'}</p>
                           <p>Source IP: {event.source_ip ?? 'Unknown'}</p>
                           <p>Date (Regina): {formatReginaAlertTime(event.created_at).date}</p>
@@ -523,17 +528,13 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
             <div className="flex-1 min-h-0">
               <SecurityActivityMap
-                events={events.map((event) => ({
-                  ...event,
-                  latitude: null,
-                  longitude: null
-                }))}
+                events={events}
                 selectedEventId={selectedAlertId}
               />
             </div>
 
             <div className="text-[#8c929c] text-[11px]">
-              Location markers will appear when verified IP geolocation is available.
+              Successful logins appear in green. Select a marker to see account activity.
             </div>
           </div>
         </div>
@@ -629,59 +630,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[4px] min-h-[240px] items-start overflow-hidden p-[18px] relative rounded-[14px] w-full lg:flex-1 lg:min-w-[400px]" data-node-id="15:3242" data-name="Threat trends">
-            <div className="[word-break:break-word] content-stretch flex font-['Inter:Semi_Bold'] font-semibold items-center justify-between not-italic overflow-clip relative shrink-0 w-full whitespace-nowrap" data-node-id="15:3243" data-name="Trend heading">
-              <p className="leading-[normal] relative shrink-0 text-[#f5f5f5] text-[20px]" data-node-id="15:3244">
-                Threat Trends
-              </p>
-              <p className="leading-[1.35] relative shrink-0 text-[#25e487] text-[12px]" data-node-id="15:3245">
-                ↓ -18.4% (vs. prior 24h)
-              </p>
-            </div>
-            <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.35] not-italic relative shrink-0 text-[#b4b8c0] text-[13px] whitespace-nowrap" data-node-id="15:3246">
-              Security events over time
-            </p>
-            <div className="content-stretch flex gap-[12px] items-start overflow-clip pt-[12px] relative shrink-0 w-full" data-node-id="15:3247" data-name="Trend plot and axis">
-              <div className="[word-break:break-word] content-stretch flex flex-col font-['Inter:Regular'] font-normal h-[124px] items-start justify-between leading-[1.35] not-italic overflow-clip relative shrink-0 text-[#b4b8c0] text-[11px] w-[30px] whitespace-nowrap" data-node-id="15:3248" data-name="Value axis">
-                <p className="relative shrink-0" data-node-id="15:3249">
-                  8K
-                </p>
-                <p className="relative shrink-0" data-node-id="15:3250">
-                  6K
-                </p>
-                <p className="relative shrink-0" data-node-id="15:3251">
-                  4K
-                </p>
-                <p className="relative shrink-0" data-node-id="15:3252">
-                  2K
-                </p>
-                <p className="relative shrink-0" data-node-id="15:3253">
-                  0
-                </p>
-              </div>
-              <div className="h-[124px] relative shrink-0 w-[502px]" data-node-id="15:3254" data-name="Threat trend chart" data-rw-chart="true">
-                <SecurityThreatChart events={events} />
-              </div>
-            </div>
-            <div className="[word-break:break-word] content-stretch flex font-['Inter:Regular'] font-normal items-start justify-between leading-[1.35] not-italic overflow-clip pl-[42px] relative shrink-0 text-[#b4b8c0] text-[11px] w-full whitespace-nowrap" data-node-id="15:3262" data-name="Time axis">
-              <p className="relative shrink-0" data-node-id="15:3263">
-                00:00
-              </p>
-              <p className="relative shrink-0" data-node-id="15:3264">
-                04:00
-              </p>
-              <p className="relative shrink-0" data-node-id="15:3265">
-                08:00
-              </p>
-              <p className="relative shrink-0" data-node-id="15:3266">
-                12:00
-              </p>
-              <p className="relative shrink-0" data-node-id="15:3267">
-                16:00
-              </p>
-              <p className="relative shrink-0" data-node-id="15:3268">
-                20:00
-              </p>
-            </div>
+            <LiveThreatTrends trends={security?.threat_trends} unavailable={Boolean(securityError)}/>
           </div>
           </div>
         <div className="flex flex-wrap justify-center items-stretch gap-[18px] w-full" data-node-id="15:3307" data-name="Coverage and response operations">
@@ -721,7 +670,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                         setInvestigationEventId(event.id);
                       }
                     }}
-                    className={`cursor-pointer transition-colors hover:bg-[#1a1d22] flex items-center gap-[10px] border-b border-[#30343b] min-h-[34px] w-full ${newSecurityEventIds.has(event.id) ? 'rw-event-new' : ''}`}
+                    className={`cursor-pointer transition-colors hover:bg-[#1a1d22] flex flex-wrap items-center gap-[10px] py-2 border-b border-[#30343b] min-h-[34px] w-full ${newSecurityEventIds.has(event.id) ? 'rw-event-new' : ''}`}
                   >
                     <span
                       className={`shrink-0 size-[8px] rounded-full ${
@@ -754,6 +703,9 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                       {event.email ?? event.details ?? 'Unknown user'}
                     </span>
 
+                    <span className="text-[#8c929c] text-[10px] max-w-[160px] truncate" title={`${event.location || "Location unavailable"}`}>
+                      {event.location || "Location unavailable"}
+                    </span>
                     <span className="text-[#8c929c] text-[10px] shrink-0">
                       {event.source_ip ?? 'Unknown IP'}
                     </span>
@@ -766,6 +718,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
 
       </div>
     </div>
+    </div>}
     </>
   );
 }

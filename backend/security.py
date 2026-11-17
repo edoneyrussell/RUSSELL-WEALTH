@@ -32,6 +32,13 @@ def log_security_event(user_id, event_type, source_ip, severity, details, accoun
         event = connection.execute("SELECT * FROM security_events WHERE id=?", (inserted["id"],)).fetchone()
         evaluate_event(connection, event)
         connection.commit()
+        if event_type == 'LOGIN_SUCCESS':
+            from flask import has_request_context, session
+            if has_request_context():
+                session['login_location_event_id'] = inserted['id']
+                from active_sessions import start_session
+                start_session(user_id,inserted['id'])
+        return inserted['id']
     finally:
         connection.close()
 

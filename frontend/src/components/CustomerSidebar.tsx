@@ -346,6 +346,8 @@ function SocSidebar() {
 
   const current = activePanel && path === "/security"
     ? activePanel
+    : path === "/security/sessions"
+      ? "Active Sessions"
     : path === "/security/network"
       ? "Network"
       : path === "/security/access"

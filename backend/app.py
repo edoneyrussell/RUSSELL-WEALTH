@@ -1,6 +1,7 @@
 
 from datetime import timedelta
 import os
+import json
 from market_search_api import market_search_bp
 from trading_api import trading_bp
 from portfolio_api import portfolio_bp
@@ -18,7 +19,7 @@ from registration_api import registration_bp
 from password_reset_api import password_reset_bp
 app = Flask(__name__)
 
-from access_api import access_bp
+from access_api import access_bp, creation_timestamp
 import security_logs_api
 import security_search_api
 app.register_blueprint(access_bp)
@@ -36,13 +37,16 @@ def validate_current_account():
             'SELECT name, role, account_status, access_version FROM users WHERE id=?', (uid,)
         ).fetchone()
         roles = account_roles(db, uid, user['role']) if user is not None else []
+        valid=(user is not None and user['account_status']=='ACTIVE'
+               and user['role']==session.get('role')
+               and user['access_version']==session.get('access_version',0))
+        if valid:
+            valid=validate_session(db,uid)
     finally:
         db.close()
-    if (user is None or user['account_status'] != 'ACTIVE'
-            or user['role'] != session.get('role')
-            or user['access_version'] != session.get('access_version', 0)):
+    if not valid:
         session.clear()
-        return jsonify(error='Your account access changed. Please sign in again.'), 401
+        return jsonify(error='Your session ended or account access changed. Please sign in again.'),401
     session['name'] = user['name']
     session['roles'] = roles
     if request.path.startswith('/api/customer/') and 'CUSTOMER' not in roles:
@@ -63,6 +67,20 @@ from portfolio_history import initialize_portfolio_history
 initialize_portfolio_history()
 from security import initialize_security_email_schema
 initialize_security_email_schema()
+from alert_workflows import initialize_alert_workflows, workflows_bp
+initialize_alert_workflows()
+app.register_blueprint(workflows_bp)
+from active_sessions import initialize_active_sessions, sessions_bp, validate_session, end_current_session
+initialize_active_sessions()
+app.register_blueprint(sessions_bp)
+from infrastructure_history import initialize_infrastructure_history, observed_history, runtime_deployment, current_application
+initialize_infrastructure_history()
+from login_locations import initialize_login_locations, login_locations_bp, attach_login_locations
+initialize_login_locations()
+app.register_blueprint(login_locations_bp)
+from incident_response import incident_response_bp, initialize_incident_response, apply_response
+initialize_incident_response()
+app.register_blueprint(incident_response_bp)
 from password_hints import initialize_password_hint_schema, password_hints_bp
 app.register_blueprint(password_hints_bp)
 initialize_password_hint_schema()
@@ -179,6 +197,7 @@ def soc():
 
 @app.route("/logout")
 def logout():
+    end_current_session()
     session.clear()
     return redirect(url_for("home"))
 
@@ -224,6 +243,7 @@ def api_login():
         and user["account_status"] == "ACTIVE"
         and user["role"] in ("CUSTOMER", "SOC_ADMIN")
     ):
+        end_current_session()
         session.clear()
         session.permanent = remember_me
         session["user_id"] = user["id"]
@@ -324,6 +344,7 @@ def api_me():
 
 @app.route("/api/logout", methods=["POST"])
 def api_logout():
+    end_current_session()
     session.clear()
     return jsonify({"success": True})
 @app.route("/api/customer/overview", methods=["GET"])
@@ -336,75 +357,36 @@ def api_customer_overview():
 
 
 
-# Approximate public-IP geolocation for SOC visualization.
-# Private, loopback and otherwise non-global addresses are never geolocated.
-import ipaddress
-import json
-from urllib.request import Request, urlopen
-from urllib.parse import quote
+from security_locations import lookup_security_ip_location, security_map_location, location_fields
 
-_security_geo_cache = {}
 
-def lookup_security_ip_location(source_ip):
-    empty = {
-        "latitude": None,
-        "longitude": None,
-        "city": None,
-        "country": None
-    }
-
-    if not source_ip:
-        return empty.copy()
-
+@app.get("/api/security/activity-map")
+@role_required("SOC_ADMIN")
+def api_security_activity_map():
+    db = get_db_connection()
     try:
-        ip = ipaddress.ip_address(source_ip.strip())
-    except ValueError:
-        return empty.copy()
-
-    if not ip.is_global:
-        return empty.copy()
-
-    key = str(ip)
-
-    if key in _security_geo_cache:
-        return _security_geo_cache[key].copy()
-
-    result = empty.copy()
-
+        recent = ("e.created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'"
+                  if hasattr(db, 'connection') else "datetime(e.created_at) >= datetime('now','-24 hours')")
+        rows = db.execute(f"""SELECT e.id,e.user_id,e.event_type,e.source_ip,e.details,e.created_at,e.severity,
+            COALESCE(e.account_email,u.email) AS email FROM security_events e
+            LEFT JOIN users u ON u.id=e.user_id
+            WHERE e.event_type IN ('LOGIN_SUCCESS','LOGIN_FAILED','SESSION_LOCATION_SHARED') AND {recent}
+            ORDER BY e.created_at DESC,e.id DESC LIMIT 201""").fetchall()
+    finally:
+        db.close()
+    events = [dict(row) for row in rows[:200]]
+    for event in events:
+        event.update(location_fields(event['source_ip'], security_map_location))
+        event['created_at'] = creation_timestamp(event['created_at'])
+    db = get_db_connection()
     try:
-        url = "https://ipwho.is/" + quote(key, safe="")
-        request_geo = Request(
-            url,
-            headers={"User-Agent": "RussellWealth-SOC/1.0"}
-        )
-
-        with urlopen(request_geo, timeout=2) as response:
-            payload = json.load(response)
-
-        if payload.get("success") is True:
-            lat = payload.get("latitude")
-            lon = payload.get("longitude")
-
-            if (
-                isinstance(lat, (int, float))
-                and not isinstance(lat, bool)
-                and isinstance(lon, (int, float))
-                and not isinstance(lon, bool)
-                and -90 <= lat <= 90
-                and -180 <= lon <= 180
-            ):
-                result = {
-                    "latitude": lat,
-                    "longitude": lon,
-                    "city": payload.get("city"),
-                    "country": payload.get("country")
-                }
-
-    except Exception:
-        pass
-
-    _security_geo_cache[key] = result.copy()
-    return result
+        attach_login_locations(db, events)
+    finally:
+        db.close()
+    response = jsonify(events=events, truncated=len(rows)>200, window_hours=24)
+    response.headers['Cache-Control'] = 'private, no-store'
+    response.vary.add('Cookie')
+    return response
 
 
 @app.route("/api/security/coverage", methods=["GET"])
@@ -562,7 +544,7 @@ def api_security_overview():
                 "warning_events": counts["warning_events"],
                 "critical_events": counts["critical_events"]
             },
-            "recent_events": [dict(event) for event in events],
+            "recent_events": attach_login_locations(connection, [{**dict(event), "created_at": creation_timestamp(event["created_at"]), **location_fields(event["source_ip"])} for event in events]),
             "top_sources": [dict(source) for source in sources],
             "threat_trends": [dict(row) for row in trends]
         })
@@ -600,7 +582,7 @@ def api_incident_list():
     connection = get_db_connection()
     try:
         related_recent = (
-            "e.created_at >= i.created_at - INTERVAL '5 minutes'"
+            "CAST(e.created_at AS timestamp) >= CAST(i.created_at AS timestamp) - INTERVAL '5 minutes'"
             if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
             else "datetime(e.created_at) >= datetime(i.created_at, '-5 minutes')"
         )
@@ -638,7 +620,7 @@ def api_incident_detail(incident_id):
             return jsonify({"error": "Incident not found"}), 404
 
         event_recent = (
-            "e.created_at >= CAST(? AS timestamp) - INTERVAL '5 minutes'"
+            "CAST(e.created_at AS timestamp) >= CAST(? AS timestamp) - INTERVAL '5 minutes'"
             if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
             else "datetime(e.created_at) >= datetime(?, '-5 minutes')"
         )
@@ -679,44 +661,19 @@ def api_incident_detail(incident_id):
            methods=["PATCH"])
 @role_required("SOC_ADMIN")
 def api_incident_update_status(incident_id):
-    payload = request.get_json(silent=True) or {}
-    status = payload.get("status")
-
-    if status not in ("OPEN", "INVESTIGATING", "RESOLVED"):
-        return jsonify({"error": "Invalid status"}), 400
-
-    connection = get_db_connection()
-    try:
-        cursor = connection.execute("""
-            UPDATE security_incidents
-            SET status = ?,
-                resolved_at = CASE
-                    WHEN ? = 'RESOLVED'
-                    THEN CURRENT_TIMESTAMP
-                    ELSE NULL
-                END
-            WHERE id = ?
-        """, (status, status, incident_id))
-
-        if cursor.rowcount == 0:
-            return jsonify({"error": "Incident not found"}), 404
-
-        connection.commit()
-
-        return jsonify({
-            "success": True,
-            "incident_id": incident_id,
-            "status": status
-        })
-    finally:
-        connection.close()
+    return apply_response(incident_id, status_only=True)
 
 
 @app.route("/api/security/incidents/<int:incident_id>/notes",
            methods=["POST"])
 @role_required("SOC_ADMIN")
 def api_incident_add_note(incident_id):
+    from access_api import valid_origin
+    if not valid_origin():
+        return jsonify(error='Request origin denied'), 403
     payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return jsonify(error="A JSON object is required"), 400
     note = payload.get("note", "")
 
     if not isinstance(note, str) or not note.strip():
@@ -1058,6 +1015,13 @@ def rw_customer_account_management():
         db.close()
 # RW CUSTOMER ACCOUNT MANAGEMENT END
 
+@app.get('/api/deployment')
+def api_deployment():
+    response=jsonify(runtime_deployment())
+    response.headers['Cache-Control']='no-store'
+    return response
+
+
 @app.route("/api/security/infrastructure", methods=["GET"])
 @role_required("SOC_ADMIN")
 def api_security_infrastructure():
@@ -1067,9 +1031,32 @@ def api_security_infrastructure():
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
     from postgres_connection import get_postgres_connection
+    from concurrent.futures import ThreadPoolExecutor
+    import ssl
+    import certifi
 
-    def check_http(name, environment_variable):
-        url = os.environ.get(environment_variable, "").strip()
+    def deployment_metadata(url, name):
+        import json
+        parsed=urlparse(url)
+        path='/api/deployment' if name=='Render' else '/deployment.json'
+        target=f'{parsed.scheme}://{parsed.netloc}{path}'
+        try:
+            probe=Request(target,headers={'User-Agent':'RussellWealth-Monitor/1.0','Accept':'application/json'})
+            with urlopen(probe,timeout=2,context=ssl.create_default_context(cafile=certifi.where())) as response:
+                metadata=json.loads(response.read(16384))
+            if not isinstance(metadata,dict) or metadata.get('provider')!=name:
+                return None
+            # Never pass arbitrary provider payloads or secrets to the dashboard.
+            return {key:metadata.get(key) if isinstance(metadata.get(key),str) else None
+                    for key in ('provider','commit','branch','environment','built_at')}
+        except HTTPError as error:
+            error.close()
+            return None
+        except Exception:
+            return None
+
+    def check_http(name, environment_variable, default_url):
+        url = os.environ.get(environment_variable, "").strip() or default_url
 
         if not url:
             return {
@@ -1099,7 +1086,7 @@ def api_security_infrastructure():
                 headers={"User-Agent": "RussellWealth-Monitor/1.0"}
             )
 
-            with urlopen(request_obj, timeout=8) as response:
+            with urlopen(request_obj, timeout=8, context=ssl.create_default_context(cafile=certifi.where())) as response:
                 code = response.status
 
             return {
@@ -1107,10 +1094,12 @@ def api_security_infrastructure():
                 "status": "online" if 200 <= code < 400 else "degraded",
                 "latency_ms": round((perf_counter() - started) * 1000),
                 "http_status": code,
-                "detail": "HTTP endpoint responding"
+                "detail": "HTTP endpoint responding",
+                "deployment": deployment_metadata(url,name)
             }
 
         except HTTPError as exc:
+            exc.close()
             return {
                 "name": name,
                 "status": "degraded",
@@ -1128,8 +1117,24 @@ def api_security_infrastructure():
                 "detail": "Endpoint unreachable"
             }
 
-    render = check_http("Render", "RW_RENDER_HEALTH_URL")
-    vercel = check_http("Vercel", "RW_VERCEL_URL")
+    # These are the deployed endpoints also used by the frontend's API rewrite.
+    render_url = os.environ.get('RENDER_EXTERNAL_URL', '').strip() or 'https://russell-wealth-api.onrender.com/'
+    vercel_url = os.environ.get('RW_PUBLIC_APP_URL', '').strip() or 'https://russell-wealth.vercel.app/'
+    with ThreadPoolExecutor(max_workers=2) as checks:
+        render_check = checks.submit(check_http, 'Render', 'RW_RENDER_HEALTH_URL', render_url)
+        vercel_check = checks.submit(check_http, 'Vercel', 'RW_VERCEL_URL', vercel_url)
+        render, vercel = render_check.result(), vercel_check.result()
+
+    # Expose only the public origin; strip credentials, query strings and paths.
+    for service, target in ((render, os.environ.get('RW_RENDER_HEALTH_URL', '').strip() or render_url),
+                            (vercel, os.environ.get('RW_VERCEL_URL', '').strip() or vercel_url)):
+        parsed = urlparse(target)
+        service['endpoint'] = f'https://{parsed.hostname}' if parsed.scheme == 'https' and parsed.hostname else None
+        try:
+            if service['endpoint'] and parsed.port:
+                service['endpoint'] += f':{parsed.port}'
+        except ValueError:
+            service['endpoint'] = None
 
     started = perf_counter()
 
@@ -1163,11 +1168,25 @@ def api_security_infrastructure():
                 "detail": "PostgreSQL connection or query failed"
             }
 
-    return jsonify({
+    try:
+        history=observed_history([render,neon,vercel])
+        history_available=True
+    except Exception:
+        app.logger.exception('Unable to record infrastructure observations')
+        history={}
+        history_available=False
+
+    response = jsonify({
         "success": True,
         "checked_at": datetime.now(timezone.utc).isoformat(),
-        "services": [render, neon, vercel]
+        "services": [render, neon, vercel],
+        "history": history,
+        "history_available": history_available,
+        "current_application": current_application()
     })
+    response.headers["Cache-Control"] = "private, no-store"
+    response.vary.add("Cookie")
+    return response
 
 
 

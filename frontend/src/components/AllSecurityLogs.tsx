@@ -203,6 +203,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
                   </div>
                   <dl>
                     <div><dt>Account email</dt><dd>{event.email || (event.event_type.startsWith('LOGIN_') ? 'Email not recorded' : 'System / no account')}</dd></div>
+                    <div><dt>Location</dt><dd>{event.location || "Location unavailable"}{event.location_basis === "BROWSER_REPORTED" && <small className="block">Device-reported location · ±{Math.round(event.accuracy_m ?? 0)} m</small>}</dd></div>
                     <div><dt>Source IP</dt><dd>{event.source_ip || 'IP not recorded'}{(event.source_ip === '127.0.0.1' || event.source_ip === '::1') && <small>Loopback address recorded</small>}</dd></div>
                     <div><dt>Date &amp; time (CST)</dt><dd>{timestamp.date} · {timestamp.time}</dd></div>
                     <div><dt>Database · Event ID</dt><dd>{event.source_label} · #{event.id}</dd></div>
@@ -222,7 +223,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
             <table className="rw-security-logs-table w-full min-w-[950px] text-left text-sm">
               <thead className="bg-[#1a1d22] text-[#8c929c]">
                 <tr>
-                  {['ID', 'Database', 'Date (Regina)', 'Time (CST)', 'Event', 'Severity', 'Account Email', 'Source IP'].map(label => (
+                  {['ID', 'Database', 'Date (Regina)', 'Time (CST)', 'Event', 'Severity', 'Account Email', 'Location', 'Source IP'].map(label => (
                     <th key={label} className="px-3 py-3 font-medium">
                       {label}
                     </th>
@@ -275,6 +276,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
                       <td className="px-3 py-3 text-[#b4b8c0]">
                         {event.email || (event.event_type.startsWith('LOGIN_') ? 'Email not recorded' : 'System / no account')}
                       </td>
+                      <td className="px-3 py-3 text-[#b4b8c0]">{event.location || "Location unavailable"}{event.location_basis === "BROWSER_REPORTED" && <small className="block">Device-reported location · ±{Math.round(event.accuracy_m ?? 0)} m</small>}</td>
                       <td className="px-3 py-3 text-[#b4b8c0]">
                         {event.source_ip || 'IP not recorded'}
                         {(event.source_ip === '127.0.0.1' || event.source_ip === '::1') && <p className="mt-1 text-xs text-[#8c929c]">Loopback address recorded</p>}

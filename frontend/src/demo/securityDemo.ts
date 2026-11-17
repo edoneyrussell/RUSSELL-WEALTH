@@ -10,6 +10,7 @@ export const demoEvents = Array.from({ length: 36 }, (_, index) => ({
   severity: index % 6 === 0 ? 'CRITICAL' : index % 3 === 0 ? 'WARNING' : 'INFO',
   details: index % 3 === 0 ? 'Fictional sign-in attempt flagged for review.' : 'Fictional account signed in successfully.',
   created_at: new Date(Date.now() - index * 180000).toISOString(),
+  location: ['Regina, Saskatchewan, Canada','London, United Kingdom','Toronto, Canada'][index%3], location_basis:'DEMO',
   source: 'demo', source_label: 'Demo dataset', event_key: `demo:${1000 + index}`,
 }));
 let alertsCleared = false;
@@ -38,6 +39,7 @@ export function demoSecurityResponse(input: string, init?: RequestInit): Respons
     const matches=q ? demoEvents.filter(row=>`${row.email} ${row.source_ip} ${row.event_type} ${row.details}`.toLowerCase().includes(q)) : [];
     body={results:[...matches.slice(0,6).map(row=>({key:`demo:Log:${row.id}`,kind:'Log',title:row.event_type.replaceAll('_',' '),description:`${row.email} · ${row.source_ip} · Security Logs`,href:`/demo/security?panel=logs&search=${encodeURIComponent(q)}&event=${row.event_key}`})),...[...new Set(matches.map(row=>row.source_ip))].map(ip=>({key:`demo:IP:${ip}`,kind:'IP address',title:ip,description:'Demo security activity · Security Logs',href:`/demo/security?panel=logs&search=${encodeURIComponent(ip)}`}))],unavailable_sources:[]};
   }
+  else if (path === '/api/security/activity-map') body = {events:demoEvents.map((event,index)=>({...event,latitude:[50.4452,51.5074,43.6532][index%3],longitude:[-104.6189,-0.1278,-79.3832][index%3],city:['Regina, Saskatchewan','London','Toronto'][index%3],country:['Canada','United Kingdom','Canada'][index%3],location_basis:'DEMO'})),truncated:false,window_hours:24};
   else if (path === '/api/security/overview') body = { success: true,
     metrics: { total_events: 36, successful_logins: 24, failed_logins: 12, blocked_attempts: 8, open_incidents: 3, total_incidents: 8, resolved_incidents: 5, info_events: 24, warning_events: 6, critical_events: 6 },
     recent_events: demoEvents, top_sources: ['192.0.2.10', '198.51.100.24', '203.0.113.8'].map(source_ip => ({source_ip, event_count:12})) };

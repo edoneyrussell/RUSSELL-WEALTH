@@ -1,3 +1,5 @@
+import ActiveSessions from './screens/ActiveSessions';
+import SignInLocationPrompt from './components/SignInLocationPrompt';
 import { landingContent } from "./content/landingContent"
 import { getLanguage, sourceText, t } from './i18n/language.ts'
 import CustomerDemo from "./screens/CustomerDemo"
@@ -51,6 +53,7 @@ const routes = {
   '/security': SecurityDashboard,
   '/security/network': NetworkInfrastructure,
   '/security/access': AccessManagement,
+  '/security/sessions': ActiveSessions,
   '/security/incidents': Incident,
   '/security/incidents/INC-2026-0142': Incident,
   '/admin/settings': AdminSettings,
@@ -129,7 +132,7 @@ export default function App() {
     (
       ['/accounts', '/dashboard', '/portfolio', '/transactions', '/deposit', '/withdraw', '/markets',
        '/customer/settings', '/customer/activity', '/customer/account-settings', '/security', '/security/incidents',
-       '/security/network', '/security/access', '/admin/settings'].includes(path) ||
+       '/security/network', '/security/access', '/security/sessions', '/admin/settings'].includes(path) ||
       path.startsWith('/security/incidents/')
     )
 
@@ -139,6 +142,12 @@ export default function App() {
     role?: string
     roles?: string[]
   } | null>(null)
+
+  useEffect(() => {
+    if (!auth?.authenticated || path.startsWith('/demo/')) return;
+    const ping=async()=>{try{const response=await fetch('/api/me/session-heartbeat',{credentials:'include',cache:'no-store'});if(response.status===401)window.location.replace('/login');}catch{/* Retry on the next heartbeat. */}};
+    const timer=window.setInterval(ping,60000);return()=>window.clearInterval(timer);
+  },[auth?.authenticated,path]);
 
   useEffect(() => {
     let active = true
@@ -221,6 +230,7 @@ export default function App() {
     '/security',
     '/security/network',
     '/security/access',
+    '/security/sessions',
     '/security/incidents',
     '/security/incidents/INC-2026-0142',
   ]
@@ -331,7 +341,8 @@ export default function App() {
         path === '/dashboard'))
 
   return (
-    <div key={language} className="contents">
+    <div key={language} className={isSecurityRoute ? "contents rw-soc-theme" : "contents"}>
+      {isProtectedRoute && auth?.authenticated && <SignInLocationPrompt />}
       {showPublicNavigation && <RWPersistentNav />}
       {isProtectedRoute && customerAccess && socAccess && (
         <nav aria-label="Switch dashboard" className="flex justify-end gap-3 border-b border-[#30343b] bg-[#10151C] px-5 py-2 text-sm text-[#BAD9EF]">

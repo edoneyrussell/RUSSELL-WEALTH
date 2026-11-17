@@ -62,7 +62,7 @@ class AccessTests(unittest.TestCase):
 
     def setUp(self):
         db = database.get_db_connection()
-        for table in ('market_clock_preferences', 'customer_watchlist', 'security_alerts', 'portfolio_snapshots', 'admin_customer_links', 'holdings', 'transactions', 'security_events', 'investment_accounts', 'users'):
+        for table in ('active_login_sessions', 'alert_workflows', 'security_event_locations', 'incident_response_actions', 'market_clock_preferences', 'customer_watchlist', 'security_alerts', 'portfolio_snapshots', 'admin_customer_links', 'holdings', 'transactions', 'security_events', 'investment_accounts', 'users'):
             db.execute(f'DELETE FROM {table}')
         for uid, role in [(101, 'SOC_ADMIN'), (102, 'SOC_ADMIN'), (103, 'CUSTOMER')]:
             db.execute('INSERT INTO users (id,name,email,password_hash,role) VALUES (?,?,?,?,?)',

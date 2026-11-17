@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { getLocale } from "../i18n/language";
 
 type IncidentRecord = {
   id: number;
@@ -32,6 +34,13 @@ type DetailResponse = {
   incident: IncidentRecord;
   events: EventRecord[];
   notes: NoteRecord[];
+};
+
+type Investigation = {
+  timeline: {key: string; kind: string; title: string; created_at: string; details: string; reason?: string; outcome?: string; actor_name?: string; actor_email?: string; account_email?: string; source_ip?: string; severity?: string}[];
+  accounts: {id: number; name: string; email: string; status: string; can_suspend: boolean; can_revoke: boolean; protection_reason?: string}[];
+  can_manage_accounts: boolean;
+  truncated: boolean;
 };
 
 const API = "/api/security/incidents";
@@ -80,7 +89,7 @@ function dateLabel(value: unknown): string {
   const parsed = new Date(normalized);
   return Number.isNaN(parsed.getTime())
     ? value
-    : parsed.toLocaleString();
+    : parsed.toLocaleString(getLocale());
 }
 
 function display(value: unknown): string {
@@ -117,6 +126,9 @@ export default function RussellWealthIncidentInvestigation() {
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(() => { const id=Number(new URLSearchParams(window.location.search).get("incident")); return Number.isInteger(id) && id>0 ? id : null; });
   const [detail, setDetail] = useState<DetailResponse | null>(null);
+  const activeId = useRef(selectedId);
+  activeId.current = selectedId;
+  const [investigation, setInvestigation] = useState<Investigation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [detailError, setDetailError] = useState("");
@@ -147,11 +159,16 @@ export default function RussellWealthIncidentInvestigation() {
 
   const refreshDetail = useCallback(async (id: number) => {
     try {
-      const data = await request<DetailResponse>(`${API}/${id}`);
+      const [data, evidence] = await Promise.all([
+        request<DetailResponse>(`${API}/${id}`),
+        request<Investigation>(`${API}/${id}/investigation`),
+      ]);
+      if (activeId.current !== id) return;
       setDetail(data);
+      setInvestigation(evidence);
       setDetailError("");
     } catch (err) {
-      setDetailError(err instanceof Error ? err.message : "Unable to load incident details");
+      if (activeId.current === id) setDetailError(err instanceof Error ? err.message : "Unable to load incident details");
     }
   }, []);
 
@@ -162,6 +179,9 @@ export default function RussellWealthIncidentInvestigation() {
   }, [refreshList]);
 
   useEffect(() => {
+    setInvestigation(null);
+    setNote("");
+    setDetailError("");
     if (selectedId === null) {
       setDetail(null);
       setDetailError("");
@@ -194,36 +214,20 @@ export default function RussellWealthIncidentInvestigation() {
   const investigatingCount = incidents.filter(i => i.status?.toUpperCase() === "INVESTIGATING").length;
   const resolvedCount = incidents.filter(i => i.status?.toUpperCase() === "RESOLVED").length;
 
-  async function changeStatus(status: string) {
-    if (selectedId === null || busy) return;
-    setBusy(true);
-    try {
-      await request(`${API}/${selectedId}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status })
-      });
-      await Promise.all([refreshList(), refreshDetail(selectedId)]);
-      setDetailError("");
-    } catch (err) {
-      setDetailError(err instanceof Error ? err.message : "Status update failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function addNote(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (selectedId === null || !note.trim() || busy) return;
+    const id = selectedId;
     setBusy(true);
     try {
-      await request(`${API}/${selectedId}/notes`, {
+      await request(`${API}/${id}/notes`, {
         method: "POST",
         body: JSON.stringify({ note: note.trim() })
       });
-      setNote("");
-      await refreshDetail(selectedId);
+      if (activeId.current === id) setNote("");
+      await refreshDetail(id);
     } catch (err) {
-      setDetailError(err instanceof Error ? err.message : "Unable to save note");
+      if (activeId.current === id) setDetailError(err instanceof Error ? err.message : "Unable to save note");
     } finally {
       setBusy(false);
     }
@@ -274,7 +278,7 @@ export default function RussellWealthIncidentInvestigation() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.65fr)]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
         <section className={`${panel} min-w-0`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Incident queue</h2>
@@ -362,64 +366,37 @@ export default function RussellWealthIncidentInvestigation() {
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {["OPEN", "INVESTIGATING", "RESOLVED"].map(status => (
-                    <button
-                      key={status}
-                      type="button"
-                      disabled={busy || selected.status?.toUpperCase() === status}
-                      onClick={() => void changeStatus(status)}
-                      className={status === "RESOLVED" ? action : control}
-                    >
-                      {status === "OPEN" ? "Reopen" : status === "INVESTIGATING" ? "Investigate" : "Resolve"}
-                    </button>
-                  ))}
-                </div>
                 {detailError && <p role="alert" className="mt-4 text-sm text-[#ff737b]">{detailError}</p>}
               </section>
 
-              <section className={panel}>
-                <h2 className="mb-4 text-lg font-semibold">Incident record</h2>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {Object.entries(selected)
-                    .filter(([key]) => !["id", "status", "severity", "source_ip", "created_at", "resolved_at", "related_event_count"].includes(key))
-                    .map(([key, value]) => (
-                      <div key={key} className="min-w-0 rounded-lg bg-[#1a1d22] p-3">
-                        <p className={`mb-1 break-words text-xs ${muted}`}>{key.replaceAll("_", " ")}</p>
-                        <p className="break-words whitespace-pre-wrap text-sm">{display(value)}</p>
-                      </div>
-                    ))}
-                </div>
-              </section>
-
-              <section className={panel}>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold">Related security events</h2>
-                  <span className={`text-xs ${muted}`}>{detail?.events.length ?? 0} loaded</span>
-                </div>
-                {!detail && <p className={muted}>Loading related evidence...</p>}
-                {detail && detail.events.length === 0 && (
-                  <p className={`text-sm ${muted}`}>No related security events found.</p>
-                )}
-                <div className="max-h-[480px] space-y-3 overflow-y-auto">
-                  {detail?.events.map(event => (
-                    <article key={event.id} className="rounded-lg border border-[#30343b] bg-[#1a1d22] p-4">
-                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold">{display(event.event_type)}</p>
-                        <Badge value={display(event.severity)} />
-                      </div>
-                      <p className={`mb-2 text-xs ${muted}`}>
-                        {dateLabel(event.created_at)} · {display(event.source_ip)}
-                      </p>
-                      {event.email && <p className="mb-2 break-words text-xs">{event.email}</p>}
-                      <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs text-[#b4b8c0]">
-                        {display(event.details)}
-                      </pre>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
+              <div className="grid min-w-0 gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]">
+                <div className="min-w-0 space-y-5">
+                  <section className={panel}>
+                    <h2 className="text-lg font-semibold">Investigation timeline</h2>
+                    <p className={`mt-2 mb-5 text-sm ${muted}`}>Related logins, account changes, alerts, notes, and response actions in chronological order.</p>
+                    {!investigation && <p className={muted}>Loading related evidence...</p>}
+                    {investigation?.truncated && <p role="status" className="mb-4 text-sm text-[#f5b942]">This timeline shows the most recent evidence. Older records remain in security logs.</p>}
+                    <ol className="max-h-[650px] space-y-4 overflow-y-auto pr-1">
+                      {investigation?.timeline.map(item => (
+                        <li key={item.key} className="ml-2 border-l-2 border-[#30343b] pl-5">
+                          <article className="rounded-lg bg-[#1a1d22] p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className={`text-xs ${muted}`}>{item.kind}</span>
+                              <time className={`text-xs ${muted}`} dateTime={item.created_at}>{dateLabel(item.created_at)}</time>
+                            </div>
+                            <h3 className="mt-2 break-words text-sm font-semibold">{item.title}</h3>
+                            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[#b4b8c0]">{display(item.details)}</p>
+                            {item.reason && <p className="mt-3 whitespace-pre-wrap break-words text-sm"><span className={muted}>Reason: </span>{item.reason}</p>}
+                            {item.actor_name && <p className={`mt-2 break-words text-xs ${muted}`}>{item.actor_name}{item.actor_email ? ` · ${item.actor_email}` : ""}</p>}
+                            {item.account_email && <p className={`mt-2 break-words text-xs ${muted}`}>{item.account_email}</p>}
+                            {item.source_ip && <p className={`mt-2 text-xs ${muted}`}>{item.source_ip}</p>}
+                            {item.outcome && <span className={`mt-3 inline-block rounded px-2 py-1 text-xs ${item.outcome === "SUCCEEDED" ? "bg-[#163326] text-[#25e487]" : "bg-[#35161b] text-[#ff737b]"}`}>{item.outcome}</span>}
+                            {item.severity && <div className="mt-3"><Badge value={item.severity}/></div>}
+                          </article>
+                        </li>
+                      ))}
+                    </ol>
+                  </section>
               <section className={panel}>
                 <h2 className="mb-4 text-lg font-semibold">Analyst notes</h2>
                 <div className="mb-5 space-y-3">
@@ -455,6 +432,10 @@ export default function RussellWealthIncidentInvestigation() {
                   </button>
                 </form>
               </section>
+                </div>
+                <ResponsePanel key={selected.id} incidentId={selected.id} status={selected.status ?? "OPEN"}
+                  evidence={investigation} onComplete={async () => { await Promise.all([refreshList(), refreshDetail(selected.id)]); }}/>
+              </div>
             </>
           )}
         </div>
@@ -462,4 +443,82 @@ export default function RussellWealthIncidentInvestigation() {
       </main>
     </div>
   );
+}
+
+function ResponsePanel({ incidentId, status, evidence, onComplete }: {
+  incidentId: number; status: string; evidence: Investigation | null; onComplete: () => Promise<void>;
+}) {
+  const [responseAction, setResponseAction] = useState("UPDATE_STATUS");
+  const [nextStatus, setNextStatus] = useState(status);
+  const [accountId, setAccountId] = useState("");
+  const [reason, setReason] = useState("");
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState("");
+  const [failed, setFailed] = useState(false);
+  const requestId = useRef(crypto.randomUUID());
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { setNextStatus(status); }, [status]);
+  const containment = responseAction !== "UPDATE_STATUS";
+  const accounts = evidence?.accounts ?? [];
+  const target = accounts.find(account => String(account.id) === accountId);
+  const allowed = !containment || (evidence?.can_manage_accounts && target && (responseAction === "SUSPEND_ACCOUNT" ? target.can_suspend : target.can_revoke));
+  function edit() { requestId.current = crypto.randomUUID(); setMessage(""); }
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (pending || !allowed || !evidence) return;
+    setPending(true); setMessage("");
+    try {
+      await request(`${API}/${incidentId}/response`, { method: "POST", body: JSON.stringify({
+        action: responseAction, reason: reason.trim(), request_id: requestId.current,
+        ...(containment ? {account_id: Number(accountId), current_password: password} : {status: nextStatus}),
+      }) });
+      if (mounted.current) { setPassword(""); setReason(""); setFailed(false); setMessage("Response recorded successfully."); requestId.current = crypto.randomUUID(); }
+      await onComplete();
+    } catch (err) {
+      if (mounted.current) { setFailed(true); setMessage(err instanceof Error ? err.message : "Response failed."); }
+      await onComplete();
+    } finally { if (mounted.current) setPending(false); }
+  }
+  return <aside className={`${panel} h-fit min-w-0 2xl:sticky 2xl:top-5`}>
+    <h2 className="text-lg font-semibold">Response panel</h2>
+    <p className={`mt-2 text-sm ${muted}`}>Every response records the analyst, time, reason, and outcome.</p>
+    <form onSubmit={submit} className="mt-5 space-y-4">
+      <fieldset disabled={pending || !evidence} className="min-w-0 space-y-4 disabled:opacity-60">
+        <label className="block text-sm">Response action
+          <select className={`${control} mt-2 w-full`} value={responseAction} onChange={e => {setResponseAction(e.target.value); setPassword(""); edit();}}>
+            <option value="UPDATE_STATUS">Update incident status</option>
+            <option value="SUSPEND_ACCOUNT" disabled={!evidence?.can_manage_accounts}>Suspend account</option>
+            <option value="REVOKE_SESSIONS" disabled={!evidence?.can_manage_accounts}>Revoke sessions</option>
+          </select>
+        </label>
+        {!containment ? <label className="block text-sm">Incident status
+          <select className={`${control} mt-2 w-full`} value={nextStatus} onChange={e => {setNextStatus(e.target.value); edit();}}>
+            <option value="OPEN">Open</option><option value="INVESTIGATING">Investigating</option><option value="RESOLVED">Resolved</option>
+          </select>
+        </label> : <>
+          <label className="block text-sm">Related account
+            <select required className={`${control} mt-2 w-full`} value={accountId} onChange={e => {setAccountId(e.target.value); edit();}}>
+              <option value="">Choose an account</option>
+              {accounts.map(account => <option key={account.id} value={account.id} disabled={responseAction === "SUSPEND_ACCOUNT" ? !account.can_suspend : !account.can_revoke}>{account.email} · {account.status}</option>)}
+            </select>
+          </label>
+          {accounts.length === 0 && <p className={`text-sm ${muted}`}>No related accounts found in the incident evidence.</p>}
+          {target?.protection_reason && <p className="text-sm text-[#f5b942]">{target.protection_reason}</p>}
+          <p className="rounded-lg border border-[#673238] bg-[#25191d] p-3 text-sm text-[#f3bcc1]">{responseAction === "SUSPEND_ACCOUNT" ? "Suspending this account blocks sign-in and immediately revokes its existing sessions." : "Revoking sessions signs this account out on all devices. The account can sign in again."}</p>
+          <label className="block text-sm">Your administrator password
+            <input required type="password" autoComplete="current-password" maxLength={1024} className={`${control} mt-2 w-full`} value={password} onChange={e => {setPassword(e.target.value); edit();}}/>
+          </label>
+        </>}
+        <label className="block text-sm">Reason for response
+          <textarea required minLength={10} maxLength={1000} rows={4} className={`${control} mt-2 w-full resize-y`} value={reason} onChange={e => {setReason(e.target.value); edit();}} placeholder="Explain the evidence and why this response is needed."/>
+        </label>
+        <p className={`text-xs ${muted}`}>10–1000 characters. Do not include passwords or secrets.</p>
+        <button className={`${action} w-full`} disabled={!allowed || reason.trim().length < 10 || (containment && !password) || (!containment && nextStatus === status)} type="submit">{pending ? "Saving..." : responseAction === "UPDATE_STATUS" ? "Update incident status" : responseAction === "SUSPEND_ACCOUNT" ? "Confirm account suspension" : "Confirm session revocation"}</button>
+      </fieldset>
+      {evidence && !evidence.can_manage_accounts && <p className={`text-xs ${muted}`}>Only the designated administrator can suspend accounts or revoke sessions.</p>}
+      {message && <p role={failed ? "alert" : "status"} className={`break-words text-sm ${failed ? "text-[#ff737b]" : "text-[#25e487]"}`}>{message}</p>}
+    </form>
+  </aside>;
 }

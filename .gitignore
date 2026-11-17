@@ -1,92 +1,57 @@
-# Python virtual environment
-russellwealth-env/
-
-# Python cache
-__pycache__/
-*.pyc
-
-# Local database
-russellwealth.db
-
-# Environment variables / secrets
-.env
-
-# macOS
-.DS_Store
-
-# Russell Wealth repository cleanup
-
-# Environment and secrets
+# Secrets and local configuration
 .env
 .env.*
 !.env.example
 *.pem
 *.key
 
-# Local databases
+# Local databases and journals
 *.db
 *.db-*
 *.sqlite
+*.sqlite-*
 *.sqlite3
+*.sqlite3-*
 
-# Python
+# Python environments and caches
+.venv/
+venv/
+russellwealth-env/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-russellwealth-env/
-.venv/
-venv/
 
-# Node and Vite
+# Node dependencies and generated builds
 node_modules/
-frontend/node_modules/
-frontend/dist/
 dist/
 .vite/
 *.tsbuildinfo
 
-# Local files
-.DS_Store
-.idea/
-.vscode/
+# Logs and operating-system files
 *.log
 npm-debug.log*
+.DS_Store
+.idea/
+
+# Local recovery copies and design exports
 backups/
-
-# Additional Russell Wealth exclusions
-.env.save
-.env.backup*
-node_modules/
-src (1)/
-*.bak
-*.backup
-
-# Local development and recovery files
-*.before*
-*.bak
-*.backup
-*.save
+recovery-checkpoints/
 redesign-backups/
 mobile-audit/
 carbon_package/
 frontend/screens/
+src (1)/
+*-backup-*/
+*-backups/
+.*-backups/
+*.backup*
+*.before*
+*.bak
+*.save
 
-# Local databases and credentials
-*.db
-*.db-*
-*.sqlite
-*.sqlite3
-.env
-.env.*
-!.env.example
-
-# Generated files
-node_modules/
-dist/
-frontend/dist/
-__pycache__/
-*.pyc
-russellwealth-env/
-.venv/
+# Share project settings, but keep other personal editor state local
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

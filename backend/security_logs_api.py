@@ -1,6 +1,8 @@
 """Combined SOC logs from the configured account databases."""
 from datetime import datetime, timezone
 import re
+from security_locations import location_fields
+from login_locations import attach_login_locations
 
 from flask import jsonify, request, current_app
 from authorization import role_required
@@ -49,6 +51,13 @@ def read_log_source(source, primary, event_type, severity, search, limit):
             event.update(source=source, source_label='Live website' if source == 'live' else 'Local development',
                          event_key=f"{source}:{event['id']}", created_at=creation_timestamp(event['created_at']))
             events.append(event)
+        has_locations = source == primary
+        if not has_locations and source == 'live':
+            has_locations = bool(db.execute("SELECT to_regclass('security_event_locations') AS relation").fetchone()['relation'])
+        elif not has_locations:
+            has_locations = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='security_event_locations'").fetchone() is not None
+        if has_locations:
+            attach_login_locations(db, events)
         return events, total
     finally:
         db.close()
@@ -84,7 +93,7 @@ def combined_security_logs():
         earliest = datetime.min.replace(tzinfo=timezone.utc)
         logs.sort(key=lambda event: (datetime.fromisoformat(event['created_at'].replace('Z', '+00:00')) if event['created_at'] else earliest, event['source'], event['id']), reverse=True)
         offset = (page - 1) * per_page
-        response = jsonify(success=True, logs=logs[offset:offset + per_page], sources=sources,
+        response = jsonify(success=True, logs=[{**event, **({} if event.get('location_basis') == 'BROWSER_REPORTED' else location_fields(event['source_ip']))} for event in logs[offset:offset + per_page]], sources=sources,
                            pagination=dict(page=page, per_page=per_page, total=total, total_pages=(total + per_page - 1) // per_page))
     response.headers['Cache-Control'] = 'no-store'
     return response

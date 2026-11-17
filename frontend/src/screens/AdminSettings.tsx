@@ -4,11 +4,7 @@ import { logout } from '../auth';
 const features = [
   { title: 'Customer Dashboard', description: 'Open your investment dashboard', icon: '◫', href: '/dashboard' },
   { title: 'SOC Dashboard', description: 'Return to security monitoring', icon: '◇', href: '/security' },
-  { title: 'My Profile', description: 'Personal details and profile photo', icon: '◎' },
   { title: 'Account Settings', description: 'Password and account preferences', icon: '⚙' },
-  { title: 'User Management', description: 'Manage users and access roles', icon: '♙' },
-  { title: 'Security Settings', description: 'Authentication and access controls', icon: '⬡' },
-  { title: 'Audit Logs', description: 'Review administrative activity', icon: '▤' },
 ];
 
 export default function AdminSettings() {

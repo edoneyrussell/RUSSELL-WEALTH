@@ -83,7 +83,7 @@ export default function SecurityCoverage() {
   ];
 
   return (
-    <section className="bg-[#14171c] border border-[#30343b] rounded-[14px] p-[18px] w-full lg:flex-1 min-w-0">
+    <section className="rw-security-coverage bg-[#14171c] border border-[#30343b] rounded-[14px] p-[18px] w-full lg:flex-1 min-w-0">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h3 className="text-[#f5f5f5] text-[20px] font-semibold">
           Security Coverage
@@ -116,7 +116,7 @@ export default function SecurityCoverage() {
           return (
             <div
               key={title}
-              className="bg-[#1a1d22] border border-[#30343b] rounded-[12px] min-w-0 p-4 flex flex-col items-center justify-center gap-3 text-center"
+              className="rw-security-coverage-check bg-[#1a1d22] border border-[#30343b] rounded-[12px] min-w-0 p-4 flex flex-col items-center justify-center gap-3 text-center"
             >
               <Icon size={28} color={color} strokeWidth={1.8} />
 

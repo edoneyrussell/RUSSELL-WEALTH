@@ -13,3 +13,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 import './styles/dashboard-modern.css';
+
+import './styles/soc-theme.css';

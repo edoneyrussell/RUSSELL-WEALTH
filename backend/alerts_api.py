@@ -1,6 +1,7 @@
 """SOC-only alert review; retains evidence after resolution."""
 import json
-from access_api import creation_timestamp
+from access_api import creation_timestamp, valid_origin
+from alert_workflows import enrich,escalate_overdue,sla_minutes
 from flask import Blueprint, jsonify, request, session
 from authorization import role_required
 from database import get_db_connection
@@ -18,12 +19,16 @@ def serialize(row):
     alert['dismissed_at'] = creation_timestamp(alert.get('dismissed_at'))
     alert['evidence'] = json.loads(alert.pop('evidence_json') or '[]')
     alert.pop('dedupe_key', None)
-    return alert
+    return enrich(alert)
 
 
-SELECT = '''SELECT a.*, e.user_id, e.account_email AS event_email, u.email AS user_email
+SELECT = '''SELECT a.*, e.user_id, e.account_email AS event_email, u.email AS user_email,
+    w.assigned_user_id,w.assigned_at,w.escalated_at,w.escalation_ack_at,w.version AS assignment_version,
+    analyst.name AS assigned_name,analyst.email AS assigned_email
     FROM security_alerts a LEFT JOIN security_events e ON e.id=a.event_id
-    LEFT JOIN users u ON u.id=e.user_id'''
+    LEFT JOIN users u ON u.id=e.user_id
+    LEFT JOIN alert_workflows w ON w.alert_id=a.id
+    LEFT JOIN users analyst ON analyst.id=w.assigned_user_id'''
 
 
 @alerts_bp.get('/api/security/alerts')
@@ -57,15 +62,23 @@ def alerts():
         from security_search_api import contains
         match, values = contains(['a.title','a.description','a.source_ip','a.account_email','a.alert_type','u.name','u.email'], search)
         clauses.append(match); params.extend(values)
+    assignment=request.args.get('assignment','all')
+    if assignment=='mine':clauses.append('w.assigned_user_id=?');params.append(session['user_id'])
+    elif assignment=='unassigned':clauses.append('w.assigned_user_id IS NULL')
+    elif assignment!='all':return jsonify(error='Invalid assignment filter'),400
+    if request.args.get('escalated')=='1':clauses.append("a.status='ACTIVE' AND w.escalated_at IS NOT NULL")
     where = ' WHERE ' + ' AND '.join(clauses) if clauses else ''
     db = get_db_connection()
     try:
+        escalate_overdue(db)
         read_snapshot(db)
         total = db.execute('SELECT COUNT(*) AS n ' + SELECT[SELECT.index('FROM '):] + where, params).fetchone()['n']
         active = db.execute("SELECT COUNT(*) AS n FROM security_alerts WHERE status='ACTIVE'").fetchone()['n']
         rows = db.execute(SELECT + where + ' ORDER BY a.id DESC LIMIT ? OFFSET ?',
                           params + [size, (page-1)*size]).fetchall()
-        response = jsonify(success=True, logs=[serialize(r) for r in rows], active_count=active,
+        analysts=[dict(row) for row in db.execute("SELECT id,name,email FROM users WHERE role='SOC_ADMIN' AND account_status='ACTIVE' ORDER BY name,id LIMIT 1000").fetchall()]
+        escalated=db.execute("SELECT COUNT(*) AS n FROM security_alerts a JOIN alert_workflows w ON w.alert_id=a.id WHERE a.status='ACTIVE' AND w.escalated_at IS NOT NULL").fetchone()['n']
+        response = jsonify(success=True, analysts=analysts, escalated_count=escalated, sla_minutes=sla_minutes(), logs=[serialize(r) for r in rows], active_count=active,
                            pagination=dict(page=page, per_page=size, total=total, total_pages=max(1,(total+size-1)//size)))
         response.headers['Cache-Control'] = 'no-store'
         return response
@@ -85,13 +98,15 @@ def active_alerts():
         return jsonify(success=False,error='Choose a valid severity'),400
     db=get_db_connection()
     try:
+        escalate_overdue(db)
         read_snapshot(db)
         count=db.execute("SELECT COUNT(*) AS n FROM security_alerts WHERE status='ACTIVE'").fetchone()['n']
         condition=" WHERE a.status='ACTIVE'" + (' AND a.severity=?' if severity else '')
         params=[severity] if severity else []
         filtered=db.execute('SELECT COUNT(*) AS n FROM security_alerts a'+condition,params).fetchone()['n']
-        rows=db.execute(SELECT+condition+' ORDER BY a.created_at DESC,a.id DESC LIMIT 100',params).fetchall()
-        response=jsonify(success=True,count=count,filtered_count=filtered,alerts=[serialize(row) for row in rows])
+        rows=db.execute(SELECT+condition+' ORDER BY CASE WHEN w.escalated_at IS NOT NULL THEN 0 ELSE 1 END,a.created_at DESC,a.id DESC LIMIT 100',params).fetchall()
+        escalated=db.execute("SELECT COUNT(*) AS n FROM security_alerts a JOIN alert_workflows w ON w.alert_id=a.id WHERE a.status='ACTIVE' AND w.escalated_at IS NOT NULL").fetchone()['n']
+        response=jsonify(success=True,count=count,escalated_count=escalated,sla_minutes=sla_minutes(),filtered_count=filtered,alerts=[serialize(row) for row in rows])
         response.headers['Cache-Control']='private, no-store'
         return response
     finally:db.close()
@@ -100,6 +115,7 @@ def active_alerts():
 @alerts_bp.patch('/api/security/alerts/<int:alert_id>')
 @role_required('SOC_ADMIN')
 def review_alert(alert_id):
+    if not valid_origin():return jsonify(error='Request origin denied'),403
     payload = request.get_json(silent=True)
     state = payload.get('status') if isinstance(payload, dict) else None
     if state not in ('NEW', 'UNDER_REVIEW', 'RESOLVED'):
@@ -123,6 +139,7 @@ def review_alert(alert_id):
 @alerts_bp.post('/api/security/clear-alerts')
 @role_required('SOC_ADMIN')
 def clear_alerts():
+    if not valid_origin():return jsonify(error='Request origin denied'),403
     db = get_db_connection()
     try:
         cursor = db.execute("""UPDATE security_alerts SET status='DISMISSED',review_state='RESOLVED',

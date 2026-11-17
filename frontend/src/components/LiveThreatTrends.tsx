@@ -1,18 +1,14 @@
 import { getLocale } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 
-export type TrendBucket = {
-  hour: string;
-  total: number;
-  failed: number;
-  successful: number;
-};
+import { threatBuckets, type TrendBucket } from '../utils/threatTrends';
 
 type Props = {
   trends?: TrendBucket[];
+  unavailable?: boolean;
 };
 
-export default function LiveThreatTrends({ trends = [] }: Props) {
+export default function LiveThreatTrends({ trends = [], unavailable = false }: Props) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -20,20 +16,7 @@ export default function LiveThreatTrends({ trends = [] }: Props) {
     return () => window.clearInterval(timer);
   }, []);
 
-  const currentHour = Math.floor(now / 3600000) * 3600000;
-
-  const buckets = Array.from({ length: 24 }, (_, index) => {
-    const timestamp = currentHour - (23 - index) * 3600000;
-    const key = new Date(timestamp).toISOString().slice(0, 13);
-    const record = trends.find(item => item.hour?.slice(0, 13) === key);
-
-    return {
-      timestamp,
-      total: Number(record?.total ?? 0),
-      failed: Number(record?.failed ?? 0),
-      successful: Number(record?.successful ?? 0)
-    };
-  });
+  const buckets = threatBuckets(trends, now);
 
   const maxValue = Math.max(1, ...buckets.map(b => b.total));
   const width = 600;
@@ -41,7 +24,7 @@ export default function LiveThreatTrends({ trends = [] }: Props) {
   const left = 35;
   const right = 10;
   const top = 10;
-  const bottom = 24;
+  const bottom = 30;
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
 
@@ -72,7 +55,7 @@ export default function LiveThreatTrends({ trends = [] }: Props) {
           </p>
         </div>
         <span className="text-[#8c929c] text-[11px] whitespace-nowrap">
-          Live · 5s
+          {unavailable ? 'Updates unavailable' : 'Live · 5s'}
         </span>
       </div>
 
@@ -120,9 +103,9 @@ export default function LiveThreatTrends({ trends = [] }: Props) {
           );
         })}
 
-        <path d={line('total')} fill="none" stroke="#9285f5" strokeWidth="2" />
-        <path d={line('failed')} fill="none" stroke="#f5b942" strokeWidth="2" />
-        <path d={line('successful')} fill="none" stroke="#25e487" strokeWidth="2" />
+        <path data-series="successful" d={line('successful')} fill="none" stroke="#25e487" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        <path data-series="failed" d={line('failed')} fill="none" stroke="#f5b942" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" />
+        <path data-series="total" d={line('total')} fill="none" stroke="#9285f5" strokeWidth="2" strokeDasharray="2 10" vectorEffect="non-scaling-stroke" />
 
         {[0, 6, 12, 18, 23].map(i => (
           <text

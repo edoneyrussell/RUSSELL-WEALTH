@@ -1,0 +1,161 @@
+/* SOC uses the same surfaces and controls as the customer workspace.
+   Scope to authenticated SOC routes; alert severity colours stay semantic. */
+.rw-soc-theme {
+  --rw-canvas: #0c1011;
+  --rw-surface: #13191a;
+  --rw-surface-inset: #0f1614;
+  --rw-border: #283332;
+  --rw-control-border: #34483b;
+  --rw-tile: #171f1c;
+  --rw-tile-hover: #1b2822;
+  --rw-text: #ecf1ed;
+  --rw-muted: #91a498;
+  --rw-accent: #c2edce;
+  color: var(--rw-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.rw-soc-theme *, .rw-soc-theme :is(button, input, select, textarea) {
+  font-family: inherit !important;
+}
+.rw-soc-theme .screen-shell,
+.rw-soc-theme .rw-unified-customer-content,
+.rw-soc-theme .soc-dashboard,
+.rw-soc-theme .rw-alert-workspace,
+.rw-soc-theme [class~="bg-[#080a0d]"] {
+  background: var(--rw-canvas) !important;
+  color: var(--rw-text);
+}
+.rw-soc-theme :is([class~="bg-[#14171c]"], [class~="bg-[#12171E]"],
+  [class~="bg-[#111720]"], [class~="bg-[#151B23]"],
+  .rw-alert-card, .rw-alert-summary, .rw-security-coverage) {
+  background: var(--rw-surface) !important;
+  border-color: var(--rw-border) !important;
+  box-shadow: none !important;
+}
+.rw-soc-theme :is([class~="bg-[#0e1116]"], [class~="bg-[#0b0d11]"],
+  [class~="bg-[#10151C]"], [class~="bg-[#1a1d22]"],
+  [class~="bg-[#18232E]"], [class~="bg-[#292e36]"],
+  [class~="bg-[#1B2530]"], [class~="bg-[#0E141C]"]) {
+  background-color: var(--rw-surface-inset) !important;
+}
+.rw-soc-theme :is([class~="border-[#30343b]"], [class~="border-[#34404D]"],
+  [class~="border-[#344454]"], [class~="border-[#2b3830]"], [class~="border-[#354039]"]) {
+  border-color: var(--rw-border) !important;
+}
+.rw-soc-theme :is([class~="text-[#8c929c]"], [class~="text-[#9aa39e]"],
+  [class~="text-[#819087]"], [class~="text-[#91A1B4]"]) {
+  color: var(--rw-muted) !important;
+}
+.rw-soc-theme :is([class~="text-[#f5f5f5]"], [class~="text-white"]) { color: var(--rw-text); }
+.rw-soc-theme :is([class~="text-[#b4b8c0]"], [class~="text-[#aeb9b2]"]) { color: #b4cbbd; }
+.rw-soc-theme :is([class~="text-[#9db9e4]"], [class~="text-[#BAD9EF]"],
+  [class~="text-[#DCE7F2]"], [class~="text-[#8FA9C4]"]) { color: var(--rw-accent) !important; }
+
+/* Common card shape, headings, and tabular values. */
+.rw-soc-theme :is(section, article, form[role="dialog"])[class*="rounded"],
+.rw-soc-theme .rw-alert-card,
+.rw-soc-theme .rw-alert-summary,
+.rw-soc-theme .rw-security-logs-panel,
+.rw-soc-theme .soc-dashboard [class~="bg-[#14171c]"] {
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+.rw-soc-theme h1,
+.rw-soc-theme [data-name="Dashboard introduction"] > p:first-child {
+  font-size: clamp(28px, 2.5vw, 36px) !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.04em;
+}
+.rw-soc-theme h2 { font-weight: 500; letter-spacing: -.025em; }
+.rw-soc-theme h3 { letter-spacing: -.015em; }
+.rw-soc-theme .soc-dashboard [data-name="Security metrics"] > div {
+  border-radius: 14px !important;
+  transform: none !important;
+}
+.rw-soc-theme .soc-dashboard [data-name="Security metrics"] p[class*="text-[36px]"],
+.rw-soc-theme .rw-alert-summary strong {
+  font-size: 30px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.rw-soc-theme :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+.rw-soc-theme .rw-alert-select {
+  background: var(--rw-surface-inset) !important;
+  border-color: var(--rw-control-border) !important;
+  border-radius: 12px;
+  color: var(--rw-text);
+  min-height: 42px;
+}
+.rw-soc-theme :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--rw-accent) !important;
+  outline-offset: 3px;
+}
+.rw-soc-theme button:not(:disabled), .rw-soc-theme a {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.rw-soc-theme button[class*="border-[#30343b]"],
+.rw-soc-theme button[class*="border-[#34404D]"] {
+  background: var(--rw-tile);
+  border-color: var(--rw-control-border) !important;
+  border-radius: 12px;
+  color: #d9e9df;
+}
+.rw-soc-theme button[class*="border-[#30343b]"]:hover:not(:disabled),
+.rw-soc-theme button[class*="border-[#34404D]"]:hover:not(:disabled) {
+  background: var(--rw-tile-hover);
+  border-color: #476153 !important;
+}
+.rw-soc-theme :is([class~="bg-[#D7DDE5]"], [class~="bg-[#D9E0E8]"]) {
+  background: var(--rw-accent) !important;
+  color: #14251a !important;
+  border-color: var(--rw-accent) !important;
+}
+
+/* Shared navigation and panel selections. */
+.rw-soc-theme .rw-soc-shared-sidebar {
+  background: #0e1412 !important;
+  border-right-color: var(--rw-border) !important;
+}
+.rw-soc-theme .rw-soc-shared-sidebar .rw-soc-nav-entry:hover { background: var(--rw-tile-hover) !important; }
+.rw-soc-theme .rw-soc-shared-sidebar .rw-soc-nav-entry.rw-soc-nav-active {
+  background: #253b32 !important;
+  color: var(--rw-accent) !important;
+}
+.rw-soc-theme .rw-soc-shared-sidebar .rw-soc-nav-entry { border-radius: 12px; }
+.rw-soc-theme .rw-alert-summary[aria-pressed="true"] {
+  border-color: #6b9a7d !important;
+  background: #1b2822 !important;
+}
+.rw-soc-theme .rw-security-logs table th { color: var(--rw-muted); font-weight: 500; }
+.rw-soc-theme .rw-security-logs table tbody tr:hover { background: var(--rw-tile-hover); }
+
+@media (min-width: 701px) {
+  .rw-soc-theme .soc-dashboard [data-name="Security analytics"] { padding: 34px 28px; gap: 24px; }
+  .rw-soc-theme .soc-dashboard [data-name="Dashboard header"] { padding-inline: 0; }
+}
+@media (max-width: 700px) {
+  .rw-soc-theme h1,
+  .rw-soc-theme [data-name="Dashboard introduction"] > p:first-child { font-size: 28px !important; }
+  .rw-soc-theme :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px; }
+  .rw-soc-theme :is(section, article, form[role="dialog"]) { min-width: 0; }
+  .rw-soc-theme main[class~="px-8"] { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rw-soc-theme :is(button, a, input, select, textarea) { transition: none !important; }
+}
+
+/* Access directory, map shell and investigation panels use the same palette. */
+.rw-soc-theme [class~="bg-[#090C10]"] { background: var(--rw-canvas) !important; }
+.rw-soc-theme [class~="bg-[#121922]"] { background: var(--rw-surface) !important; }
+.rw-soc-theme :is([class~="bg-[#18212C]"], [class~="bg-[#10151b]"]) { background: var(--rw-surface-inset) !important; }
+.rw-soc-theme [class~="border-[#303B47]"] { border-color: var(--rw-border) !important; }
+.rw-soc-theme [class~="text-[#F0F3F7]"] { color: var(--rw-text); }
+.rw-soc-theme :is([class~="text-[#A6BACB]"], [class~="text-[#91A9BA]"]) { color: var(--rw-muted); }
+.rw-soc-theme [class~="text-[#D8EAF8]"] { color: #d9e9df; }
+.rw-soc-theme .rw-access-directory tbody tr:hover { background: var(--rw-tile-hover) !important; }
+.rw-soc-theme .rw-investigation-drawer {
+  background: var(--rw-surface);
+  border-color: var(--rw-border);
+  color: var(--rw-text);
+}

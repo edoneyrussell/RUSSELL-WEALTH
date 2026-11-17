@@ -100,6 +100,8 @@ def _login_registered_customer(db, email):
     if user is None:
         raise RuntimeError("Newly registered customer not found")
 
+    from active_sessions import end_current_session
+    end_current_session()
     session.clear()
     session["user_id"] = user["id"]
     session["name"] = user["name"]
