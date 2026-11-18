@@ -1,3 +1,4 @@
+import { Skeleton } from '../experience/Feedback';
 import AssetLogo from "./AssetLogo";
 import { usePortfolio, formatCAD, type AccountScope } from '../hooks/usePortfolio';
 
@@ -13,11 +14,7 @@ export default function HoldingsList({ limit, scope }: { limit?: number; scope?:
   }
 
   if (!portfolio) {
-    return (
-      <p className="text-[#b4b8c0] text-[12px] py-4">
-        Loading holdings...
-      </p>
-    );
+    return <Skeleton rows={3}/>;
   }
 
   if (portfolio.holdings.length === 0) {

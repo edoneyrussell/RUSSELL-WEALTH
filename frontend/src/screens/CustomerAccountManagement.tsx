@@ -1,5 +1,6 @@
+import { useUnsavedChanges } from '../experience/useUnsavedChanges';
 import LanguagePreferences from '../components/LanguagePreferences';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { logout } from "../auth";
 
 type Preferences = {
@@ -39,6 +40,10 @@ export default function CustomerAccountManagement() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [loadRevision,setLoadRevision]=useState(0);
+  const savingRef=useRef(false);
+  const savedPreferences=useRef(JSON.stringify(defaults));
+  useUnsavedChanges(Boolean(currentPassword || newPassword || confirmPassword) || (loaded && JSON.stringify(preferences)!==savedPreferences.current));
 
   useEffect(() => {
     if (loaded && window.location.hash.startsWith('#languages')) {
@@ -52,17 +57,20 @@ export default function CustomerAccountManagement() {
       .then(jsonResponse)
       .then(data => {
         if (!active) return;
+        setError('');
         setName(data.name);
         setEmail(data.email);
         setStatus(data.account_status);
+        savedPreferences.current=JSON.stringify({ ...defaults, ...data.preferences });
         setPreferences({ ...defaults, ...data.preferences });
         setLoaded(true);
       })
       .catch(e => { if (active) setError(String(e.message || e)); });
     return () => { active = false; };
-  }, []);
+  }, [loadRevision]);
 
   async function save(action: string, payload: object) {
+    if(savingRef.current)return;savingRef.current=true;
     setBusy(action);
     setError("");
     setMessage("");
@@ -74,7 +82,7 @@ export default function CustomerAccountManagement() {
         body: JSON.stringify({ action, ...payload })
       });
       const result = await jsonResponse(response);
-      if (action === "preferences") setPreferences(result.preferences);
+      if (action === "preferences") {savedPreferences.current=JSON.stringify(result.preferences);setPreferences(result.preferences);}
       if (action === "password") {
         setCurrentPassword("");
         setNewPassword("");
@@ -86,7 +94,7 @@ export default function CustomerAccountManagement() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed.");
     } finally {
-      setBusy("");
+      savingRef.current=false;setBusy("");
     }
   }
 
@@ -145,9 +153,12 @@ export default function CustomerAccountManagement() {
               Confirm new password
               <input className={input} type="password"
                 autoComplete="new-password" required
+                aria-invalid={Boolean(confirmPassword && newPassword!==confirmPassword)}
+                aria-describedby="password-match-help"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)} />
             </label>
+            {confirmPassword && newPassword!==confirmPassword && <p id="password-match-help" className="text-xs text-[#efc88d]">New passwords do not match.</p>}
             <button className={button} type="submit" disabled={!!busy}>
               {busy === "password" ? "Updating..." : "Change Password"}
             </button>
@@ -271,6 +282,7 @@ export default function CustomerAccountManagement() {
           </a>
         </div>
 
+        {!loaded && error && <button type="button" className="rw-retry-button mb-4" onClick={()=>setLoadRevision(value=>value+1)}>Retry</button>}
         {message && <p role="status"
           className="mb-5 rounded-lg border border-[#35634e] bg-[#142a22] p-4 text-sm text-[#a1e8c0]">{message}</p>}
         {error && <p role="alert"

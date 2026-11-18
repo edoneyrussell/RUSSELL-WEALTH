@@ -14,30 +14,32 @@ export function notifyPortfolioUpdated() {
   } catch { /* Storage may be unavailable in private browsing. */ }
 }
 
-export function subscribePortfolioUpdates(refresh: () => void) {
+export function subscribePortfolioUpdates(refresh: () => void, pollMs = 30000, listenVisibility = true) {
+  let queued: ReturnType<typeof setTimeout> | undefined;
+  const schedule = () => {if(queued===undefined)queued=setTimeout(()=>{queued=undefined;refresh();},100);};
   const onVisible = () => {
-    if (document.visibilityState === 'visible') refresh();
+    if (document.visibilityState === 'visible') schedule();
   };
   const onStorage = (event: StorageEvent) => {
-    if (event.key === storageKey) refresh();
+    if (event.key === storageKey) schedule();
   };
-  const interval = window.setInterval(onVisible, 10000);
-  window.addEventListener('portfolio-updated', refresh);
-  window.addEventListener('rw:portfolio-updated', refresh);
-  window.addEventListener('focus', onVisible);
-  window.addEventListener('online', onVisible);
+  const interval = window.setInterval(onVisible, pollMs);
+  window.addEventListener('portfolio-updated', schedule);
+  window.addEventListener('rw:portfolio-updated', schedule);
+  if(listenVisibility){window.addEventListener('focus', onVisible);window.addEventListener('online', onVisible);}
   window.addEventListener('storage', onStorage);
-  document.addEventListener('visibilitychange', onVisible);
+  if(listenVisibility)document.addEventListener('visibilitychange', onVisible);
   let channel: BroadcastChannel | undefined;
   try {
     channel = new BroadcastChannel(channelName);
-    channel.addEventListener('message', refresh);
+    channel.addEventListener('message', schedule);
   } catch { /* Fall back to storage events and polling. */ }
 
   return () => {
     window.clearInterval(interval);
-    window.removeEventListener('portfolio-updated', refresh);
-    window.removeEventListener('rw:portfolio-updated', refresh);
+    clearTimeout(queued);
+    window.removeEventListener('portfolio-updated', schedule);
+    window.removeEventListener('rw:portfolio-updated', schedule);
     window.removeEventListener('focus', onVisible);
     window.removeEventListener('online', onVisible);
     window.removeEventListener('storage', onStorage);

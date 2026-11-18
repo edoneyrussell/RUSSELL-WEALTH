@@ -6,7 +6,7 @@ import AssetLogo from './AssetLogo';
 export default function DashboardWatchlist() {
   const {items, symbols, loading, error} = useWatchlist();
   const prices = useWatchlistQuotes(symbols);
-  return <section className="rw-fintech-panel rounded-[22px] border border-[#2B333D] bg-[#12171E] p-5 sm:p-6">
+  return <section data-tour="watchlist" className="rw-fintech-panel rounded-[22px] border border-[#2B333D] bg-[#12171E] p-5 sm:p-6">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-4"><div><p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-[#91a498]">MARKET WATCH</p><h2 className="mt-2 font-['Lora'] text-[25px]">Your Watchlist</h2></div><a className="text-xs text-[#b4cbbd] hover:underline" href="/dashboard#watchlist">Manage watchlist →</a></div>
     {error && <p role="alert" className="mb-3 text-sm text-amber-200">{error}</p>}
     {loading ? <p className="text-sm text-[#91a498]">Loading your watchlist…</p> : items.length ? <>

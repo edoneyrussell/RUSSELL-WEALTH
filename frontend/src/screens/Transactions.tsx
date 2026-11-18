@@ -1,3 +1,5 @@
+import { Skeleton, DataStatus } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import AccountSelector from '../components/AccountSelector';
 import type { AccountScope } from '../hooks/usePortfolio';
@@ -88,18 +90,20 @@ function TransactionLogo({ entry }: { entry: HistoryEntry }) {
 }
 
 export default function Transactions() {
-  const [accountScope, setAccountScope] = useState<AccountScope>('all');
-  const { transactions, loading, error } = useTransactions(accountScope);
-  const entries = transactions as HistoryEntry[];
+  const [accountScope, setAccountScope] = useViewState<AccountScope>('transactions:account','all');
   const search = new URLSearchParams(window.location.search).get('search')?.toLowerCase() ?? '';
-  const matching = entries.filter(entry => `${entry.symbol} ${entry.name} ${entry.action} ${entry.total} ${entry.created_at}`.toLowerCase().includes(search));
-  const groups = groupTransactions(matching);
+  const pageKey=String(accountScope)+':'+search;
+  const [pageState,setPageState]=useState({key:pageKey,page:1});
+  const page=pageState.key===pageKey?pageState.page:1;
+  const { transactions, pagination, loading, error, errorMessage, refresh, updatedAt } = useTransactions(accountScope,page,search);
+  const entries = transactions as HistoryEntry[];
+  const groups = groupTransactions(entries);
 
   return (
     <div className="rw-fintech-workspace rw-fintech-transactions min-h-screen bg-[#08090a] px-5 py-10 text-[#f5f5f5] md:px-12">
       {search && <p className="mb-5 text-sm text-[#B8C6D5]">Transactions matching “{search}” · <a className="underline" href="/transactions">Show all transactions</a></p>}
       <div className="mx-auto max-w-[1200px]">
-        <header className="mb-8">
+        <header data-tour="transactions" className="mb-8">
           <button
             onClick={() => {
               window.history.pushState({}, '', '/dashboard');
@@ -120,14 +124,14 @@ export default function Transactions() {
         </header>
 
         <section className="overflow-hidden rounded-xl border border-[#30343b] bg-[#14171c]">
-          {error && entries.length > 0 && <p role="alert" className="p-4 text-amber-200">Unable to refresh. Showing previously loaded transactions.</p>}
+          <DataStatus error={errorMessage} updatedAt={updatedAt} onRetry={()=>void refresh()}/>
           {loading ? (
-            <p className="p-8 text-[#b4b8c0]">Loading transactions...</p>
+            <Skeleton rows={4}/>
           ) : error && entries.length === 0 ? (
             <p className="p-8 text-[#f09a9a]">
               Unable to load transaction history.
             </p>
-          ) : matching.length === 0 ? (
+          ) : entries.length === 0 ? (
             <p className="p-8 text-[#b4b8c0]">
               {search ? 'No transactions match your search.' : 'No transactions recorded for this account selection.'}
             </p>
@@ -198,6 +202,12 @@ export default function Transactions() {
           )}
         </section>
 
+        {pagination && pagination.total_pages>1 && <nav aria-label="Transaction pages" className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
+          <button type="button" disabled={loading||page<=1} onClick={()=>setPageState({key:pageKey,page:page-1})} className="min-h-11 rounded-full border border-[#34483b] px-5 disabled:opacity-40">Previous</button>
+          <span>{page} / {pagination.total_pages} · {pagination.total} transactions</span>
+          <button type="button" disabled={loading||page>=pagination.total_pages} onClick={()=>setPageState({key:pageKey,page:page+1})} className="min-h-11 rounded-full border border-[#34483b] px-5 disabled:opacity-40">Next</button>
+          <p className="w-full text-xs text-[#91a498]">Grouped trades reflect this page.</p>
+        </nav>}
         <p className="mt-4 text-xs text-[#8c929c]">
           Simulated transactions only. No real money or securities.
         </p>

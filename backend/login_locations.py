@@ -112,7 +112,7 @@ def attach_login_locations(db, events):
         return events
     ids = [event['id'] for event in events]
     marks = ','.join('?' for _ in ids)
-    saved = {row['event_id']:row for row in db.execute(f'SELECT * FROM security_event_locations WHERE event_id IN ({marks})',ids).fetchall()}
+    saved = {row['event_id']:row for row in db.execute(f'SELECT event_id,user_id,status,latitude,longitude,accuracy_m,captured_at FROM security_event_locations WHERE event_id IN ({marks})',ids).fetchall()}
     for event in events:
         row = saved.get(event['id'])
         if row is None or row['user_id']!=event.get('user_id'):

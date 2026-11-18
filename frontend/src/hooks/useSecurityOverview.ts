@@ -1,5 +1,6 @@
 import { useSecurityFetch } from "../demo/securityDemo";
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useRemoteData } from '../experience/useRemoteData';
 
 export type SecurityEvent = {
   location?: string;
@@ -56,46 +57,7 @@ export type SecurityOverview = {
 
 export function useSecurityOverview() {
   const securityFetch = useSecurityFetch();
-  const [data, setData] = useState<SecurityOverview | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function refresh() {
-      try {
-        const response = await securityFetch('/api/security/overview', {
-          credentials: 'include',
-          cache: 'no-store'
-        });
-
-        if (!response.ok) {
-          throw new Error(`Security API returned ${response.status}`);
-        }
-
-        const result: SecurityOverview = await response.json();
-
-        if (active) {
-          setData(result);
-          setError(null);
-        }
-      } catch (err) {
-        if (active) {
-          setError(err instanceof Error ? err.message : 'Unable to load security data');
-        }
-      }
-    }
-
-    window.addEventListener('rw-location-updated', refresh);
-    refresh();
-    const interval = window.setInterval(refresh, 5000);
-
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-      window.removeEventListener('rw-location-updated', refresh);
-    };
-  }, []);
-
-  return { data, error };
+  const result=useRemoteData<SecurityOverview>('/api/security/overview',securityFetch,{pollMs:10000,validate:value=>Boolean(value?.success&&value.metrics&&Array.isArray(value.recent_events))});
+  useEffect(()=>{const refresh=()=>{void result.refresh();};window.addEventListener('rw-location-updated',refresh);return()=>window.removeEventListener('rw-location-updated',refresh);},[result.refresh]);
+  return result;
 }

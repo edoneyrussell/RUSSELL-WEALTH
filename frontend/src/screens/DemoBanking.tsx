@@ -1,9 +1,12 @@
+import { t } from '../i18n/language';
+import { useUnsavedChanges } from '../experience/useUnsavedChanges';
+import { Skeleton } from '../experience/Feedback';
 import { getLocale } from '../i18n/language.ts';
 import AccountSelector from "../components/AccountSelector";
 import { notifyPortfolioUpdated } from "../utils/portfolioSync";
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowLeftRight, ArrowDownToLine,
   ArrowUpRight, Building2, Check, ChevronRight,
@@ -166,6 +169,8 @@ export default function DemoBanking() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState("");
+  const submitting=useRef(false);
+  useUnsavedChanges(amount.trim()!=='' && step!==3);
 
   const load = useCallback(async () => {
     const response = await customerFetch("/api/customer/demo-banking", {
@@ -200,7 +205,8 @@ export default function DemoBanking() {
     numericAmount <= maxTransfer;
 
   async function submit() {
-    if (!validAmount || busy || step !== 2) return;
+    if (!validAmount || submitting.current || step !== 2) return;
+    submitting.current=true;
     setBusy(true);
     setError("");
 
@@ -229,11 +235,12 @@ export default function DemoBanking() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Transfer failed");
     } finally {
-      setBusy(false);
+      submitting.current=false;setBusy(false);
     }
   }
 
   function reset(nextMode?: "DEPOSIT" | "WITHDRAW") {
+    if(nextMode && amount && step!==3 && !window.confirm(t("Discard this unfinished transfer?")))return;
     if (nextMode) {
       setMode(nextMode);
       navigate(nextMode === "DEPOSIT" ? "/deposit" : "/withdraw");
@@ -248,7 +255,7 @@ export default function DemoBanking() {
   return (
     <main className="rw-fintech-workspace rw-fintech-banking min-h-screen bg-[#090D12] px-4 py-8 text-[#F2F5F8] sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1500px] space-y-6">
-        <header>
+        <header data-tour="funding">
           <button
             onClick={() => navigate("/dashboard")}
             className="mb-3 flex items-center gap-2 text-sm text-[#B6C4D1] hover:text-white"
@@ -307,7 +314,7 @@ export default function DemoBanking() {
               ))}
             </div>
 
-            {loading && <p className="text-[#A8B8C7]">Loading simulated accounts...</p>}
+            {loading && <Skeleton rows={3}/>}
 
             {!loading && !data && (
               <p className="text-[#E7B4B4]">
@@ -363,6 +370,9 @@ export default function DemoBanking() {
                     <input
                       type="text"
                       inputMode="decimal"
+                      aria-label="Transfer amount"
+                      aria-invalid={amount.trim()!=='' && !loading && !validAmount}
+                      aria-describedby="transfer-amount-help"
                       value={amount.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       onChange={(e) => {
                         setAmount(e.target.value.replace(/,/g, ""));
@@ -371,6 +381,9 @@ export default function DemoBanking() {
                       className={`${field} pl-10 text-2xl`}
                     />
                   </div>
+                  <p id="transfer-amount-help" className={`mt-2 text-xs ${amount && !validAmount ? 'text-[#efc88d]' : 'text-[#91a498]'}`}>
+                    {amount && !validAmount ? 'Enter an amount above zero, with no more than two decimal places, within your available balance or deposit limit.' : 'Enter the amount you want to transfer.'}
+                  </p>
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {[100, 500, 1000, 5000].map((n) => (
                       <button

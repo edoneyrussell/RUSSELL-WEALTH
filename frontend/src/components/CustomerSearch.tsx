@@ -14,8 +14,10 @@ function SearchDialog({ close, profileName }: {close:()=>void; profileName:strin
   const customerFetch = useCustomerFetch();
   const {portfolio, error:portfolioError} = usePortfolio();
   const {items, error:watchlistError} = useWatchlist();
-  const {transactions, error:transactionError} = useTransactions();
   const [query, setQuery] = useState('');
+  const [transactionQuery,setTransactionQuery]=useState('');
+  useEffect(()=>{const timer=setTimeout(()=>setTransactionQuery(query.trim()),250);return()=>clearTimeout(timer);},[query]);
+  const {transactions, error:transactionError} = useTransactions(undefined,1,transactionQuery,20);
   const [active, setActive] = useState(-1);
   const [market, setMarket] = useState<{query:string; results:CustomerSearchResult[]}>({query:'',results:[]});
   const [loading, setLoading] = useState(false);

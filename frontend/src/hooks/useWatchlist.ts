@@ -24,7 +24,7 @@ export function useWatchlist() {
       finally {pending=false;if(!controller.signal.aborted){setLoading(false);if(queued){queued=false;void load();}}}
     };
     void load();
-    const unsubscribe=subscribePortfolioUpdates(()=>void load());
+    const unsubscribe=subscribePortfolioUpdates(()=>void load(),60000);
     const sync=()=>void load();
     const storage=(event:StorageEvent)=>{if(event.key==='rw-watchlist-sync')void load();};
     window.addEventListener('russellwealth:watchlist-updated',sync);window.addEventListener('storage',storage);

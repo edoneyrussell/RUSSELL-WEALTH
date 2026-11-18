@@ -36,7 +36,7 @@ export function useWatchlistQuotes(symbols: readonly string[], enabled = true) {
     }
     void load();
     const refresh = () => { if (document.visibilityState === 'visible') void load(); };
-    const timer = window.setInterval(refresh, 30000);
+    const timer = window.setInterval(refresh, 60000);
     window.addEventListener('focus', refresh);
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);

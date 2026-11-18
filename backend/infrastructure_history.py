@@ -34,7 +34,15 @@ def observed_history(services, now=None):
                     ELSE excluded.status END,latency_ms=excluded.latency_ms''',
                 (service['name'],slot,now.isoformat(),service['status'],service['latency_ms']))
         db.execute('DELETE FROM infrastructure_checks WHERE bucket<?',((epoch-7*86400)//15,))
-        rows=db.execute('SELECT service,bucket,status,checked_at FROM infrastructure_checks WHERE bucket>=? ORDER BY bucket',((epoch-86400)//15,)).fetchall()
+        # Aggregate before transfer; raw observations and retention remain unchanged.
+        rows=db.execute("""SELECT service, bucket / 120 AS block, COUNT(*) AS checks,
+            MIN(checked_at) AS first_check_at,
+            SUM(CASE WHEN status='online' THEN 1 ELSE 0 END) AS online_checks,
+            SUM(CASE WHEN status IN ('online','offline','degraded') THEN 1 ELSE 0 END) AS measured_checks,
+            MAX(CASE status WHEN 'offline' THEN 4 WHEN 'degraded' THEN 3
+                WHEN 'unconfigured' THEN 2 WHEN 'online' THEN 1 ELSE 0 END) AS priority
+            FROM infrastructure_checks WHERE bucket>=?
+            GROUP BY service, bucket / 120 ORDER BY block""",((epoch-86400)//15,)).fetchall()
         db.commit()
     finally:
         db.close()
@@ -47,15 +55,15 @@ def observed_history(services, now=None):
         buckets={index:dict(start=datetime.fromtimestamp(index*1800,timezone.utc).isoformat(),status='unknown',checks=0)
                  for index in range(current-47,current+1)}
         for point in points:
-            block=buckets.get(point['bucket']//120)
+            block=buckets.get(point['block'])
             if block is not None:
-                block['checks']+=1
-                if priority.get(point['status'],0)>priority[block['status']]:
-                    block['status']=point['status']
-        measured=[point for point in points if point['status'] in ('online','offline','degraded')]
-        result[name]=dict(blocks=list(buckets.values()),sample_count=len(points),
-            availability_pct=round(100*sum(point['status']=='online' for point in measured)/len(measured),2) if measured else None,
-            first_check_at=points[0]['checked_at'] if points else None)
+                block['checks']+=point['checks']
+                if point['priority']>priority[block['status']]:
+                    block['status']=next(status for status,rank in priority.items() if rank==point['priority'])
+        measured=sum(point['measured_checks'] for point in points)
+        result[name]=dict(blocks=list(buckets.values()),sample_count=sum(point['checks'] for point in points),
+            availability_pct=round(100*sum(point['online_checks'] for point in points)/measured,2) if measured else None,
+            first_check_at=min(point['first_check_at'] for point in points) if points else None)
     return result
 
 

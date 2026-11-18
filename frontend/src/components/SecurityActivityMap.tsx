@@ -48,8 +48,10 @@ export default function SecurityActivityMap({events, selectedEventId}: Props) {
     }
     window.addEventListener('rw-location-updated', refresh);
     void refresh();
-    const timer = window.setInterval(refresh, 5000);
-    return () => {controller.abort();window.clearInterval(timer);window.removeEventListener('rw-location-updated', refresh);};
+    const visible=()=>{if(document.visibilityState==='visible')void refresh();};
+    window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
+    const timer = window.setInterval(visible, 10000);
+    return () => {controller.abort();window.clearInterval(timer);window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);window.removeEventListener('rw-location-updated', refresh);};
   }, [securityFetch]);
   // Demo data can already include coordinates; real activity comes from the login feed.
   const records = activity ?? events.filter(event => event.event_type.startsWith('LOGIN_')).map(event => ({...event, latitude:null,longitude:null} as MappedSecurityEvent));
@@ -85,7 +87,7 @@ export default function SecurityActivityMap({events, selectedEventId}: Props) {
     <details className="absolute bottom-1 left-1 z-[1000] max-w-[85%] rounded border border-[#30343b] bg-[#14171c]/95 px-2 py-1 text-[10px] text-[#b4b8c0]">
       <summary className="cursor-pointer"><span className="text-[#25e487]">● Successful</span> · <span className="text-[#f5b942]">● Failed</span> · {located.length} mapped · {records.length-located.length} unlocated</summary>
       <div className="max-h-[100px] overflow-y-auto pt-2">
-        <p>Last 24 hours · Refreshes every 5 seconds</p>
+        <p>Last 24 hours · Refreshes every 10 seconds</p>
         <p>Device locations require browser permission. Other locations use approximate public-IP data.</p>
         {error && <p role="status">{error}</p>}
         {truncated && <p>Showing the latest 200 logins.</p>}

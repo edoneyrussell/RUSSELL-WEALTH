@@ -1,7 +1,8 @@
 import { getLocale } from '../i18n/language.ts';
 import { subscribePortfolioUpdates } from "../utils/portfolioSync";
 import { useCustomerFetch } from "../demo/customerDemo";
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
+import { useRemoteData } from '../experience/useRemoteData';
 
 export type Portfolio = {
   account_id?: number | null;
@@ -30,64 +31,11 @@ export type AccountScope = 'all' | number;
 
 export function usePortfolio(scope?: AccountScope) {
   const customerFetch = useCustomerFetch();
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-  const pending = useRef<AbortController | null>(null);
-
-  const queued = useRef(false);
-
-  const refresh = useCallback(async () => {
-    // Let slow mobile connections finish instead of restarting them every poll.
-    if (pending.current && !pending.current.signal.aborted) { queued.current = true; return; }
-    const controller = new AbortController();
-    pending.current = controller;
-    try {
-      const response = await customerFetch('/api/customer/portfolio' + (scope === undefined ? '' : `?account_id=${scope}`), {
-        credentials: 'same-origin',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-      if (!response.ok) {
-        throw new Error(response.status === 401
-          ? 'Your session expired. Please sign in again to view your holdings.'
-          : 'Unable to refresh holdings. Please try again.');
-      }
-      const data: Portfolio = await response.json();
-      if (!data || !Array.isArray(data.holdings) ||
-          data.cash_balance === undefined || data.total_value === undefined) {
-        throw new Error('Unable to load holdings. Please try again.');
-      }
-      // Ignore an older response if another refresh or unmount superseded it.
-      if (controller.signal.aborted) return;
-      setPortfolio(data);
-      setError('');
-    } catch (err) {
-      if (controller.signal.aborted) return;
-      setError(err instanceof Error ? err.message : 'Unable to refresh holdings.');
-    } finally {
-      if (pending.current === controller) pending.current = null;
-      if (!controller.signal.aborted) {
-        setLoading(false);
-        if (queued.current) { queued.current = false; void refresh(); }
-      }
-    }
-  }, [customerFetch, scope]);
-
-  useEffect(() => {
-    setPortfolio(null);
-    setLoading(true);
-    setError('');
-    queued.current = false;
-    void refresh();
-    const unsubscribe = subscribePortfolioUpdates(() => { void refresh(); });
-    return () => {
-      unsubscribe();
-      pending.current?.abort();
-    };
-  }, [refresh]);
-
-  return { portfolio, error, loading, refresh };
+  const result = useRemoteData<Portfolio>('/api/customer/portfolio' + (scope === undefined ? '' : `?account_id=${scope}`), customerFetch, {
+    validate: data => Boolean(data && Array.isArray(data.holdings) && data.cash_balance !== undefined && data.total_value !== undefined),
+  });
+  useEffect(() => subscribePortfolioUpdates(() => {void result.refresh();},30000,false), [result.refresh]);
+  return {portfolio:result.data, error:result.error, loading:result.loading, refresh:result.refresh, updatedAt:result.updatedAt};
 }
 
 export function formatCAD(value: string) {

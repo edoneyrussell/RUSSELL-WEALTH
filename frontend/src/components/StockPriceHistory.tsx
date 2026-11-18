@@ -50,7 +50,7 @@ export default function StockPriceHistory({ symbol }: { symbol: string }) {
     }
     void load();
     const refresh = () => { if (document.visibilityState === 'visible') void load(); };
-    const timer = window.setInterval(refresh, 60000);
+    const timer = window.setInterval(refresh, 300000);
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
     return () => {

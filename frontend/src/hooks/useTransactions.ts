@@ -1,6 +1,7 @@
 import type { AccountScope } from './usePortfolio';
 import { useCustomerFetch } from '../demo/customerDemo';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useRemoteData } from '../experience/useRemoteData';
 import { subscribePortfolioUpdates } from '../utils/portfolioSync';
 
 export type Transaction = {
@@ -18,41 +19,9 @@ export type Transaction = {
   account_name?: string;
 };
 
-export function useTransactions(scope?: AccountScope) {
+export function useTransactions(scope?: AccountScope, page=1, search='', perPage=50) {
   const customerFetch = useCustomerFetch();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    setTransactions([]);
-    setLoading(true);
-    setError(false);
-    const controller = new AbortController();
-    let pending = false, queued = false;
-    const refresh = async () => {
-      if (pending) { queued = true; return; }
-      pending = true;
-      try {
-        const response = await customerFetch('/api/customer/transactions' + (scope === undefined ? '' : `?account_id=${scope}`), {
-          credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
-        });
-        if (!response.ok) throw new Error('Failed to load transactions');
-        const data = await response.json();
-        if (!Array.isArray(data.transactions)) throw new Error('Invalid transactions');
-        if (!controller.signal.aborted) { setTransactions(data.transactions); setError(false); }
-      } catch {
-        if (!controller.signal.aborted) setError(true);
-      } finally {
-        pending = false;
-        if (!controller.signal.aborted) {
-          setLoading(false);
-          if (queued) { queued = false; void refresh(); }
-        }
-      }
-    };
-    void refresh();
-    const unsubscribe = subscribePortfolioUpdates(() => { void refresh(); });
-    return () => { controller.abort(); unsubscribe(); };
-  }, [customerFetch, scope]);
-  return { transactions, loading, error };
+  const result=useRemoteData<{transactions:Transaction[];pagination?:{page:number;per_page:number;total:number;total_pages:number}}>('/api/customer/transactions?'+new URLSearchParams({page:String(page),per_page:String(perPage),...(scope===undefined?{}:{account_id:String(scope)}),...(search?{search}:{})}).toString(),customerFetch,{validate:value=>Array.isArray(value?.transactions)});
+  useEffect(()=>subscribePortfolioUpdates(()=>{void result.refresh();},30000,false),[result.refresh]);
+  return {pagination:result.data?.pagination,transactions:result.data?.transactions??[],loading:result.loading,error:Boolean(result.error),errorMessage:result.error,refresh:result.refresh,updatedAt:result.updatedAt};
 }

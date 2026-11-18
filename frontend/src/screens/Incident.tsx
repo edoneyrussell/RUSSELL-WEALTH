@@ -1,3 +1,4 @@
+import { sharedFetch } from '../experience/sharedFetch';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getLocale } from "../i18n/language";
@@ -57,7 +58,7 @@ async function request<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(url, {
+  const response = await sharedFetch(url, {
     credentials: "include",
     cache: "no-store",
     ...options,
@@ -138,7 +139,10 @@ export default function RussellWealthIncidentInvestigation() {
   const [search, setSearch] = useState("");
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
+  const listPending=useRef(false);
+  const detailPending=useRef<number|null>(null);
   const refreshList = useCallback(async () => {
+    if(listPending.current)return;listPending.current=true;
     try {
       const data = await request<{ incidents: IncidentRecord[] }>(API);
       const records = Array.isArray(data.incidents) ? data.incidents : [];
@@ -153,11 +157,12 @@ export default function RussellWealthIncidentInvestigation() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load incidents");
     } finally {
-      setLoading(false);
+      setLoading(false);listPending.current=false;
     }
   }, []);
 
   const refreshDetail = useCallback(async (id: number) => {
+    if(detailPending.current===id)return;detailPending.current=id;
     try {
       const [data, evidence] = await Promise.all([
         request<DetailResponse>(`${API}/${id}`),
@@ -169,13 +174,15 @@ export default function RussellWealthIncidentInvestigation() {
       setDetailError("");
     } catch (err) {
       if (activeId.current === id) setDetailError(err instanceof Error ? err.message : "Unable to load incident details");
-    }
+    } finally {if(detailPending.current===id)detailPending.current=null;}
   }, []);
 
   useEffect(() => {
     void refreshList();
-    const timer = window.setInterval(() => void refreshList(), 15000);
-    return () => window.clearInterval(timer);
+    const visible=()=>{if(document.visibilityState==='visible')void refreshList();};
+    const timer=window.setInterval(visible,30000);
+    window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
+    return()=>{window.clearInterval(timer);window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);};
   }, [refreshList]);
 
   useEffect(() => {
@@ -190,8 +197,10 @@ export default function RussellWealthIncidentInvestigation() {
 
     setDetail(null);
     void refreshDetail(selectedId);
-    const timer = window.setInterval(() => void refreshDetail(selectedId), 15000);
-    return () => window.clearInterval(timer);
+    const visible=()=>{if(document.visibilityState==='visible')void refreshDetail(selectedId);};
+    const timer=window.setInterval(visible,15000);
+    window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
+    return()=>{window.clearInterval(timer);window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);};
   }, [selectedId, refreshDetail]);
 
   const selected = detail?.incident?.id === selectedId

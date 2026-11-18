@@ -1,3 +1,4 @@
+import { Skeleton, DataStatus } from '../experience/Feedback';
 import { SecurityDemoContext, useSecurityFetch } from "../demo/securityDemo";
 import SocSearch from '../components/SocSearch';
 import { useActiveAlerts } from '../hooks/useActiveAlerts';
@@ -149,7 +150,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
   const {escalatedCount,slaMinutes,count:activeAlertCount,alerts:activeAlerts,filteredCount,loading:alertsLoading,error:alertsError,updatedAt:alertsUpdatedAt}=useActiveAlerts(severityFilter);
   const [investigationEventId,setInvestigationEventId]=useState<number|null>(null);
 
-  const { data: security, error: securityError } = useSecurityOverview();
+  const { data: security, error: securityError, refresh: refreshSecurity, updatedAt: securityUpdatedAt } = useSecurityOverview();
 
   const metrics = security?.metrics;
   const monitoringConnecting = !security && !securityError && alertsLoading && !alertsError;
@@ -333,6 +334,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         </div>
       </div>
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[18px] items-start min-w-px overflow-clip px-[20px] py-[24px] relative" data-node-id="15:2984" data-name="Security analytics">
+        <DataStatus error={securityError} updatedAt={securityUpdatedAt} onRetry={()=>void refreshSecurity()}/>
         <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip relative shrink-0 w-full" data-node-id="15:2985" data-name="Dashboard overview">
           <div className="relative flex w-full flex-wrap items-start justify-between gap-5 px-2" data-node-id="15:2986" data-name="Dashboard header">
             <div className="relative flex min-w-0 flex-1 flex-col items-start gap-[7px] leading-normal sm:min-w-[260px]" data-node-id="15:2987" data-name="Dashboard introduction">
@@ -429,7 +431,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 ))}
               </select>
               <span className="text-[#8c929c] text-[11px]">
-                Refreshes every 5 seconds{alertsUpdatedAt ? ` · Updated ${alertsUpdatedAt.toLocaleTimeString()}` : ""}
+                Refreshes every 10 seconds{alertsUpdatedAt ? ` · Updated ${alertsUpdatedAt.toLocaleTimeString()}` : ""}
               </span>
             </div>
 
@@ -548,7 +550,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 Security Event Overview
               </p>
               <span className="text-[#8c929c] text-[10px]">
-                {demo ? 'Demo dataset' : 'Live · 5s refresh'}
+                {demo ? 'Demo dataset' : 'Live · 10s refresh'}
               </span>
             </div>
 
@@ -630,7 +632,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
             </div>
           </div>
           <div className="bg-[#14171c] border border-[#30343b] border-solid content-stretch flex flex-col gap-[4px] min-h-[240px] items-start overflow-hidden p-[18px] relative rounded-[14px] w-full lg:flex-1 lg:min-w-[400px]" data-node-id="15:3242" data-name="Threat trends">
-            <LiveThreatTrends trends={security?.threat_trends} unavailable={Boolean(securityError)}/>
+            <LiveThreatTrends trends={security?.threat_trends} unavailable={Boolean(securityError && !security)}/>
           </div>
           </div>
         <div className="flex flex-wrap justify-center items-stretch gap-[18px] w-full" data-node-id="15:3307" data-name="Coverage and response operations">
@@ -649,11 +651,11 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
                 </div>
               </button>
             </div>
-            <div className="flex flex-col w-full overflow-y-auto max-h-[160px]" data-name="Live event log">
-              {securityError ? (
+            <div className="flex flex-1 basis-0 min-h-[160px] flex-col w-full overflow-y-auto" data-name="Live event log">
+              {securityError && !security ? (
                 <p className="text-[#ff454f] text-[12px] py-3">{securityError}</p>
               ) : !security ? (
-                <p className="text-[#8c929c] text-[12px] py-3">Loading security events...</p>
+                <Skeleton rows={3}/>
               ) : events.length === 0 ? (
                 <p className="text-[#8c929c] text-[12px] py-3">No recorded security events.</p>
               ) : (

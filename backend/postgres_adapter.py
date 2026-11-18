@@ -4,12 +4,14 @@ PostgreSQL adapter for Russell Wealth.
 Opt-in only. Does not modify existing SQLite connections.
 """
 
-from postgres_connection import get_postgres_connection
+from postgres_connection import get_connection_pool
 
 
 class PostgresAdapter:
     def __init__(self):
-        self.connection = get_postgres_connection()
+        self._pool = get_connection_pool()
+        self.connection = self._pool.getconn()
+        self._released = False
 
     def execute(self, sql, params=None):
         statement = sql.strip()
@@ -37,7 +39,15 @@ class PostgresAdapter:
         self.connection.rollback()
 
     def close(self):
-        self.connection.close()
+        if self._released:
+            return
+        self._released = True
+        try:
+            # Match close semantics: uncommitted changes must never reach another request.
+            if not self.connection.closed:
+                self.connection.rollback()
+        finally:
+            self._pool.putconn(self.connection)
 
 
 def get_postgres_adapter():

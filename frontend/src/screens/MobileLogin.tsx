@@ -1,3 +1,4 @@
+import { clearViewMemory } from '../experience/ViewState';
 
 
 import { useEffect, useState, type FormEvent } from 'react';
@@ -68,6 +69,7 @@ export default function RussellWealthMobileLogin() {
         return;
       }
 
+      try {clearViewMemory();} catch {}
       window.location.assign(
         data.role === 'SOC_ADMIN' && !data.roles?.includes('CUSTOMER') ? '/security' : '/dashboard'
       );

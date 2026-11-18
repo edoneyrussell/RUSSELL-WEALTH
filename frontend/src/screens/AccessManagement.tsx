@@ -1,3 +1,5 @@
+import { Skeleton } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Search, Users, RefreshCw, X, CalendarDays } from 'lucide-react';
@@ -19,7 +21,7 @@ export default function AccessManagement() {
   const [updatedAt, setUpdatedAt] = useState<Date>();
   const [refreshing, setRefreshing] = useState(false);
   const inFlight = useRef(false);
-  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+  const [query, setQuery] = useViewState('access:search',() => new URLSearchParams(window.location.search).get('search') || '',new URLSearchParams(location.search).has('search'));
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -73,13 +75,13 @@ export default function AccessManagement() {
     const controller = new AbortController();
     const refresh = () => { if (!document.hidden) void load(controller.signal); };
     const initial = window.setTimeout(() => void load(controller.signal), 0);
-    const interval = window.setInterval(refresh, 15000);
-    window.addEventListener('focus', refresh);
+    const interval = window.setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);window.addEventListener('online',refresh);window.addEventListener('rw-retry-data',refresh);
     return () => {
       controller.abort();
       window.clearTimeout(initial);
       window.clearInterval(interval);
-      window.removeEventListener('focus', refresh);
+      window.removeEventListener('focus', refresh);window.removeEventListener('online',refresh);window.removeEventListener('rw-retry-data',refresh);
     };
   }, [action, busy, load]);
 
@@ -148,7 +150,7 @@ export default function AccessManagement() {
             {source.label}: {source.status === 'connected' ? `${source.count} account records` : 'Unavailable — list is incomplete'}
 
           </span>)}
-          <span className="py-2 text-xs text-[#91A1B4]">Refreshes every 15 seconds{updatedAt ? ` · Updated ${updatedAt.toLocaleTimeString()}` : ''}{refreshing && !loading ? ' · Refreshing…' : ''}</span>
+          <span className="py-2 text-xs text-[#91A1B4]">Refreshes every 30 seconds{updatedAt ? ` · Updated ${updatedAt.toLocaleTimeString()}` : ''}{refreshing && !loading ? ' · Refreshing…' : ''}</span>
         </div>
         <section className="mt-6 overflow-hidden rounded-2xl border border-[#303B47] bg-[#121922]">
           <div className="flex flex-wrap items-center justify-between gap-4 p-5">
@@ -161,7 +163,7 @@ export default function AccessManagement() {
             </div>
           </div>
           <p className="px-5 pb-5 text-sm text-[#91A1B4]">Passwords are securely hashed and cannot be viewed. Account owners can use <a className="text-[#BAD9EF] underline" href="/forgot-password">password reset</a> to choose a new password.</p>
-          {loading ? <p role="status" className="p-6 text-[#91A1B4]">Loading accounts…</p> : error && !updatedAt ? <p className="p-6 text-[#91A1B4]">The directory could not be loaded. Use Refresh to try again.</p> : <>
+          {loading ? <Skeleton rows={4}/> : error && !updatedAt ? <p className="p-6 text-[#91A1B4]">The directory could not be loaded. Use Refresh to try again.</p> : <>
             <div className="overflow-x-auto">
               <table className="rw-access-directory w-full text-left text-sm">
                 <thead className="border-y border-[#303B47] bg-[#18212C] text-[#A6BACB]"><tr>

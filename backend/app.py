@@ -34,9 +34,16 @@ def validate_current_account():
     db = get_db_connection()
     try:
         user = db.execute(
-            'SELECT name, role, account_status, access_version FROM users WHERE id=?', (uid,)
+            '''SELECT name, role, account_status, access_version,
+                EXISTS(SELECT 1 FROM admin_customer_links WHERE admin_user_id=users.id) AS has_customer_access
+                FROM users WHERE id=?''', (uid,)
         ).fetchone()
-        roles = account_roles(db, uid, user['role']) if user is not None else []
+        roles=[]
+        if user is not None:
+            if user['role']=='CUSTOMER':
+                roles=['CUSTOMER']
+            elif user['role']=='SOC_ADMIN':
+                roles=['CUSTOMER','SOC_ADMIN'] if user['has_customer_access'] else ['SOC_ADMIN']
         valid=(user is not None and user['account_status']=='ACTIVE'
                and user['role']==session.get('role')
                and user['access_version']==session.get('access_version',0))
@@ -90,6 +97,9 @@ app.register_blueprint(watchlist_bp)
 from customer_accounts import accounts_bp, initialize_customer_accounts, AccountError
 initialize_customer_accounts()
 app.register_blueprint(accounts_bp)
+from welcome_tour import welcome_tour_bp, initialize_welcome_tour
+initialize_welcome_tour()
+app.register_blueprint(welcome_tour_bp)
 
 @app.errorhandler(AccountError)
 def account_request_error(error):
@@ -125,7 +135,7 @@ def login():
     connection = get_db_connection()
 
     user = connection.execute(
-        "SELECT * FROM users WHERE email = ?",
+        "SELECT id,name,email,role,password_hash,account_status,access_version FROM users WHERE email = ?",
         (email,)
     ).fetchone()
 
@@ -229,7 +239,7 @@ def api_login():
     connection = get_db_connection()
 
     user = connection.execute(
-        "SELECT * FROM users WHERE email = ?",
+        "SELECT id,name,email,role,password_hash,account_status,access_version FROM users WHERE email = ?",
         (email,)
     ).fetchone()
 
@@ -305,13 +315,17 @@ def api_me():
     if "user_id" not in session:
         return jsonify({"authenticated": False}), 401
 
+    if request.args.get('include_photo') == '0':
+        return jsonify(authenticated=True, name=session['name'], role=session['role'],
+                       roles=session.get('roles',[session['role']])), 200, {'Cache-Control':'private, no-store'}
+
     db = get_db_connection()
     try:
         columns = {
             row["name"] for row in
             db.execute(
                 "SELECT column_name AS name FROM information_schema.columns "
-                "WHERE table_schema = current_schema() AND table_name = 'users'"
+                "WHERE table_schema = current_schema() AND table_name = 'users' AND column_name IN ('profile_photo_data','profile_photo_mime')"
                 if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
                 else "PRAGMA table_info(users)"
             ).fetchall()
@@ -367,7 +381,7 @@ def api_security_activity_map():
     try:
         recent = ("e.created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'"
                   if hasattr(db, 'connection') else "datetime(e.created_at) >= datetime('now','-24 hours')")
-        rows = db.execute(f"""SELECT e.id,e.user_id,e.event_type,e.source_ip,e.details,e.created_at,e.severity,
+        rows = db.execute(f"""SELECT e.id,e.user_id,e.event_type,e.source_ip,e.created_at,e.severity,
             COALESCE(e.account_email,u.email) AS email FROM security_events e
             LEFT JOIN users u ON u.id=e.user_id
             WHERE e.event_type IN ('LOGIN_SUCCESS','LOGIN_FAILED','SESSION_LOCATION_SHARED') AND {recent}
@@ -420,7 +434,7 @@ def api_security_coverage():
         connection = get_db_connection()
         try:
             connection.execute(
-                "SELECT COUNT(*) FROM security_events"
+                "SELECT 1 FROM security_events LIMIT 1"
             ).fetchone()
             monitoring_checks["event_table_accessible"] = True
         finally:
@@ -733,7 +747,7 @@ def api_profile_photo():
             row["name"] for row in
             db.execute(
                 "SELECT column_name AS name FROM information_schema.columns "
-                "WHERE table_schema = current_schema() AND table_name = 'users'"
+                "WHERE table_schema = current_schema() AND table_name = 'users' AND column_name IN ('profile_photo_data','profile_photo_mime')"
                 if os.environ.get("RW_DB_ENGINE", "sqlite").lower() == "postgres"
                 else "PRAGMA table_info(users)"
             ).fetchall()
@@ -1030,7 +1044,7 @@ def api_security_infrastructure():
     from urllib.request import Request, urlopen
     from urllib.error import HTTPError, URLError
     from urllib.parse import urlparse
-    from postgres_connection import get_postgres_connection
+    from postgres_connection import pooled_connection
     from concurrent.futures import ThreadPoolExecutor
     import ssl
     import certifi
@@ -1148,7 +1162,7 @@ def api_security_infrastructure():
         }
     else:
         try:
-            with get_postgres_connection() as connection:
+            with pooled_connection() as connection:
                 connection.execute("SELECT 1").fetchone()
 
             neon = {

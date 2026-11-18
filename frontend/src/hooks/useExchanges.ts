@@ -43,7 +43,7 @@ export function useExchanges() {
     }
     const visible = () => { if (document.visibilityState === 'visible') void load(); };
     void load();
-    const timer = window.setInterval(visible, 15000);
+    const timer = window.setInterval(visible, 60000);
     window.addEventListener('focus', visible);
     document.addEventListener('visibilitychange', visible);
     return () => {

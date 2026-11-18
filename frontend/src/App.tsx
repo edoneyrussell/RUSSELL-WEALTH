@@ -1,38 +1,46 @@
-import ActiveSessions from './screens/ActiveSessions';
+import { welcomeScreenLoaders } from './onboarding/preload';
+import { sharedFetch } from './experience/sharedFetch';
+import { useScrollMemory } from './experience/useScrollMemory';
+import { clearViewMemory } from './experience/ViewState';
+import LoadingProgress from './components/LoadingProgress';
 import SignInLocationPrompt from './components/SignInLocationPrompt';
 import { landingContent } from "./content/landingContent"
 import { getLanguage, sourceText, t } from './i18n/language.ts'
-import CustomerDemo from "./screens/CustomerDemo"
-import SecurityDemo from "./screens/SecurityDemo"
-import DemoBanking from './screens/DemoBanking'
-import Accounts from './screens/Accounts'
 import CustomerSidebar, { SocSidebar } from './components/CustomerSidebar'
-import WatchlistOverlay from './components/WatchlistOverlay'
 import GlobalToastHost from './components/GlobalToastHost'
-import HelpSupport from './screens/HelpSupport'
-import CustomerSettings from './screens/CustomerSettings'
-import CustomerAccountManagement from './screens/CustomerAccountManagement'
-import CustomerActivity from './screens/CustomerActivity'
-import AdminSettings from './screens/AdminSettings'
-import RegistrationForm from './screens/RegistrationForm'
 import RWPersistentNav from './components/RWPersistentNav'
-import About from './screens/About'
 import UnifiedMobileNav from './components/UnifiedMobileNav'
-import Markets from './screens/TradeExplore'
 
-import { useEffect, useState, type MouseEvent } from 'react'
-import ForgotPassword from './screens/ForgotPassword'
-import Dashboard from './screens/Dashboard'
-import Incident from './screens/Incident'
+import { lazy, Suspense, useEffect, useState, type MouseEvent } from 'react'
+import { ConnectionNotice, PageBoundary, PageSkeleton } from './experience/Feedback';
 import Landing from './screens/Landing'
-import MobileDashboard from './screens/MobileDashboard'
-import MobileLanding from './screens/MobileLanding'
-import MobileLogin from './screens/MobileLogin'
-import Portfolio from './screens/PortfolioExperience'
-import Transactions from './screens/Transactions'
-import SecurityDashboard from './screens/SecurityDashboard'
-import NetworkInfrastructure from './screens/NetworkInfrastructure'
-import AccessManagement from './screens/AccessManagement'
+
+const WelcomeTour = lazy(() => import('./onboarding/WelcomeTour'));
+const ActiveSessions = lazy(() => import('./screens/ActiveSessions'));
+const CustomerDemo = lazy(() => import('./screens/CustomerDemo'));
+const SecurityDemo = lazy(() => import('./screens/SecurityDemo'));
+const DemoBanking = lazy(welcomeScreenLoaders.DemoBanking);
+const Accounts = lazy(welcomeScreenLoaders.Accounts);
+const WatchlistOverlay = lazy(() => import('./components/WatchlistOverlay'));
+const HelpSupport = lazy(() => import('./screens/HelpSupport'));
+const CustomerSettings = lazy(welcomeScreenLoaders.CustomerSettings);
+const CustomerAccountManagement = lazy(() => import('./screens/CustomerAccountManagement'));
+const CustomerActivity = lazy(() => import('./screens/CustomerActivity'));
+const AdminSettings = lazy(() => import('./screens/AdminSettings'));
+const RegistrationForm = lazy(() => import('./screens/RegistrationForm'));
+const About = lazy(() => import('./screens/About'));
+const Markets = lazy(welcomeScreenLoaders.Markets);
+const ForgotPassword = lazy(() => import('./screens/ForgotPassword'));
+const Dashboard = lazy(welcomeScreenLoaders.Dashboard);
+const Incident = lazy(() => import('./screens/Incident'));
+const MobileDashboard = lazy(() => import('./screens/MobileDashboard'));
+const MobileLanding = lazy(() => import('./screens/MobileLanding'));
+const MobileLogin = lazy(() => import('./screens/MobileLogin'));
+const Portfolio = lazy(welcomeScreenLoaders.Portfolio);
+const Transactions = lazy(welcomeScreenLoaders.Transactions);
+const SecurityDashboard = lazy(() => import('./screens/SecurityDashboard'));
+const NetworkInfrastructure = lazy(() => import('./screens/NetworkInfrastructure'));
+const AccessManagement = lazy(() => import('./screens/AccessManagement'));
 
 const routes = {
   '/demo/security': SecurityDemo,
@@ -125,6 +133,7 @@ export default function App() {
   }, [language]);
   const [path, setPath] = useState(currentPath)
   const [hash, setHash] = useState(() => window.location.hash)
+  useScrollMemory(path + window.location.search + hash);
   const isMobile = useMediaQuery('(max-width: 700px)')
   const showPublicNavigation = path === '/' || path === '/about'
   const showUnifiedMobileNav =
@@ -145,8 +154,11 @@ export default function App() {
 
   useEffect(() => {
     if (!auth?.authenticated || path.startsWith('/demo/')) return;
-    const ping=async()=>{try{const response=await fetch('/api/me/session-heartbeat',{credentials:'include',cache:'no-store'});if(response.status===401)window.location.replace('/login');}catch{/* Retry on the next heartbeat. */}};
-    const timer=window.setInterval(ping,60000);return()=>window.clearInterval(timer);
+    const ping=async()=>{try{const response=await sharedFetch('/api/me/session-heartbeat',{credentials:'include',cache:'no-store'});if(response.status===401)window.location.replace('/login');}catch{/* Retry on the next heartbeat. */}};
+    const visible=()=>{if(document.visibilityState==='visible')void ping();};
+    const timer=window.setInterval(visible,60000);
+    window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
+    return()=>{window.clearInterval(timer);window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);};
   },[auth?.authenticated,path]);
 
   useEffect(() => {
@@ -156,11 +168,12 @@ export default function App() {
       return () => { active = false }
     }
 
-    fetch('/api/me', {
+    sharedFetch('/api/me?include_photo=0', {
       credentials: 'same-origin',
     })
       .then(async (response) => {
         if (!response.ok) {
+          try {clearViewMemory();} catch {}
           return { authenticated: false }
         }
 
@@ -247,29 +260,6 @@ export default function App() {
           aria-live="polite"
           className="min-h-screen w-full flex flex-col items-center justify-center bg-[#080a0d] px-6"
         >
-          <style>{`
-            @keyframes rw-loading-pulse {
-              0%, 100% { opacity: .35; transform: scaleX(.25); }
-              50% { opacity: 1; transform: scaleX(1); }
-            }
-            @keyframes rw-loading-glow {
-              0%, 100% { opacity: .55; }
-              50% { opacity: 1; }
-            }
-            .rw-loading-bar {
-              animation: rw-loading-pulse 1.8s ease-in-out infinite;
-              transform-origin: center;
-            }
-            .rw-loading-logo {
-              animation: rw-loading-glow 2.5s ease-in-out infinite;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              .rw-loading-bar, .rw-loading-logo {
-                animation: none;
-              }
-            }
-          `}</style>
-
           <div className="flex flex-col items-center w-full max-w-sm text-center">
             <img
               src="/assets/c8aca.png"
@@ -281,7 +271,7 @@ export default function App() {
               YOUR FINANCIAL PLATFORM
             </p>
 
-            <div className="w-12 h-[2px] bg-[#c5a875] rounded-full mb-7 rw-loading-bar" />
+            <LoadingProgress inline />
 
             <h1 className="text-white text-xl font-semibold tracking-wide">
               Currently loading...
@@ -343,6 +333,8 @@ export default function App() {
   return (
     <div key={language} className={isSecurityRoute ? "contents rw-soc-theme" : "contents"}>
       {isProtectedRoute && auth?.authenticated && <SignInLocationPrompt />}
+      {isCustomerRoute && customerAccess && <Suspense fallback={null}><WelcomeTour /></Suspense>}
+      <ConnectionNotice />
       {showPublicNavigation && <RWPersistentNav />}
       {isProtectedRoute && customerAccess && socAccess && (
         <nav aria-label="Switch dashboard" className="flex justify-end gap-3 border-b border-[#30343b] bg-[#10151C] px-5 py-2 text-sm text-[#BAD9EF]">
@@ -373,7 +365,7 @@ export default function App() {
           <SocSidebar />
           <div className="rw-unified-customer-content">
             <div key={path} className="rw-page-transition">
-              <Screen />
+              <PageBoundary key={path}><Suspense fallback={<PageSkeleton />}><Screen /></Suspense></PageBoundary>
             </div>
           </div>
         </div>
@@ -382,13 +374,13 @@ export default function App() {
           <CustomerSidebar />
           <div className="rw-unified-customer-content">
             <div key={path} className="rw-page-transition">
-              <Screen />
+              <PageBoundary key={path}><Suspense fallback={<PageSkeleton />}><Screen /></Suspense></PageBoundary>
             </div>
           </div>
         </div>
       ) : (
         <div key={path} className="rw-page-transition">
-          <Screen />
+          <PageBoundary key={path}><Suspense fallback={<PageSkeleton />}><Screen /></Suspense></PageBoundary>
         </div>
       )}
       <GlobalToastHost />

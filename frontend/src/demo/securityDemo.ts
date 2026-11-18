@@ -1,3 +1,4 @@
+import { sharedFetch } from '../experience/sharedFetch';
 import { createContext, useCallback, useContext } from 'react';
 
 export const SecurityDemoContext = createContext(false);
@@ -60,6 +61,6 @@ export function useSecurityFetch() {
   const demo = useContext(SecurityDemoContext);
   return useCallback((input: string, init?: RequestInit): Promise<Response> => {
     if (demo) return Promise.resolve(demoSecurityResponse(input, init));
-    return fetch(input, init);
+    return sharedFetch(input, init);
   }, [demo]);
 }

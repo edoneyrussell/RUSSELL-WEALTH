@@ -1,3 +1,6 @@
+import { sharedFetch } from '../experience/sharedFetch';
+import { t } from '../i18n/language';
+import { useUnsavedChanges } from '../experience/useUnsavedChanges';
 import { notifyProfileUpdated } from "../hooks/useAccountProfile";
 import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
@@ -67,7 +70,7 @@ async function readProfileResponse(response: Response) {
   return data;
 }
 
-export default function CustomerSettings() {
+export default function CustomerSettings({ security = false }: { security?: boolean } = {}) {
   const [adminNotice, setAdminNotice] = useState(false);
   const adminDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -84,14 +87,21 @@ export default function CustomerSettings() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [profileRevision,setProfileRevision]=useState(0);
   const [photoError, setPhotoError] = useState("");
   const [photoVersion, setPhotoVersion] = useState(0);
   const photoInput = useRef<HTMLInputElement>(null);
+  const savingRef=useRef(false);
+  const profileDirty=editingProfile && JSON.stringify(profile)!==JSON.stringify(savedProfile);
+  useUnsavedChanges(profileDirty);
+  function closeProfile() {
+    if(!savingRef.current && (!profileDirty || window.confirm(t('Discard unsaved profile changes?')))) setEditingProfile(false);
+  }
 
   useEffect(() => {
     let active = true;
 
-    fetch('/api/me', { credentials: 'same-origin' })
+    sharedFetch('/api/me', { credentials: 'same-origin', cache:'no-store' })
       .then((response) => response.ok ? response.json() : null)
       .then((data: Account | null) => {
         if (active && data) setAccount(previous => ({ ...previous, ...data }));
@@ -110,6 +120,7 @@ export default function CustomerSettings() {
       .then(readProfileResponse)
       .then(data => {
         if (!active) return;
+        setProfileError('');
         const loaded = { ...emptyProfile, ...Object.fromEntries(Object.keys(emptyProfile).map(key => [key, data[key] || ''])) } as Profile;
         setProfile(loaded);
         setSavedProfile(loaded);
@@ -125,7 +136,7 @@ export default function CustomerSettings() {
       });
 
     return () => { active = false; };
-  }, []);
+  }, [profileRevision]);
 
   function openProfile() {
     setProfile({ ...savedProfile });
@@ -143,7 +154,7 @@ export default function CustomerSettings() {
     const panel = profileDialog.current;
     panel?.querySelector<HTMLElement>('button, input')?.focus();
     const keyboard = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !savingProfile) setEditingProfile(false);
+      if (event.key === 'Escape' && !savingProfile) {event.preventDefault();closeProfile();}
       if (event.key !== 'Tab') return;
       const controls = Array.from(panel?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select, a[href]') || []);
       const first = controls[0], last = controls[controls.length - 1];
@@ -152,10 +163,11 @@ export default function CustomerSettings() {
     };
     document.addEventListener('keydown', keyboard);
     return () => {document.body.style.overflow = previousOverflow;document.removeEventListener('keydown', keyboard);previous?.focus();};
-  }, [editingProfile, savingProfile]);
+  }, [editingProfile, savingProfile, profileDirty]);
 
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
+    if(savingRef.current)return; savingRef.current=true;
     setSavingProfile(true); setProfileError(''); setProfileMessage('');
     try {
       const response = await fetch('/api/me/profile', {
@@ -169,10 +181,14 @@ export default function CustomerSettings() {
       setProfileMessage(data.email !== account?.email ? 'Profile saved. Use your new email address to sign in.' : 'Your profile has been updated.');
       notifyProfileUpdated();
     } catch (error) {setProfileError(error instanceof Error ? error.message : 'Unable to save profile.');}
-    finally {setSavingProfile(false);}
+    finally {savingRef.current=false;setSavingProfile(false);}
   }
 
-  const name = account?.name || 'Customer';
+  const visibleFeatures = security ? [features[0],
+    {title:'SOC Dashboard', description:'Return to security monitoring', icon:'◇', href:'/security'},
+    ...(account?.role === 'SOC_ADMIN' ? [{title:'Customer Dashboard', description:'Open your investment dashboard', icon:'◫', href:'/dashboard'}] : [])
+  ] : features;
+  const name = account?.name || (security ? 'Administrator' : 'Customer');
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -276,14 +292,14 @@ export default function CustomerSettings() {
               RUSSELL WEALTH
             </p>
             <p className="text-[13px] mt-1 text-[#d7d9de]">
-              Customer Account Center
+              {security ? 'Admin Control Center' : 'Customer Account Center'}
             </p>
           </div>
           <a
-            href="/dashboard"
+            href={security ? "/security" : "/dashboard"}
             className="rounded-lg border border-[#30343b] px-4 py-2 text-[12px] text-[#d7d9de] hover:bg-[#1b1e24]"
           >
-            Back to Dashboard
+            {security ? 'Back to SOC' : 'Back to Dashboard'}
           </a>
         </div>
       </header>
@@ -294,10 +310,10 @@ export default function CustomerSettings() {
             Profile & Preferences
           </p>
           <h1 className="text-[30px] font-semibold mt-2">
-            Account Settings
+            {security ? 'Admin Settings' : 'Account Settings'}
           </h1>
           <p className="text-[#8c929c] text-[13px] mt-2">
-            Manage your customer profile, investments, and account access.
+            {security ? 'Edit your SOC profile, photo, and contact details.' : 'Manage your customer profile, investments, and account access.'}
           </p>
         </div>
 
@@ -319,7 +335,7 @@ export default function CustomerSettings() {
                 {account?.email || 'Customer account'}
               </p>
               <p className="text-[#b4b8c0] text-[11px] mt-2">
-                {isAdmin ? 'Linked Customer Account · SOC Administrator' : 'Russell Wealth Customer'}
+                {security ? 'SOC Administrator · Shared account profile' : isAdmin ? 'Linked Customer Account · SOC Administrator' : 'Russell Wealth Customer'}
               </p>
             </div>
 
@@ -368,16 +384,16 @@ export default function CustomerSettings() {
 
         {profileError && !editingProfile && (
           <p role="alert" className="mb-5 text-sm text-[#F1A8A8]">
-            {profileError}
+            {profileError} <button type="button" onClick={()=>setProfileRevision(value=>value+1)} className="ml-3 underline">Retry</button>
           </p>
         )}
 
         {editingProfile && createPortal(
-          <div className="rw-profile-modal fixed inset-0 z-[30000] flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center" onMouseDown={event => {if (event.target === event.currentTarget && !savingProfile) setEditingProfile(false);}}>
+          <div className="rw-profile-modal fixed inset-0 z-[30000] flex items-start justify-center overflow-y-auto bg-black/80 p-4 sm:items-center" onMouseDown={event => {if (event.target === event.currentTarget && !savingProfile) closeProfile();}}>
             <section ref={profileDialog} role="dialog" aria-modal="true" aria-labelledby="profile-editor-title" className="my-auto max-h-[calc(100dvh-32px)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#34483b] bg-[#13191a] text-[#ecf1ed] shadow-2xl">
               <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[#283332] bg-[#13191a] px-6 py-5">
                 <div><p className="text-xs text-[#91a498]">YOUR ACCOUNT</p><h2 id="profile-editor-title" className="mt-1 text-2xl font-medium">Edit my profile</h2></div>
-                <button type="button" aria-label="Close profile editor" disabled={savingProfile} onClick={() => setEditingProfile(false)} className="size-11 rounded-lg border border-[#34483b] text-xl">×</button>
+                <button type="button" aria-label="Close profile editor" disabled={savingProfile} onClick={closeProfile} className="size-11 rounded-lg border border-[#34483b] text-xl">×</button>
               </header>
               <form onSubmit={saveProfile} className="space-y-7 px-6 py-6">
                 <div className="flex flex-wrap items-center gap-4">
@@ -402,11 +418,11 @@ export default function CustomerSettings() {
                   {([['address_line1','Street address','address-line1',160],['address_line2','Apartment or unit','address-line2',160],['city','City','address-level2',100],['region','Province / state','address-level1',100],['postal_code','Postal / ZIP code','postal-code',24],['country','Country','country-name',80]] as const).map(([key,label,autoComplete,maxLength])=><label key={key} className={`block text-sm text-[#a8b6ad] ${key.startsWith('address_')?'sm:col-span-2':''}`}>{label}<input maxLength={maxLength} autoComplete={autoComplete} value={profile[key]} onChange={event=>setProfile(previous=>({...previous,[key]:event.target.value}))} className="rw-profile-input"/></label>)}
                 </div></fieldset>
                 <p className="text-xs leading-5 text-[#91a498]">Contact details are saved to your profile. This demonstration platform does not verify your phone number or mailing address.</p>
-                <a href="/customer/account-settings" className="inline-block text-sm text-[#c2edce] underline">Manage password and account security →</a>
+                {!security && <a href="/customer/account-settings" className="inline-block text-sm text-[#c2edce] underline">Manage password and account security →</a>}
                 {profileError && <p role="alert" className="rounded-lg border border-red-900 p-3 text-sm text-red-300">{profileError}</p>}
                 {profileMessage && <p role="status" className="rounded-lg border border-[#43634e] p-3 text-sm text-[#c2edce]">{profileMessage}</p>}
                 <footer className="sticky bottom-0 flex flex-wrap justify-end gap-3 border-t border-[#283332] bg-[#13191a] py-4">
-                  <button type="button" disabled={savingProfile} onClick={()=>setEditingProfile(false)} className="min-h-11 rounded-full border border-[#34483b] px-6 text-sm">Close</button>
+                  <button type="button" disabled={savingProfile} onClick={closeProfile} className="min-h-11 rounded-full border border-[#34483b] px-6 text-sm">Close</button>
                   <button type="submit" disabled={savingProfile || uploading} className="min-h-11 rounded-full bg-[#c2edce] px-6 text-sm font-semibold text-[#14251a] disabled:opacity-50">{savingProfile?'Saving…':'Save changes'}</button>
                 </footer>
               </form>
@@ -414,12 +430,18 @@ export default function CustomerSettings() {
           </div>, document.body
         )}
 
+        {!security && <section className="mb-8 rounded-xl border border-[#34483b] bg-[#13191a] p-5">
+          <h2 className="text-base font-semibold">Welcome tour</h2>
+          <p className="mt-2 text-sm text-[#a8b6ad]">A guided walkthrough of your accounts, investments, transfers, and settings.</p>
+          <button type="button" onClick={()=>window.dispatchEvent(new Event('rw-replay-welcome-tour'))} className="mt-4 min-h-11 rounded-full bg-[#c2edce] px-5 py-3 text-sm font-semibold text-[#14251a]">Replay welcome tour</button>
+        </section>}
+
         <h2 className="text-[16px] font-semibold mb-4">
-          Customer Account Features
+          {security ? 'Profile & dashboard access' : 'Customer Account Features'}
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {features.map((feature) => {
+          {visibleFeatures.map((feature) => {
             const content = (
               <>
                 <span className="flex size-[40px] items-center justify-center rounded-lg bg-[#292e36] text-[22px] text-[#d7d9de]">
@@ -432,7 +454,7 @@ export default function CustomerSettings() {
                   {feature.description}
                 </p>
                 <p className="text-[#b4b8c0] text-[11px] mt-5">
-                  {feature.href ? 'Open feature' : feature.status}
+                  {feature.href ? 'Open feature' : 'status' in feature ? feature.status : ''}
                 </p>
               </>
             );
@@ -441,6 +463,7 @@ export default function CustomerSettings() {
               return (
                 <button
                   key={feature.title}
+                  data-tour="profile"
                   type="button"
                   onClick={openProfile}
                   className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left hover:border-[#777e89] transition-colors"
@@ -480,6 +503,7 @@ export default function CustomerSettings() {
           })}
         </div>
 
+        {!security && <>
         <h2 className="text-[16px] font-semibold mt-10 mb-4">
           Dashboard Access
         </h2>
@@ -513,9 +537,10 @@ export default function CustomerSettings() {
           )}
         </div>
 
+        </>}
         <div className="rw-settings-logout border-t border-[#30343b] mt-10 pt-6 flex justify-between items-center gap-4">
           <span className="text-[#8c929c] text-[12px]">
-            Russell Wealth · Customer
+            {security ? 'Russell Wealth · Security Operations' : 'Russell Wealth · Customer'}
           </span>
           <button
             type="button"

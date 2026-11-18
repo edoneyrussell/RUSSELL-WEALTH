@@ -1,5 +1,8 @@
 
 import json
+import hashlib
+from functools import lru_cache
+from time import monotonic
 import sqlite3
 from pathlib import Path
 import os
@@ -123,6 +126,7 @@ def save_history(symbol, history, provider):
             now
         ))
         conn.commit()
+        _read_history_cached.cache_clear()
     finally:
         conn.close()
 
@@ -156,6 +160,17 @@ def read_quote(symbol):
 
 
 def read_history(symbol):
+    # Public monthly price history only. Never cache balances, orders, user data,
+    # authentication or security snapshots. Bound memory to sixteen symbols.
+    from database import DATABASE as database_path
+    fingerprint=hashlib.sha256(os.environ.get('DATABASE_URL','').encode()).hexdigest()
+    source=(os.environ.get('RW_DB_ENGINE','sqlite').lower(),fingerprint,str(database_path))
+    rows=_read_history_cached(symbol.upper(),source,int(monotonic()//60))
+    return [dict(row) for row in rows]
+
+
+@lru_cache(maxsize=16)
+def _read_history_cached(symbol, source, minute):
     ensure_schema()
     conn = connection()
     try:
@@ -323,6 +338,7 @@ def commit_monthly_snapshot(quotes, histories, fx_rate, asset_prices):
         """, (current_month(),))
 
         conn.commit()
+        _read_history_cached.cache_clear()
     except Exception:
         conn.rollback()
         raise

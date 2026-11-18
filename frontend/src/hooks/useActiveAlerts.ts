@@ -21,7 +21,7 @@ export function useActiveAlerts(severity:string) {
       finally{pending=false;if(!controller.signal.aborted&&queued){queued=false;void load();}}
     };
     void load();const visible=()=>{if(document.visibilityState==='visible')void load();};
-    const timer=window.setInterval(visible,5000);
+    const timer=window.setInterval(visible,10000);
     window.addEventListener('security-alerts-cleared',load);window.addEventListener('focus',visible);window.addEventListener('online',visible);document.addEventListener('visibilitychange',visible);
     return()=>{controller.abort();window.clearInterval(timer);window.removeEventListener('security-alerts-cleared',load);window.removeEventListener('focus',visible);window.removeEventListener('online',visible);document.removeEventListener('visibilitychange',visible);};
   },[request,severity]);

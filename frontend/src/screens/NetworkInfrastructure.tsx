@@ -1,5 +1,8 @@
+import { sharedFetch } from '../experience/sharedFetch';
+import { useRemoteData } from '../experience/useRemoteData';
+import { DataStatus, Skeleton } from '../experience/Feedback';
 import { getLocale } from '../i18n/language';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Deployment = {provider?: string; commit?: string; branch?: string; environment?: string; built_at?: string; uncommitted_changes?: boolean | null};
 
@@ -39,57 +42,7 @@ const serviceDetails: Record<string, { description: string; url: string }> = {
 
 export default function NetworkInfrastructure() {
   const [selectedService, setSelectedService] = useState(() => new URLSearchParams(window.location.search).get("service"));
-  const [data, setData] = useState<InfrastructureResponse | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    let controller: AbortController | null = null;
-
-    const refresh = async () => {
-      controller?.abort();
-      controller = new AbortController();
-
-      try {
-        const response = await fetch("/api/security/infrastructure", {
-          credentials: "include",
-          cache: "no-store",
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Monitoring request failed (HTTP ${response.status})`);
-        }
-
-        const result: InfrastructureResponse = await response.json();
-
-        if (!result.success || !Array.isArray(result.services)) {
-          throw new Error("Invalid monitoring response");
-        }
-
-        if (mounted) {
-          setData(result);
-          setError("");
-        }
-      } catch (err) {
-        if (mounted && !(err instanceof DOMException && err.name === "AbortError")) {
-          setError(err instanceof Error ? err.message : "Monitoring unavailable");
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    void refresh();
-    const interval = window.setInterval(() => void refresh(), 15000);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(interval);
-      controller?.abort();
-    };
-  }, []);
+  const {data,error,loading,refresh,updatedAt}=useRemoteData<InfrastructureResponse>('/api/security/infrastructure',sharedFetch,{pollMs:60000,validate:value=>Boolean(value?.success&&Array.isArray(value.services))});
 
   const services = data?.services ?? [];
   const color = (status?: string) => status==='online' ? '#5ee2a0' : status==='offline' ? '#ff737d' : status==='degraded' ? '#f6c86b' : '#525965';
@@ -112,18 +65,15 @@ export default function NetworkInfrastructure() {
             </p>
           </div>
           <div className="rounded-full border border-[#30343b] bg-[#14171c] px-4 py-2 text-xs text-[#b4b8c0]">
-            Auto-refresh · 15 seconds
+            Auto-refresh · 60 seconds
           </div>
         </div>
 
-        {error && (
-          <div role="alert" className="rounded-xl border border-[#79333a] bg-[#24171b] p-4 text-sm text-[#ff929a]">
-            {error}
-          </div>
-        )}
+        <DataStatus error={error} updatedAt={updatedAt} onRetry={()=>void refresh()}/>
+
 
         <section className="rounded-2xl border border-[#30343b] bg-[#14171c] p-5 md:p-6">
-          <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-lg font-semibold">Live connection diagram</h2><p className="mt-1 text-xs text-[#8c929c]">Your application’s path from visitor to database</p></div><span className="text-xs text-[#8c929c]">Endpoint checks · 15 seconds</span></div>
+          <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-lg font-semibold">Live connection diagram</h2><p className="mt-1 text-xs text-[#8c929c]">Your application’s path from visitor to database</p></div><span className="text-xs text-[#8c929c]">Endpoint checks · 60 seconds</span></div>
           <div className="mt-6 grid items-center gap-2 md:grid-cols-[1fr_40px_1fr_40px_1fr_40px_1fr]">
             {['Visitor','Vercel','Render','Neon'].map((name,index) => {
               const service=services.find(item=>item.name===name);
@@ -143,6 +93,7 @@ export default function NetworkInfrastructure() {
         <div className="grid gap-4 md:grid-cols-3">
           {["Render", "Neon", "Vercel"].map(name => {
             const service = services.find(item => item.name === name);
+            if(loading && !service)return <Skeleton key={name} rows={3}/>;
             const status = service?.status ?? "unknown";
             const statusColor =
               status === "online" ? "text-[#5ee2a0]" :
@@ -240,7 +191,7 @@ export default function NetworkInfrastructure() {
             </dl>
             <p className="mt-4 text-xs text-[#8c929c]">Current application details describe the server serving this dashboard. Production versions above come from each monitored service.</p>
           </div>}
-          <p className="mt-4 text-xs text-[#8c929c]">Build time is separate from deployment time. Health checks refresh every 15 seconds.</p>
+          <p className="mt-4 text-xs text-[#8c929c]">Build time is separate from deployment time. Health checks refresh every 60 seconds.</p>
         </section>
 
         <section className="rounded-2xl border border-[#30343b] bg-[#14171c] p-6">

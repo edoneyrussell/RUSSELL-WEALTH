@@ -37,11 +37,11 @@ export default function RussellWealthMobileLandingPage() {
     <div className="rw-landing-alive bg-[#080a0d] content-stretch flex flex-col items-start relative size-full" data-node-id="68:992" data-name="Russell Wealth mobile landing page">
       <div className="content-stretch flex flex-col gap-[24px] items-start overflow-clip pb-[28px] pt-[14px] px-[20px] relative shrink-0 w-full" data-node-id="68:993" data-name="Landing hero">
         <div className="content-stretch flex items-center justify-between overflow-clip relative shrink-0 w-full" data-node-id="68:994" data-name="Navigation">
-          <div className="h-[53px] overflow-clip relative shrink-0 w-[164px]" data-node-id="68:995" data-name="Russell Wealth logo">
+          <a href="/" onClick={event => { event.preventDefault(); window.location.reload(); }} aria-label="Russell Wealth — refresh homepage" className="block cursor-pointer h-[53px] overflow-clip relative shrink-0 w-[164px]" data-node-id="68:995" data-name="Russell Wealth logo">
             <div className="absolute h-[81px] left-[-19px] top-[-16px] w-[202px]" data-node-id="68:996" data-name="Original logo">
-              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} /></a>
+              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} />
             </div>
-          </div>
+          </a>
           <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex h-[48px] items-center overflow-clip px-[20px] relative rounded-[14px] shrink-0" data-node-id="68:997" data-name="Sign in action" onClick={() => window.location.assign("/login")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); window.location.assign("/login"); } }} role="button" tabIndex={0} style={{ cursor: "pointer" }}>
             <p className="[word-break:break-word] font-['Inter:Medium'] font-medium leading-[normal] not-italic relative shrink-0 text-[#f2f2f3] text-[14px] whitespace-nowrap" data-node-id="68:998">{landingContent.signIn}</p>
           </div>
@@ -152,7 +152,7 @@ export default function RussellWealthMobileLandingPage() {
           </div>
         </div>
         <div className="content-stretch flex flex-col gap-[14px] items-start overflow-clip pt-[8px] relative shrink-0 w-full" data-node-id="68:1052" data-name="Expertise">
-          <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1053" data-name="Discipline">
+          <div className="rw-landing-discipline bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1053" data-name="Discipline">
             <div className="content-stretch flex gap-[14px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1054" data-name="Discipline heading">
               <div className="relative shrink-0 size-[44px]" data-node-id="68:1055" data-name="Discipline symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDisciplineSymbol} />
@@ -161,7 +161,7 @@ export default function RussellWealthMobileLandingPage() {
             </div>
             <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1058">{landingContent.businessDescription}</p>
           </div>
-          <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1059" data-name="Discipline">
+          <div className="rw-landing-discipline bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1059" data-name="Discipline">
             <div className="content-stretch flex gap-[14px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1060" data-name="Discipline heading">
               <div className="bg-[#1d2229] border border-[#30363f] border-solid content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[44px]" data-node-id="68:1061" data-name="Discipline symbol">
                 <div className="relative shrink-0 size-[22px]" data-node-id="68:1187" data-name="code-xml">
@@ -172,7 +172,7 @@ export default function RussellWealthMobileLandingPage() {
             </div>
             <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.55] not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-full" data-node-id="68:1064">{landingContent.computerScienceDescription}</p>
           </div>
-          <div className="bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1065" data-name="Discipline">
+          <div className="rw-landing-discipline bg-[#14171c] border border-[#30363f] border-solid content-stretch flex flex-col gap-[14px] items-start overflow-clip p-[20px] relative rounded-[16px] shrink-0 w-full" data-node-id="68:1065" data-name="Discipline">
             <div className="content-stretch flex gap-[14px] items-center overflow-clip relative shrink-0 w-full" data-node-id="68:1066" data-name="Discipline heading">
               <div className="relative shrink-0 size-[44px]" data-node-id="68:1067" data-name="Discipline symbol">
                 <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgDisciplineSymbol1} />

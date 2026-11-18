@@ -1,3 +1,4 @@
+import { clearViewMemory } from './experience/ViewState';
 import { t } from './i18n/language.ts';
 export async function logout() {
   try {
@@ -10,6 +11,7 @@ export async function logout() {
       throw new Error('Logout failed');
     }
 
+    try {clearViewMemory();} catch {}
     window.location.replace('/');
   } catch (error) {
     console.error('Logout error:', error);

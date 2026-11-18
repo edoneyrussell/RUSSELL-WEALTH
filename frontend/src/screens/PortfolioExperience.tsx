@@ -1,3 +1,5 @@
+import { Skeleton, DataStatus } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import { usePortfolio, type AccountScope } from "../hooks/usePortfolio";
 import AccountSelector from "../components/AccountSelector";
@@ -75,14 +77,14 @@ function Panel({
 
 export default function PortfolioExperience() {
   const customerFetch = useCustomerFetch();
-  const [accountScope, setAccountScope] = useState<AccountScope>(() => {
+  const [accountScope, setAccountScope] = useViewState<AccountScope>('portfolio:account',() => {
     const account = new URLSearchParams(window.location.search).get('account_id');
     return account && /^\d+$/.test(account) && Number(account) > 0 ? Number(account) : 'all';
-  });
-  const { portfolio, loading, error, refresh } = usePortfolio(accountScope);
-  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("search") ?? "");
-  const [sort, setSort] = useState("value");
-  const [filter, setFilter] = useState("All");
+  },new URLSearchParams(location.search).has('account_id'));
+  const { portfolio, loading, error, refresh, updatedAt } = usePortfolio(accountScope);
+  const [search, setSearch] = useViewState('portfolio:search',() => new URLSearchParams(window.location.search).get('search') ?? '',new URLSearchParams(location.search).has('search'));
+  const [sort, setSort] = useViewState('portfolio:sort','value');
+  const [filter, setFilter] = useViewState('portfolio:filter','All');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [hideBalance, setHideBalance] = useState(false);
   const [showAllPositions, setShowAllPositions] = useState(false);
@@ -167,7 +169,7 @@ export default function PortfolioExperience() {
     <div className="rw-fintech-workspace rw-fintech-portfolio min-h-screen bg-[#090C10] px-4 pb-16 pt-7 text-[#F0F3F7] sm:px-7 lg:px-10">
       <div className="mx-auto max-w-[1480px] space-y-6">
 
-        <header className="flex flex-wrap items-start justify-between gap-4">
+        <header data-tour="portfolio" className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className={label}>Russell Wealth / Private Client</p>
             <h1 className="mt-3 font-['Lora'] text-[34px] font-semibold tracking-[-0.04em] sm:text-[48px]">
@@ -197,17 +199,9 @@ export default function PortfolioExperience() {
           </div>
         </header>
 
-        {error && (
-          <div role="alert" className="rounded-xl border border-[#705342] bg-[#2A211C] p-4 text-sm text-[#F1C7A8]">
-            {error}
-          </div>
-        )}
-
-        {loading && !portfolio && (
-          <div className="rounded-2xl border border-[#2D3742] p-8 text-sm text-[#A6B3C1]">
-            Loading your portfolio...
-          </div>
-        )}
+        {!portfolio && <AccountSelector compact scope={accountScope} onScopeChange={setAccountScope} label="Portfolio account"/>}
+        <DataStatus error={error} updatedAt={updatedAt} onRetry={()=>void refresh()}/>
+        {loading && !portfolio && <Skeleton rows={4}/>}
 
         {portfolio && (
           <>

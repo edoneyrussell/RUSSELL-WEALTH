@@ -106,8 +106,8 @@ def money(cents):
     return str(Decimal(cents) / 100)
 
 
-def serialize(db, row):
-    invested = invested_cents(db, row['id'])
+def serialize(db, row, invested=None):
+    invested = invested_cents(db, row['id']) if invested is None else invested
     return dict(id=row['id'], name=row['account_name'], account_type=row['account_type'],
                 management_mode=row['management_mode'], status=row['status'], currency='CAD',
                 cash_balance=money(row['cash_balance_cents']), invested_value=money(invested),
@@ -129,7 +129,17 @@ def list_accounts():
         uid = customer_user_id(db)
         rows = db.execute('SELECT * FROM investment_accounts WHERE user_id=? ORDER BY id', (uid,)).fetchall()
         current = selected_account(db, uid)
-        accounts = [serialize(db, row) for row in rows]
+        # Value the current holdings once for all accounts, with the same pricing
+        # function used by order validation. Never cache cash or holdings.
+        import simulation_prices
+        values={}
+        positions=db.execute("""SELECT h.account_id,h.quantity,a.symbol,a.asset_type,a.price_cents
+            FROM holdings h JOIN assets a ON a.id=h.asset_id
+            JOIN investment_accounts ia ON ia.id=h.account_id WHERE ia.user_id=?""",(uid,)).fetchall()
+        for position in positions:
+            target=position['account_id']
+            values[target]=values.get(target,Decimal(0))+Decimal(position['quantity'])*simulation_prices.stock_price_cents(position['symbol'],position['asset_type'],position['price_cents'])
+        accounts = [serialize(db,row,values.get(row['id'],Decimal(0))) for row in rows]
         return jsonify(accounts=accounts, selected_account_id=current['id'] if current else None,
                        total_value=str(sum((Decimal(row['total_value']) for row in accounts), Decimal(0))),
                        types=[dict(code=code, name=name, description=description, modes=modes, category=category)

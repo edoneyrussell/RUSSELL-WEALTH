@@ -278,92 +278,62 @@ def execute_trade():
 @trading_bp.route("/api/customer/transactions", methods=["GET"])
 @role_required("CUSTOMER")
 def transaction_history():
+    try:
+        page=max(1,int(request.args.get('page',1)))
+        size=min(100,max(1,int(request.args.get('per_page',50))))
+    except (ValueError,TypeError):
+        return jsonify(error='Invalid pagination'),400
+    search=request.args.get('search','').strip().lower()[:128]
     conn = get_db_connection()
     try:
-        uid = customer_user_id(conn)
-        all_accounts = request.args.get('account_id') == 'all'
-        account = None if all_accounts else selected_account(conn, uid)
+        uid=customer_user_id(conn)
+        all_accounts=request.args.get('account_id')=='all'
+        account=None if all_accounts else selected_account(conn,uid)
         if account is None and not all_accounts:
-            return jsonify(transactions=[])
-        target = None if all_accounts else account['id']
-
-        trades = conn.execute("""
-            SELECT
-                'stock-' || t.id AS id,
-                t.transaction_type AS action,
-                ia.id AS account_id, ia.account_name,
-                t.quantity,
-                t.amount_cents,
-                t.created_at,
-                a.symbol,
-                a.name,
-                a.asset_type
-            FROM transactions t
-            JOIN investment_accounts ia ON t.account_id = ia.id
-            LEFT JOIN assets a ON t.asset_id = a.id
+            return jsonify(transactions=[],pagination=dict(page=page,per_page=size,total=0,total_pages=1))
+        target=None if all_accounts else account['id']
+        # Merge and page in the database, so old history is never downloaded just
+        # to discard it in Python. Explicit casts work with both database engines.
+        union="""SELECT 'stock-' || t.id AS id, t.transaction_type AS action,
+            ia.id AS account_id, ia.account_name, CAST(t.quantity AS TEXT) AS quantity,
+            t.amount_cents, CAST(t.created_at AS TEXT) AS created_at,
+            COALESCE(a.symbol,'RUSSELL WEALTH') AS symbol,
+            COALESCE(a.name,'Investment Account') AS name,
+            CASE WHEN t.transaction_type IN ('BUY','SELL') THEN a.asset_type ELSE 'BANK' END AS category,
+            NULL AS bank_code
+            FROM transactions t JOIN investment_accounts ia ON t.account_id=ia.id
+            LEFT JOIN assets a ON t.asset_id=a.id
             WHERE ia.user_id=? AND (?=1 OR ia.id=?)
-        """, (uid,int(all_accounts),target)).fetchall()
-
-        banking = conn.execute("""
-            SELECT
-                'bank-' || id AS id,
-                direction AS action,
-                amount_cents,
-                created_at,
-                bank_code,
-                COALESCE(account_id,(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)) AS account_id
-            FROM rw_demo_bank_transfers
-            WHERE user_id = ? AND (?=1 OR account_id=? OR (account_id IS NULL AND ?=(SELECT MIN(id) FROM investment_accounts WHERE user_id=?)))
-        """, (uid,uid,int(all_accounts),target,target,uid)).fetchall()
-        account_names = {row['id']: row['account_name'] for row in conn.execute(
-            'SELECT id, account_name FROM investment_accounts WHERE user_id=?', (uid,)).fetchall()}
-
+            UNION ALL
+            SELECT 'bank-' || b.id, CASE WHEN b.direction='DEPOSIT' THEN 'DEPOSIT' ELSE 'WITHDRAWAL' END,
+            ia.id, ia.account_name, NULL, b.amount_cents, CAST(b.created_at AS TEXT),
+            b.bank_code, b.bank_code || ' · Simulated Bank', 'BANK', b.bank_code
+            FROM rw_demo_bank_transfers b JOIN investment_accounts ia
+                ON ia.id=COALESCE(b.account_id,(SELECT MIN(id) FROM investment_accounts WHERE user_id=?))
+            WHERE b.user_id=? AND ia.user_id=? AND (?=1 OR ia.id=?)"""
+        params=[uid,int(all_accounts),target,uid,uid,uid,int(all_accounts),target]
+        where=''
+        if search:
+            escaped=search.replace('!','!!').replace('%','!%').replace('_','!_')
+            where=""" WHERE LOWER(COALESCE(symbol,'') || ' ' || COALESCE(name,'') || ' ' ||
+                action || ' ' || created_at || ' ' || CAST(amount_cents / 100.0 AS TEXT) || ' ' ||
+                COALESCE(quantity,'') || ' ' || account_name) LIKE ? ESCAPE '!'"""
+            params.append('%'+escaped+'%')
+        base=' FROM ('+union+') history'+where
+        total=conn.execute('SELECT COUNT(*) AS n'+base,params).fetchone()['n']
+        rows=conn.execute('SELECT id,action,account_id,account_name,quantity,amount_cents,created_at,symbol,name,category,bank_code'+base+
+            ' ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?',[*params,size,(page-1)*size]).fetchall()
         from access_api import creation_timestamp
-        result = []
-
-        for row in trades:
-            amount = Decimal(row["amount_cents"]) / 100
-            quantity = Decimal(row["quantity"]) if row["quantity"] else None
-
-            result.append({
-                "id": row["id"],
-                "account_id": row["account_id"],
-                "account_name": account_names.get(row["account_id"], "Account"),
-                "action": row["action"],
-                "symbol": row["symbol"] or "RUSSELL WEALTH",
-                "name": row["name"] or "Investment Account",
-                "quantity": format(quantity, 'f') if quantity is not None else None,
-                "price": str(amount / quantity) if quantity else None,
-                "total": str(amount),
-                "created_at": creation_timestamp(row["created_at"]),
-                "category": row["asset_type"] if row["action"] in ("BUY", "SELL") else "BANK",
-                "bank_code": None
-            })
-
-        for row in banking:
-            result.append({
-                "id": row["id"],
-                "account_id": row["account_id"],
-                "account_name": account_names.get(row["account_id"], "Account"),
-                "action": "DEPOSIT" if row["action"] == "DEPOSIT" else "WITHDRAWAL",
-                "symbol": row["bank_code"],
-                "name": row["bank_code"] + " · Simulated Bank",
-                "quantity": None,
-                "price": None,
-                "total": str(Decimal(row["amount_cents"]) / 100),
-                "created_at": creation_timestamp(row["created_at"]),
-                "category": "BANK",
-                "bank_code": row["bank_code"]
-            })
-
-        result.sort(
-            key=lambda row: (str(row["created_at"]), str(row["id"])),
-            reverse=True
-        )
-
-        response = jsonify({"transactions": result})
-        response.headers['Cache-Control'] = 'private, no-store'
+        result=[]
+        for row in rows:
+            item=dict(row)
+            amount=Decimal(item.pop('amount_cents'))/100
+            quantity=Decimal(item['quantity']) if item['quantity'] else None
+            item.update(total=str(amount),quantity=format(quantity,'f') if quantity is not None else None,
+                        price=str(amount/quantity) if quantity else None,created_at=creation_timestamp(item['created_at']))
+            result.append(item)
+        response=jsonify(transactions=result,pagination=dict(page=page,per_page=size,total=total,total_pages=max(1,(total+size-1)//size)))
+        response.headers['Cache-Control']='private, no-store'
         return response
-
     finally:
         conn.close()

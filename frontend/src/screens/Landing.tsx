@@ -38,11 +38,11 @@ export default function RussellWealthLandingPage() {
           <div className="absolute bg-gradient-to-r from-[#080b0e] h-[510px] left-0 to-[rgba(0,0,0,0)] top-0 w-[100px]" data-node-id="51:2542" data-name="Image transition" />
         </div>
         <div className="content-stretch flex h-[110px] items-center justify-between overflow-clip pl-[80px] pr-[40px] relative shrink-0 w-full" data-node-id="51:2546" data-name="Navigation">
-          <div className="h-[80px] overflow-clip relative shrink-0 w-[260px]" data-node-id="51:2547" data-name="Russell Wealth logo">
+          <a href="/" onClick={event => { event.preventDefault(); window.location.reload(); }} aria-label="Russell Wealth — refresh homepage" className="block cursor-pointer h-[80px] overflow-clip relative shrink-0 w-[260px]" data-node-id="51:2547" data-name="Russell Wealth logo">
             <div className="absolute h-[128px] left-[-30px] top-[-25px] w-[320px]" data-node-id="51:2548" data-name="Original logo">
-              <a href="/" aria-label="Russell Wealth — refresh homepage" className="contents cursor-pointer"><img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} /></a>
+              <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgOriginalLogo} />
             </div>
-          </div>
+          </a>
           <div className="content-stretch flex gap-[24px] items-center overflow-clip relative shrink-0" data-node-id="51:2561" data-name="Account and language">
 <LanguageSelector />
             <div className="bg-gradient-to-b border border-[#d4d7dd] border-solid content-stretch flex from-[#f4f5f6] h-[54px] items-center justify-center overflow-clip px-[26px] relative rounded-[14px] shrink-0 to-[#9298a1] via-[#d5d8dd] via-[46%]" data-node-id="51:2566" data-name="Action" role="button" tabIndex={0} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
@@ -164,7 +164,7 @@ export default function RussellWealthLandingPage() {
             </p>
           </div>
           <div className="content-stretch flex gap-[20px] h-[312px] items-start overflow-clip relative shrink-0 w-full" data-node-id="51:2628" data-name="Expertise">
-            <div className="bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2629" data-name="Discipline">
+            <div className="rw-landing-discipline bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2629" data-name="Discipline">
               <div className="bg-[#22282f] border border-[#555b64] border-solid content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[58px]" data-node-id="51:2630" data-name="Discipline symbol">
                 <div className="relative shrink-0 size-[32px]" data-node-id="51:2782" data-name="chart-no-axes-column-increasing">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgChartNoAxesColumnIncreasing1} />
@@ -174,7 +174,7 @@ export default function RussellWealthLandingPage() {
               <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[40px]" data-node-id="51:2633" data-name="Title rule" />
               <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.4] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="51:2634">{landingContent.businessDescription}</p>
             </div>
-            <div className="bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2635" data-name="Discipline">
+            <div className="rw-landing-discipline bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2635" data-name="Discipline">
               <div className="bg-[#22282f] border border-[#555b64] border-solid content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[58px]" data-node-id="51:2636" data-name="Discipline symbol">
                 <div className="relative shrink-0 size-[32px]" data-node-id="51:2785" data-name="code-xml">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgCodeXml} />
@@ -184,7 +184,7 @@ export default function RussellWealthLandingPage() {
               <div className="bg-[#ccd1d8] h-px relative shrink-0 w-[40px]" data-node-id="51:2639" data-name="Title rule" />
               <p className="[word-break:break-word] font-['Inter:Regular'] font-normal leading-[1.4] min-w-full not-italic relative shrink-0 text-[#b9bdc4] text-[15px] w-[min-content]" data-node-id="51:2640">{landingContent.computerScienceDescription}</p>
             </div>
-            <div className="bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2641" data-name="Discipline">
+            <div className="rw-landing-discipline bg-gradient-to-b border border-[#555b64] border-solid content-stretch flex flex-[1_0_0] flex-col from-[#242b33] gap-[14px] h-full items-start min-w-px overflow-clip p-[28px] relative rounded-[20px] to-[#090d11] via-1/4 via-[#10151a]" data-node-id="51:2641" data-name="Discipline">
               <div className="bg-[#22282f] border border-[#555b64] border-solid content-stretch flex items-center justify-center overflow-clip relative rounded-[12px] shrink-0 size-[58px]" data-node-id="51:2642" data-name="Discipline symbol">
                 <div className="relative shrink-0 size-[32px]" data-node-id="51:2788" data-name="shield-check">
                   <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgShieldCheck1} />

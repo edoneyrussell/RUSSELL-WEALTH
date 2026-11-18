@@ -1,3 +1,4 @@
+import { sharedFetch } from '../experience/sharedFetch';
 import { createContext, useCallback, useContext } from 'react';
 
 export const CustomerDemoContext = createContext(false);
@@ -34,7 +35,7 @@ export function customerDemoResponse(input: string, init?: RequestInit): Respons
 }
 export function useCustomerFetch() {
   const demo = useContext(CustomerDemoContext);
-  return useCallback((input:string, init?:RequestInit):Promise<Response> => demo ? Promise.resolve(customerDemoResponse(input,init)) : fetch(input,init),[demo]);
+  return useCallback((input:string, init?:RequestInit):Promise<Response> => demo ? Promise.resolve(customerDemoResponse(input,init)) : sharedFetch(input,init),[demo]);
 }
 export function customerDemoNavigate(path: string): boolean {
   if (window.location.pathname !== '/demo/customer') return false;

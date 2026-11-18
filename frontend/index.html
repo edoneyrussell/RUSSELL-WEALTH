@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <script>
+      try { document.documentElement.lang = localStorage.getItem('rw-language') === 'fr' ? 'fr' : 'en'; } catch {}
+    </script>
+    <style>
+      html, body { margin: 0; background: #0c1011; }
+      .rw-boot { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; color: #ecf1ed; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .rw-boot-content { width: 100%; max-width: 360px; text-align: center; }
+      .rw-boot-logo { display: block; width: 240px; height: 110px; object-fit: contain; margin: 0 auto 24px; }
+      .rw-boot h1 { font-size: 20px; font-weight: 500; margin: 28px 0 12px; }
+      .rw-boot p { color: #91a498; font-size: 14px; line-height: 1.6; }
+      .rw-boot-track { position: relative; overflow: hidden; height: 7px; border-radius: 999px; background: #24372d; }
+      .rw-boot-fill { position: absolute; inset-block: 0; width: 35%; background: linear-gradient(90deg, transparent, #c2edce, transparent); animation: rw-boot-loading 1.1s linear infinite; }
+      .rw-boot [lang="fr"] { display: none; }
+      html[lang="fr"] .rw-boot [lang="en"] { display: none; }
+      html[lang="fr"] .rw-boot [lang="fr"] { display: inline; }
+      @keyframes rw-boot-loading { from { left: -35%; } to { left: 100%; } }
+      @media (prefers-reduced-motion: reduce) { .rw-boot-fill { animation: none; left: 33%; opacity: .65; } }
+    </style>
+
     <title>Russell Wealth | Where Wealth Meets Innovation</title>
 
     <meta
@@ -27,7 +46,20 @@
     <meta name="twitter:image" content="https://russell-wealth.vercel.app/russell-wealth-og.png" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Visible before the application bundle loads; React replaces it when ready. -->
+      <div id="rw-initial-loading" class="rw-boot" role="status" aria-live="polite">
+        <div class="rw-boot-content">
+          <img class="rw-boot-logo" src="/assets/c8aca.png" alt="Russell Wealth" width="240" height="110" />
+          <div class="rw-boot-track" role="progressbar" aria-labelledby="rw-boot-title">
+            <div class="rw-boot-fill"></div>
+          </div>
+          <h1 id="rw-boot-title"><span lang="en">Loading Russell Wealth…</span><span lang="fr">Chargement de Russell Wealth…</span></h1>
+          <p><span lang="en">Preparing your experience</span><span lang="fr">Préparation de votre expérience</span></p>
+          <noscript>Enable JavaScript to open Russell Wealth.</noscript>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

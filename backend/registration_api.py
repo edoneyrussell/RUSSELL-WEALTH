@@ -14,6 +14,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash
 
 from database import get_db_connection
+from welcome_tour import enroll_welcome_tour
 
 registration_bp = Blueprint("registration", __name__)
 
@@ -110,6 +111,7 @@ def _login_registered_customer(db, email):
     from security import log_security_event
     log_security_event(user['id'], 'LOGIN_SUCCESS', request.remote_addr, 'INFO',
                        f'Account created and signed in for {email}', account_email=email)
+    session['welcome_tour_first_login']=True
 
 
 
@@ -208,6 +210,7 @@ def start_registration():
             return jsonify(error="Account already exists. Sign in."), 409
 
         _ensure_investment_account(db, email)
+        enroll_welcome_tour(db, email)
         db.commit()
         _login_registered_customer(db, email)
 
@@ -281,6 +284,7 @@ def verify_registration():
             (email,)
         )
         _ensure_investment_account(db, email)
+        enroll_welcome_tour(db, email)
         db.commit()
         _login_registered_customer(db, email)
         return jsonify(message="Account created successfully"), 201

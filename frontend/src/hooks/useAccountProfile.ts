@@ -1,3 +1,4 @@
+import { sharedFetch } from '../experience/sharedFetch';
 import { profileInitials } from '../utils/profileInitials';
 import { useEffect, useState } from 'react';
 
@@ -9,7 +10,7 @@ export function notifyProfileUpdated() {
   try { localStorage.setItem('rw-profile-sync', String(Date.now())); } catch { /* Polling also synchronizes devices. */ }
 }
 
-export function useAccountProfile(request: ProfileFetch = fetch) {
+export function useAccountProfile(request: ProfileFetch = sharedFetch) {
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   useEffect(() => {
     let active = true;
@@ -28,7 +29,7 @@ export function useAccountProfile(request: ProfileFetch = fetch) {
     const visible = () => { if (document.visibilityState === 'visible') void load(); };
     const sync = (event: StorageEvent) => { if (event.key === 'rw-profile-sync') void load(); };
     void load();
-    const timer = window.setInterval(visible, 15000);
+    const timer = window.setInterval(visible, 120000);
     window.addEventListener('rw-profile-updated', load);
     window.addEventListener('focus', visible);
     window.addEventListener('online', visible);

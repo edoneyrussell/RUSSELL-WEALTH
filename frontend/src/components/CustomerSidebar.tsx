@@ -95,25 +95,18 @@ export default function CustomerSidebar() {
       data-name="Unified Customer Sidebar"
       className="rw-unified-sidebar flex w-[208px] shrink-0 flex-col gap-[30px] border-r border-[#30343b] bg-[#0b0d11] px-[16px] pb-[24px] pt-[26px]"
     >
-      <div
+      <button
+        type="button"
         className="rw-brand-refresh relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
-        onClick={() => window.location.reload()}
-        onKeyDown={e => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            window.location.reload();
-          }
-        }}
-        role="button"
-        tabIndex={0}
         aria-label="Refresh Russell Wealth"
+        onClick={() => window.location.reload()}
       >
         <img
           alt="Russell Wealth"
           src={`${assets}/c8aca.png`}
           className="pointer-events-none absolute left-[-20.2px] top-[-17.3px] h-[86.7px] w-[216.4px] max-w-none object-cover"
         />
-      </div>
+      </button>
 
       <nav
         aria-label="Customer navigation"
@@ -369,25 +362,18 @@ function SocSidebar() {
       data-name="Unified SOC Sidebar"
       className="rw-unified-sidebar rw-soc-shared-sidebar flex w-[208px] min-w-[208px] max-w-[208px] shrink-0 flex-col border-r border-[#30343b] bg-[#0b0d11] px-[16px] pb-[24px] pt-[26px]"
     >
-      <div
+      <button
+        type="button"
         className="rw-brand-refresh relative h-[64px] w-[176px] shrink-0 cursor-pointer overflow-hidden"
-        role="button"
-        tabIndex={0}
-        aria-label="Russell Wealth SOC Dashboard"
-        onClick={() => goToSocDashboard()}
-        onKeyDown={e => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            goToSocDashboard();
-          }
-        }}
+        aria-label="Refresh Russell Wealth"
+        onClick={() => window.location.reload()}
       >
         <img
           alt="Russell Wealth"
           src={`${assets}/c8aca.png`}
           className="pointer-events-none absolute left-[-20.2px] top-[-17.3px] h-[86.7px] w-[216.4px] max-w-none object-cover"
         />
-      </div>
+      </button>
 
       <nav
         className="rw-soc-scroll-nav"

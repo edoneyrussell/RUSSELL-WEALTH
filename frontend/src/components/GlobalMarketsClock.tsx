@@ -24,7 +24,7 @@ export default function GlobalMarketsClock() {
       finally{loading=false;}
     };
     void load();const refresh=()=>{if(document.visibilityState==='visible')void load();};
-    const timer=window.setInterval(refresh,15000);window.addEventListener('focus',refresh);
+    const timer=window.setInterval(refresh,60000);window.addEventListener('focus',refresh);
     return()=>{controller.abort();window.clearInterval(timer);window.removeEventListener('focus',refresh);};
   },[request]);
   const setSelected=(index:number)=>{

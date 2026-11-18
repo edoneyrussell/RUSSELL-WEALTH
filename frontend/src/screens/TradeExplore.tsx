@@ -1,3 +1,4 @@
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import AccountSelector from "../components/AccountSelector";
 import StockPriceHistory from "../components/StockPriceHistory";
@@ -80,10 +81,10 @@ export default function TradeExplore() {
   const [statusError, setStatusError] = useState('');
 
   const { exchanges } = useExchanges();
-  const [exchange, setExchange] = useState('ALL');
+  const [exchange, setExchange] = useViewState('markets:exchange','ALL');
 
-  const [category, setCategory] = useState<Category>("All");
-  const [search, setSearch] = useState("");
+  const [category, setCategory] = useViewState<Category>('markets:category','All');
+  const [search, setSearch] = useViewState('markets:search','');
   const [visibleCount, setVisibleCount] = useState(48);
   const [marketResults, setMarketResults] = useState<Asset[]>([]);
   const [marketSearching, setMarketSearching] = useState(false);
@@ -119,7 +120,7 @@ export default function TradeExplore() {
       }
     }
     void loadStatus();
-    const timer = window.setInterval(() => { void loadStatus(); }, 15000);
+    const timer = window.setInterval(() => { if(document.visibilityState==='visible')void loadStatus(); }, 15000);
     const refresh = () => { if (document.visibilityState === 'visible') void loadStatus(); };
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
@@ -154,7 +155,7 @@ export default function TradeExplore() {
 
     void loadAssets();
     const refresh = () => { if (document.visibilityState === 'visible') void loadAssets(); };
-    const timer = window.setInterval(refresh,60000);
+    const timer = window.setInterval(refresh,300000);
     window.addEventListener('focus',refresh);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus',refresh); };
   }, []);
@@ -364,7 +365,7 @@ export default function TradeExplore() {
         </header>
 
         {watchlistError && <p role="alert" className="mb-4 text-sm text-amber-200">{watchlistError}</p>}
-        <label className="mb-4 flex flex-wrap items-center gap-3 text-sm text-[#C5D1DF]">
+        <label data-tour="exchange" className="mb-4 flex flex-wrap items-center gap-3 text-sm text-[#C5D1DF]">
           Stock exchange
           <select aria-label="Stock exchange" value={exchange} onChange={event => {
             const code = event.target.value;
@@ -401,7 +402,7 @@ export default function TradeExplore() {
           </div>
         </div>
 
-        <div className="mb-7 flex flex-wrap gap-2">
+        <div data-tour="asset-types" className="mb-7 flex flex-wrap gap-2">
           {categories.map(item => (
             <button
               key={item}
@@ -483,6 +484,7 @@ export default function TradeExplore() {
                     <span className="text-[#B3BECC]">›</span>
                   </button>
                   <button
+                    data-tour="market-watchlist"
                     type="button"
                     aria-label={
                       starred.includes(asset.symbol.toUpperCase())
@@ -574,7 +576,7 @@ export default function TradeExplore() {
               )}
             </section>
 
-            <section className="rounded-3xl border border-[#303946] bg-[#141B24] p-5 sm:p-6">
+            <section data-tour="trade-ticket" className="rounded-3xl border border-[#303946] bg-[#141B24] p-5 sm:p-6">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Trade Ticket</h2>
                 <span className="text-[10px] uppercase tracking-wider text-[#A3B0BF]">

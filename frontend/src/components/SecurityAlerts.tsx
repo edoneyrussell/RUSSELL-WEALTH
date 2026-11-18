@@ -1,3 +1,5 @@
+import { Skeleton } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import { useSecurityFetch } from "../demo/securityDemo";
 import * as React from 'react';
@@ -103,13 +105,13 @@ function ClearSecurityAlertsButton() {
 
 export default function SecurityAlerts({ onClose, initialEscalated=false }: Props) {
   const securityFetch = useSecurityFetch();
-  const [page, setPage] = useState(1);
-  const [severity, setSeverity] = useState('');
-  const [status, setStatus] = useState('ACTIVE');
-  const [assignment,setAssignment]=useState('all');
+  const [page, setPage] = useViewState('alerts:page',1);
+  const [severity, setSeverity] = useViewState('alerts:severity','');
+  const [status, setStatus] = useViewState('alerts:status','ACTIVE');
+  const [assignment,setAssignment]=useViewState('alerts:assignment','all');
   const [escalatedOnly,setEscalatedOnly]=useState(initialEscalated);
   const [revision, setRevision] = useState(0);
-  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+  const [search, setSearch] = useViewState('alerts:search',() => new URLSearchParams(window.location.search).get('search') || '',new URLSearchParams(location.search).has('search'));
   const [alertId, setAlertId] = useState(() => new URLSearchParams(window.location.search).get('alert') || '');
   const [data, setData] = useState<ResponseData | null>(null);
   const [error, setError] = useState('');
@@ -117,19 +119,21 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
   const [saving, setSaving] = useState<number | null>(null);
   useEffect(() => {
     const controller = new AbortController();
+    let pending=false;
     async function load() {
+      if(pending)return;pending=true;
       try {
         const params = new URLSearchParams({page:String(page), per_page:'25', severity, status, search, alert:alertId, assignment, escalated:escalatedOnly?'1':''});
         const response = await securityFetch(`/api/security/alerts?${params}`, {credentials:'include', cache:'no-store', signal:controller.signal});
         if (!response.ok) throw new Error('Unable to load alerts');
         setData(await response.json()); setError('');
-      } catch (e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Request failed'); }
+      } catch (e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Request failed'); } finally {pending=false;}
     }
     load();
-    const interval = window.setInterval(load, 5000);
+    const interval = window.setInterval(()=>{if(document.visibilityState==='visible')void load();}, 10000);
     const refresh = () => load();
-    window.addEventListener('security-alerts-cleared', refresh);
-    return () => { controller.abort(); clearInterval(interval); window.removeEventListener('security-alerts-cleared', refresh); };
+    window.addEventListener('security-alerts-cleared', refresh);window.addEventListener('online',refresh);window.addEventListener('rw-retry-data',refresh);
+    return () => { controller.abort(); clearInterval(interval); window.removeEventListener('security-alerts-cleared', refresh);window.removeEventListener('online',refresh);window.removeEventListener('rw-retry-data',refresh); };
   }, [page, severity, status, search, alertId, revision, assignment, escalatedOnly, securityFetch]);
   async function review(id:number, next:string) {
     setSaving(id);
@@ -161,7 +165,7 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
   return <main className="rw-alert-workspace p-4 md:p-8 min-h-screen text-[#f5f5f5]">
     <header className="flex flex-wrap justify-between gap-4 mb-6">
       <div><p className="text-xs text-[#9aa39e] mb-2">RUSSELL WEALTH / SECURITY</p><h1 className="text-3xl font-semibold">Security alerts</h1>
-      <p className="text-sm text-[#9aa39e] mt-2">Recorded detections · Regina time (CST) · Refreshes every 5 seconds</p></div>
+      <p className="text-sm text-[#9aa39e] mt-2">Recorded detections · Regina time (CST) · Refreshes every 10 seconds</p></div>
       <button onClick={onClose} className="border border-[#354039] rounded-xl px-4 py-2 self-start">← SOC Dashboard</button>
     </header>
     <p className="mb-5 text-sm text-[#9aa39e]">Critical alerts that remain unresolved for {data?.sla_minutes??15} minutes enter the escalation queue. Assignment does not stop the deadline.</p>
@@ -180,6 +184,7 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
       <ClearSecurityAlertsButton />
     </div>
     {actionError&&<p role="alert" className="mb-4 text-[#ff8585]">{actionError}</p>}
+    {!data && !error && <Skeleton rows={4}/>}
     {error && <p role="alert" className="text-[#ff8585] mb-4">{error}</p>}
     <div className="space-y-3">
       {data?.logs.map(event => {

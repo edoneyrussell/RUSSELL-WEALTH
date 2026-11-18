@@ -9,7 +9,10 @@ const items = [
 ] as const;
 
 export default function SecurityDemo() {
-  const [section, setSection] = useState('SOC Dashboard');
+  const [section, setSection] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get('section');
+    return items.some(([label]) => label === requested) ? requested! : 'SOC Dashboard';
+  });
   const [menu, setMenu] = useState(false);
   useEffect(() => {
     const update = (event: Event) => {

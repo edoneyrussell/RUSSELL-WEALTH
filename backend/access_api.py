@@ -66,7 +66,7 @@ def source_connection(source, primary):
 def source_actor(db, source, primary):
     """Use the signed-in SOC identity; verify its authority in the target database."""
     if source == primary:
-        actor = db.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
+        actor = db.execute('SELECT id,name,email,role,account_status,access_version,password_hash FROM users WHERE id=?', (session['user_id'],)).fetchone()
         if actor is None or dict(actor).get('access_version', 0) != session.get('access_version', 0):
             return None
     else:
@@ -78,7 +78,7 @@ def source_actor(db, source, primary):
         if (identity is None or identity['role'] != 'SOC_ADMIN' or identity['account_status'] != 'ACTIVE'
                 or identity['access_version'] != session.get('access_version', 0)):
             return None
-        actor = db.execute('SELECT * FROM users WHERE lower(email)=lower(?)', (identity['email'],)).fetchone()
+        actor = db.execute('SELECT id,name,email,role,account_status,access_version,password_hash FROM users WHERE lower(email)=lower(?)', (identity['email'],)).fetchone()
     if actor is None or actor['role'] != 'SOC_ADMIN' or actor['account_status'] != 'ACTIVE':
         return None
     return actor
@@ -104,10 +104,11 @@ def read_directory_source(source, primary):
             db.execute('SET TRANSACTION READ ONLY')
             db.execute("SET LOCAL statement_timeout = '5s'")
         actor = source_actor(db, source, primary)
-        records = [dict(row) for row in db.execute(f'SELECT {USER_FIELDS} FROM users ORDER BY id').fetchall()]
+        records = [dict(row) for row in db.execute(f'SELECT {USER_FIELDS}, EXISTS(SELECT 1 FROM admin_customer_links WHERE admin_user_id=users.id) AS has_customer_access FROM users ORDER BY id').fetchall()]
         for record in records:
             record['created_at'] = creation_timestamp(record['created_at'])
-            record.update(access_role=access_role(db, record['id'], record['role']),
+            linked=record.pop('has_customer_access')
+            record.update(access_role='BOTH' if record['role']=='SOC_ADMIN' and linked else record['role'],
                           is_owner=is_owner(record['email']), manageable=actor is not None and actor['email'].lower() == ACCESS_ADMIN_EMAIL, is_self=actor is not None and actor['id'] == record['id'])
         return records
     finally:
@@ -259,7 +260,7 @@ def manage_user(user_id):
         for table in ('holdings', 'transactions', 'portfolio_snapshots'):
             if table in tables:
                 db.execute(f'DELETE FROM {table} WHERE account_id IN (SELECT id FROM investment_accounts WHERE user_id=?)', (user_id,))
-        for table in ('customer_account_selection', 'customer_account_transfers', 'investment_accounts', 'rw_demo_bank_accounts', 'rw_demo_bank_transfers', 'customer_preferences', 'user_profiles', 'customer_watchlist', 'market_clock_preferences'):
+        for table in ('customer_account_selection', 'customer_account_transfers', 'investment_accounts', 'rw_demo_bank_accounts', 'rw_demo_bank_transfers', 'customer_preferences', 'user_profiles', 'customer_watchlist', 'market_clock_preferences', 'customer_welcome_tours'):
             if table in tables:
                 db.execute(f'DELETE FROM {table} WHERE user_id=?', (user_id,))
         if 'admin_customer_links' in tables:

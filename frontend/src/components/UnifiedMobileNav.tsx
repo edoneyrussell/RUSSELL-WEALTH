@@ -161,9 +161,9 @@ export default function UnifiedMobileNav({
           >
             <header className="rw-mobile-fullnav-header">
               <div>
-                <div className="rw-mobile-fullnav-brand">
+                <button type="button" className="rw-mobile-fullnav-brand" aria-label="Refresh Russell Wealth" onClick={() => window.location.reload()}>
                   RUSSELL WEALTH
-                </div>
+                </button>
                 <div className="rw-mobile-fullnav-subtitle">
                   {security ? "SECURITY OPERATIONS" : "PRIVATE CLIENT"}
                 </div>

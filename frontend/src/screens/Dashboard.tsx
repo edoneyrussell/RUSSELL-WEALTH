@@ -1,3 +1,5 @@
+import { Skeleton, DataStatus } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import AccountOverview from "../components/AccountOverview";
 import AccountSelector from "../components/AccountSelector";
@@ -49,8 +51,8 @@ const field =
 export default function Dashboard() {
   const customerFetch = useCustomerFetch();
   const demo = useContext(CustomerDemoContext);
-  const [accountScope, setAccountScope] = useState<AccountScope>('all');
-  const { portfolio, error } = usePortfolio(accountScope);
+  const [accountScope, setAccountScope] = useViewState<AccountScope>('dashboard:account','all');
+  const { portfolio, error, loading, refresh, updatedAt } = usePortfolio(accountScope);
   const trading = useTrading();
   const [showBalances, setShowBalances] = useState(true);
 
@@ -121,11 +123,13 @@ export default function Dashboard() {
 
   return (
     <main
+      aria-busy={loading}
       data-name="Modern Russell Wealth Dashboard"
       className="rw-fintech-dashboard min-h-screen bg-[#090C10] px-4 pb-24 pt-7 font-['Inter'] text-[#F0F3F7] sm:px-7 lg:px-10"
     >
       <div className="mx-auto max-w-[1480px] space-y-6">
 
+        <DataStatus error={error} updatedAt={updatedAt} onRetry={()=>void refresh()}/>
         {/* HEADER */}
         <header className="flex flex-wrap items-start justify-between gap-5">
           <div>
@@ -189,17 +193,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {error && (
-          <div
-            role="alert"
-            className="rounded-xl border border-[#705342] bg-[#2A211C] p-4 text-sm text-[#F1C7A8]"
-          >
-            {error}
-          </div>
-        )}
-
         {/* PORTFOLIO HERO */}
-        <section id="portfolio-history" className={`${panel} rw-fintech-overview relative overflow-hidden p-6 sm:p-8`}>
+        <section data-tour="overview" id="portfolio-history" className={`${panel} rw-fintech-overview relative overflow-hidden p-6 sm:p-8`}>
           <div
             className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full opacity-20 blur-[100px]"
             style={{ background: "#7998BA" }}
@@ -246,10 +241,10 @@ export default function Dashboard() {
               </div>
 
               <p className="mt-4 break-all text-[39px] font-semibold tracking-[-0.055em] sm:text-[60px]">
-                {total}
+                {loading ? <span className="rw-skeleton-amount" aria-label="Loading balance"/> : total}
               </p>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div data-tour="account-switcher" className="mt-5 flex flex-wrap items-center gap-3">
                 <AccountSelector compact scope={accountScope} onScopeChange={setAccountScope} label="Dashboard account" accountName={portfolio?.account_name} />
 
                 <span className="text-xs text-[#8D9BAB]">

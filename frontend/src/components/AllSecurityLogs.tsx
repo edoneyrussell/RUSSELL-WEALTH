@@ -1,3 +1,5 @@
+import { Skeleton } from '../experience/Feedback';
+import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
 import { useSecurityFetch } from "../demo/securityDemo";
 import { useEffect, useState } from 'react';
@@ -50,10 +52,10 @@ function reginaDateTime(value: string) {
 
 export default function AllSecurityLogs({ onClose }: Props) {
   const securityFetch = useSecurityFetch();
-  const [page, setPage] = useState(1);
-  const [eventType, setEventType] = useState('');
-  const [severity, setSeverity] = useState('');
-  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+  const [page, setPage] = useViewState('logs:page',1);
+  const [eventType, setEventType] = useViewState('logs:type','');
+  const [severity, setSeverity] = useViewState('logs:severity','');
+  const [search, setSearch] = useViewState('logs:search',() => new URLSearchParams(window.location.search).get('search') || '',new URLSearchParams(location.search).has('search'));
   const [data, setData] = useState<LogsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,13 +113,13 @@ export default function AllSecurityLogs({ onClose }: Props) {
 
     const initial = window.setTimeout(() => void loadLogs(), 200);
     const refresh = () => { if (!document.hidden) void loadLogs(); };
-    const interval = window.setInterval(refresh, 5000);
-    window.addEventListener('focus', refresh);
+    const interval = window.setInterval(refresh, 15000);
+    window.addEventListener('focus', refresh);window.addEventListener('online',refresh);window.addEventListener('rw-retry-data',refresh);
     return () => {
       controller.abort();
       window.clearTimeout(initial);
       window.clearInterval(interval);
-      window.removeEventListener('focus', refresh);
+      window.removeEventListener('focus', refresh);window.removeEventListener('online',refresh);window.removeEventListener('rw-retry-data',refresh);
     };
   }, [page, eventType, severity, search]);
 
@@ -133,7 +135,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
               All Security Logs
             </h1>
             <p className="text-[#8c929c] text-sm mt-2">
-              Local and live security events · Regina time (CST) · Refreshes every 5 seconds
+              Local and live security events · Regina time (CST) · Refreshes every 15 seconds
             </p>
           </div>
 
@@ -293,11 +295,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
               </p>
             )}
 
-            {loading && (
-              <p className="text-[#8c929c] text-sm text-center py-10">
-                Loading security logs...
-              </p>
-            )}
+            {loading && !data && <Skeleton rows={4}/>}
           </div>
 
           <div className="rw-security-logs-pagination flex items-center justify-between mt-5">

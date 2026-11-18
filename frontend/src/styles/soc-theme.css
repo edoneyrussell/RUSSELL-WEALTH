@@ -159,3 +159,18 @@
   border-color: var(--rw-border);
   color: var(--rw-text);
 }
+
+/* Coverage cards are links; severity and check results keep their own colours. */
+.rw-security-coverage a.rw-security-coverage-check { text-decoration: none; transition: background-color 160ms, border-color 160ms; }
+.rw-security-coverage a.rw-security-coverage-check:hover { background-color: #1b2822 !important; border-color: #476153 !important; transform: none; }
+.rw-security-coverage a.rw-security-coverage-check:focus-visible { outline: 2px solid #c2edce; outline-offset: 3px; }
+@media (max-width: 700px) {
+  .soc-dashboard .rw-security-coverage-check .rw-coverage-action { grid-column: 2 / 4; grid-row: 3; white-space: normal; }
+}
+
+/* Fill the events card to its bottom while retaining an internal scroll area. */
+.rw-soc-theme .soc-dashboard [data-name="Live event log"] { max-height: none; overscroll-behavior-y: contain; }
+.rw-soc-theme .soc-dashboard [data-name="Live event log"] > [role="button"] { flex-shrink: 0; }
+@media (max-width: 700px) {
+  .rw-soc-theme .soc-dashboard [data-name="Live event log"] { min-height: 240px; }
+}

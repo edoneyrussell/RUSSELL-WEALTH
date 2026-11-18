@@ -204,7 +204,7 @@ def apply_response(incident_id, status_only=False):
         # Serialize account responses with existing account-administration transactions.
         if hasattr(db,'connection'):
             db.execute("SELECT id FROM users WHERE role='SOC_ADMIN' ORDER BY id FOR UPDATE").fetchall()
-        actor = db.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
+        actor = db.execute('SELECT id,name,email,role,password_hash,account_status,access_version FROM users WHERE id=?', (session['user_id'],)).fetchone()
         if (actor is None or actor['account_status'] != 'ACTIVE'
                 or actor['access_version'] != session.get('access_version', 0)
                 or actor['role'] != session.get('role')
@@ -228,7 +228,7 @@ def apply_response(incident_id, status_only=False):
                 if target_id not in related:
                     denial = ('Choose an account with recorded evidence for this incident.',400)
                 else:
-                    target = db.execute('SELECT * FROM users WHERE id=?'+(' FOR UPDATE' if hasattr(db,'connection') else ''),(target_id,)).fetchone()
+                    target = db.execute('SELECT id,name,email,role,password_hash,account_status,access_version FROM users WHERE id=?'+(' FOR UPDATE' if hasattr(db,'connection') else ''),(target_id,)).fetchone()
                     guard = protection(db,target,actor['id'])
                     if guard:
                         denial = (guard,403)

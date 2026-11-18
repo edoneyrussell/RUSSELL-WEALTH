@@ -80,7 +80,7 @@ def validate_session(db,user_id):
         # and replaying that cookie must not resurrect a revoked session.
         start_session(user_id,db=db,migration_token=token)
     if not isinstance(token,str) or len(token)>200: return False
-    row=db.execute('SELECT * FROM active_login_sessions WHERE token_hash=? AND user_id=?',(digest(token),user_id)).fetchone()
+    row=db.execute('SELECT id,revoked_at,expires_at,last_seen_at,access_version FROM active_login_sessions WHERE token_hash=? AND user_id=?',(digest(token),user_id)).fetchone()
     if not row or row['revoked_at'] or row['expires_at']<=now_utc().isoformat(): return False
     # Account/access-version validation already ran. Legitimate self-service account
     # changes can rotate the cookie version while retaining this particular session.
@@ -119,7 +119,7 @@ def inventory():
     from login_locations import attach_login_locations
     db=get_db_connection()
     try:
-        rows=db.execute('''SELECT s.*,u.name,u.email,u.role FROM active_login_sessions s JOIN users u ON u.id=s.user_id
+        rows=db.execute('''SELECT s.id,s.token_hash,s.user_id,s.login_event_id,s.user_agent,s.source_ip,s.created_at,s.last_seen_at,s.expires_at,u.name,u.email,u.role FROM active_login_sessions s JOIN users u ON u.id=s.user_id
             WHERE s.revoked_at IS NULL AND s.expires_at>? AND u.account_status='ACTIVE'
             AND s.access_version=u.access_version ORDER BY s.last_seen_at DESC LIMIT 201''',(now_utc().isoformat(),)).fetchall()
         actor=db.execute('SELECT email FROM users WHERE id=?',(session['user_id'],)).fetchone()
@@ -160,7 +160,7 @@ def revoke(session_id):
         db.execute('BEGIN' if postgres else 'BEGIN IMMEDIATE')
         # Match the lock order of account administration before locking a session.
         if postgres: db.execute("SELECT id FROM users WHERE role='SOC_ADMIN' ORDER BY id FOR UPDATE").fetchall()
-        actor=db.execute('SELECT * FROM users WHERE id=?',(session['user_id'],)).fetchone()
+        actor=db.execute('SELECT id,name,email,role,password_hash,account_status,access_version FROM users WHERE id=?',(session['user_id'],)).fetchone()
         if (not actor or actor['account_status']!='ACTIVE' or actor['access_version']!=session.get('access_version',0)
                 or 'SOC_ADMIN' not in account_roles(db,actor['id'],actor['role'])):
             return jsonify(error='Your account access changed. Please sign in again.'),401
