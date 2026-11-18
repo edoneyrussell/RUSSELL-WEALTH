@@ -29,6 +29,7 @@ export default function WelcomeTour(){
   const action=useRef<HTMLButtonElement>(null);
   const alive=useRef(false);
   const writes=useRef<Promise<void>>(Promise.resolve());
+  const lifetime=useRef<AbortController|null>(null);
   const showing=progress?.status==='pending'||progress?.status==='active';
   const active=progress?.status==='active';
   const step=welcomeSteps[progress?.step??0];
@@ -36,10 +37,12 @@ export default function WelcomeTour(){
   useEffect(()=>{
     alive.current=true;
     const controller=new AbortController();
+    lifetime.current=controller;
+    let manuallyReplayed=false;
     sharedFetch(endpoint,{credentials:'same-origin',signal:controller.signal})
       .then(async response=>response.ok?response.json():null)
-      .then(value=>{if(alive.current && isTourProgress(value))setProgress(value);}).catch(()=>{});
-    const replay=()=>{setError('');setProgress({status:'pending',step:0});};
+      .then(value=>{if(!controller.signal.aborted && !manuallyReplayed && isTourProgress(value))setProgress(value);}).catch(()=>{});
+    const replay=()=>{manuallyReplayed=true;setError('');setProgress({status:'pending',step:0});};
     window.addEventListener('rw-replay-welcome-tour',replay);
     return()=>{alive.current=false;controller.abort();window.removeEventListener('rw-replay-welcome-tour',replay);};
   },[]);
@@ -132,12 +135,14 @@ export default function WelcomeTour(){
     // Steps are local and instant. Only start/exit/finish need a durable write;
     // later logins never resume an old tour automatically.
     if(next.status==='active' && previous?.status==='active')return;
+    const owner=lifetime.current;
     writes.current=writes.current.catch(()=>{}).then(async()=>{
+      if(!owner || owner.signal.aborted)return;
       try{
-        const response=await fetch(endpoint,{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(8000),body:JSON.stringify(next)});
+        const response=await fetch(endpoint,{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},signal:AbortSignal.any([owner.signal,AbortSignal.timeout(8000)]),body:JSON.stringify(next)});
         if(!response.ok)throw new Error();
       }catch{
-        if(alive.current)window.dispatchEvent(new CustomEvent('rw-toast',{detail:{type:'warning',message:t('Your tour preference could not be saved. You can replay the tour from Settings.')}}));
+        if(alive.current && !owner.signal.aborted)window.dispatchEvent(new CustomEvent('rw-toast',{detail:{type:'warning',message:t('Your tour preference could not be saved. You can replay the tour from Settings.')}}));
       }
     });
   }

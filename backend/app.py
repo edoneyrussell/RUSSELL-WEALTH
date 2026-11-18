@@ -316,7 +316,7 @@ def api_me():
         return jsonify({"authenticated": False}), 401
 
     if request.args.get('include_photo') == '0':
-        return jsonify(authenticated=True, name=session['name'], role=session['role'],
+        return jsonify(authenticated=True, user_id=session['user_id'], name=session['name'], role=session['role'],
                        roles=session.get('roles',[session['role']])), 200, {'Cache-Control':'private, no-store'}
 
     db = get_db_connection()
@@ -347,6 +347,7 @@ def api_me():
 
         return jsonify({
             "authenticated": True,
+            "user_id": session["user_id"],
             "name": session["name"],
             "role": session["role"],
             "roles": session.get("roles", [session["role"]]),

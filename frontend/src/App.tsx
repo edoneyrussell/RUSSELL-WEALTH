@@ -148,6 +148,7 @@ export default function App() {
 
   const [auth, setAuth] = useState<{
     authenticated: boolean
+    user_id?: number
     role?: string
     roles?: string[]
   } | null>(null)
@@ -333,7 +334,7 @@ export default function App() {
   return (
     <div key={language} className={isSecurityRoute ? "contents rw-soc-theme" : "contents"}>
       {isProtectedRoute && auth?.authenticated && <SignInLocationPrompt />}
-      {isCustomerRoute && customerAccess && <Suspense fallback={null}><WelcomeTour /></Suspense>}
+      {isCustomerRoute && customerAccess && <Suspense fallback={null}><WelcomeTour key={auth?.user_id} /></Suspense>}
       <ConnectionNotice />
       {showPublicNavigation && <RWPersistentNav />}
       {isProtectedRoute && customerAccess && socAccess && (

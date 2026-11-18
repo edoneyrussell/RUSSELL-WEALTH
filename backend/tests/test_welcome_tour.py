@@ -73,3 +73,25 @@ class WelcomeTourTests(unittest.TestCase):
         with patch.object(self.module,'send_login_notification'):
             self.assertEqual(visitor.post('/api/login',json={'email':payload['email'],'password':payload['password']}).status_code,200)
         self.assertEqual(visitor.get('/api/customer/welcome-tour').json['status'],'none')
+
+    def test_replays_and_identity_are_isolated_between_customers(self):
+        db = database.get_db_connection()
+        db.execute("INSERT INTO users(id,name,email,password_hash,role) VALUES(104,'Other','other-tour@example.com',?,'CUSTOMER')", (self.password_hash,))
+        db.commit()
+        db.close()
+        other = self.client(104, 'CUSTOMER')
+        self.assertEqual(self.customer.get('/api/me?include_photo=0').json['user_id'], 103)
+        self.assertEqual(other.get('/api/me?include_photo=0').json['user_id'], 104)
+        self.assertEqual(self.customer.put('/api/customer/welcome-tour', json={'status':'completed','step':12}).status_code, 200)
+        self.assertEqual(other.put('/api/customer/welcome-tour', json={'status':'active','step':0}).status_code, 200)
+        # A supplied identity is rejected; the server always owns the user scope.
+        self.assertEqual(other.put('/api/customer/welcome-tour', json={'status':'skipped','step':0,'user_id':103}).status_code, 400)
+        db = database.get_db_connection()
+        rows = [dict(row) for row in db.execute('SELECT user_id,status,step FROM customer_welcome_tours ORDER BY user_id').fetchall()]
+        db.close()
+        self.assertEqual(rows, [
+            {'user_id':103,'status':'completed','step':12},
+            {'user_id':104,'status':'active','step':0},
+        ])
+        self.assertEqual(self.customer.get('/api/customer/welcome-tour').json['status'], 'none')
+        self.assertEqual(other.get('/api/customer/welcome-tour').json['status'], 'none')
