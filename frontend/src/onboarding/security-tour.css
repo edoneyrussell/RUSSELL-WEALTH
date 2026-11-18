@@ -1,0 +1,18 @@
+.rw-security-tour{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:#ecf1ed;overflow:hidden;z-index:40000;overscroll-behavior:none}
+.rw-security-tour::backdrop{background:rgba(3,9,7,.62)}
+.rw-security-tour-highlight{position:fixed;pointer-events:none;border:2px solid #c2edce;border-radius:12px;box-shadow:0 0 0 4px #c2edce22,0 0 36px #c2edce18}
+.rw-security-tour-panel{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 32px));min-height:300px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;padding:22px;background:#131d19;border:1px solid #496354;border-radius:22px;box-shadow:0 16px 48px #0008;font-family:inherit}
+.rw-security-tour-eyebrow{font-size:11px;line-height:16px;letter-spacing:.06em;color:#a6c7b1;margin-bottom:8px}
+.rw-security-tour-panel h2{font-size:23px;line-height:1.2;margin:0 0 12px;font-weight:600}
+.rw-security-tour-panel p{font-size:14px;line-height:1.55;color:#c3cec7;margin:0 0 12px}
+.rw-security-tour-description{flex:1}
+.rw-security-tour-panel progress{display:block;width:100%;height:5px;margin:0 0 16px;accent-color:#c2edce;border:0;border-radius:10px;overflow:hidden;background:#2c3e33}
+.rw-security-tour-panel progress::-webkit-progress-bar{background:#2c3e33}
+.rw-security-tour-panel progress::-webkit-progress-value{background:#c2edce}
+.rw-security-tour-panel footer{display:flex;align-items:center;gap:8px}
+.rw-security-tour-panel button{min-height:44px;padding:10px 15px;border:1px solid #496354;border-radius:24px;font-size:13px;line-height:1.3;cursor:pointer;background:transparent;color:#ecf1ed}
+.rw-security-tour-panel button:focus-visible{outline:2px solid #c2edce;outline-offset:3px}
+.rw-security-tour-panel button:disabled{opacity:.5;cursor:wait}
+.rw-security-tour-panel .rw-security-tour-next{background:#c2edce;color:#14251a;font-weight:600;margin-left:auto}
+.rw-security-tour-panel .rw-security-tour-replay{margin-right:auto}
+@media(max-width:500px){.rw-security-tour-panel{width:calc(100% - 24px);bottom:max(12px,env(safe-area-inset-bottom));padding:18px;min-height:320px;border-radius:18px}.rw-security-tour-panel h2{font-size:20px}.rw-security-tour-panel p{font-size:13px}.rw-security-tour-panel button{padding:10px 12px;font-size:12px}}

@@ -9,11 +9,6 @@ export default function DemoCustomerSettings(){
         <p className="mt-4 text-sm text-[#a8b6ad]">Personal information and profile picture</p>
         <p className="mt-4 text-sm text-[#a8b6ad]">Read-only demo: trades, transfers, and account changes are disabled.</p>
       </section>
-      <section className="rw-fintech-panel rounded-[22px] border border-[#34483b] bg-[#13191a] p-5">
-        <h2 className="text-xl font-semibold">Welcome tour</h2>
-        <p className="mt-3 text-sm text-[#a8b6ad]">A guided walkthrough of your accounts, investments, transfers, and settings.</p>
-        <button type="button" className="mt-4 min-h-11 rounded-full bg-[#c2edce] px-5 py-3 text-sm font-semibold text-[#14251a]" onClick={()=>window.dispatchEvent(new Event('rw-replay-welcome-tour'))}>Replay welcome tour</button>
-      </section>
     </div>
   </main>;
 }

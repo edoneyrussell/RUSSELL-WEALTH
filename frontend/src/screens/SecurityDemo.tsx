@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { LayoutDashboard, TriangleAlert, ClipboardList, List, Network, UsersRound, Settings, Menu } from 'lucide-react';
 import SecurityDashboard from './SecurityDashboard';
 import { SecurityDemoContext } from '../demo/securityDemo';
+import SecurityTour from '../onboarding/SecurityTour';
 
 const items = [
   ['SOC Dashboard', LayoutDashboard], ['Alerts', TriangleAlert], ['Incidents', ClipboardList],
@@ -35,13 +36,17 @@ export default function SecurityDemo() {
   };
   return <SecurityDemoContext.Provider value={true}>
     <div className="rw-security-demo" onClick={event => event.stopPropagation()}>
-      <header className="rw-demo-banner"><div><strong>DEMO</strong><span>Fictional data only · No real customer information</span></div><a href="/">← Back to home</a></header>
+      <header className="rw-demo-banner">
+        <div><strong>DEMO</strong><span>Fictional data only · No real customer information</span></div>
+        <div><button type="button" onClick={()=>window.dispatchEvent(new Event('rw-replay-security-tour'))}>Replay security tour</button><a href="/">← Back to home</a></div>
+      </header>
+      <SecurityTour onNavigate={choose}/>
       <button type="button" className="rw-demo-menu" aria-label="Toggle demo navigation" aria-expanded={menu} onClick={() => setMenu(value => !value)}><Menu size={20}/></button>
       <div className="rw-unified-customer-layout rw-unified-soc-layout">
         <aside data-name="Unified SOC Sidebar" className={`rw-unified-sidebar rw-soc-shared-sidebar rw-demo-sidebar ${menu ? 'is-open' : ''}`}>
           <a href="/" aria-label="Russell Wealth home"><img src="/assets/c8aca.png" alt="Russell Wealth" /></a>
           <p>SECURITY OPERATIONS</p>
-          <nav aria-label="Demo SOC navigation">{items.map(([label, Icon]) => <button type="button" key={label} aria-current={section === label ? 'page' : undefined} onClick={() => choose(label)}><Icon size={19}/>{label}</button>)}</nav>
+          <nav aria-label="Demo SOC navigation">{items.map(([label, Icon]) => <button type="button" key={label} data-tour={label === 'SOC Dashboard' ? 'soc-dashboard' : label === 'Alerts' ? 'soc-alerts' : label === 'Incidents' ? 'soc-incidents' : label === 'Logs' ? 'soc-logs' : label === 'Network' ? 'soc-network' : label === 'Access' ? 'soc-access' : 'soc-settings'} aria-current={section === label ? 'page' : undefined} onClick={() => choose(label)}><Icon size={19}/>{label}</button>)}</nav>
           <div className="rw-demo-identity">Demo Analyst<small>Public preview · Simulated environment</small></div>
         </aside>
         <div className="rw-unified-customer-content"><div className="rw-page-transition">

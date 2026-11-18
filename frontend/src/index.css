@@ -4594,6 +4594,7 @@ body:has(.rw-fintech-workspace) .rw-unified-sidebar nav a { font-family: Inter, 
 .rw-demo-banner > div { display: flex; align-items: center; gap: 14px; }
 .rw-demo-banner strong { padding: 3px 9px; background: #c2edce; color: #14251a; border-radius: 5px; letter-spacing: .1em; font-size: 11px; }
 .rw-demo-banner a { color: #d2e7d9; text-decoration: underline; }
+.rw-demo-banner button { min-height: 36px; padding: 8px 13px; border: 1px solid #71917c; border-radius: 18px; color: #d2e7d9; background: transparent; font-size: 12px; cursor: pointer; }
 .rw-security-demo .rw-demo-sidebar { padding: 26px 16px; width: 208px; top: 60px; height: calc(100dvh - 60px); display: flex; flex-direction: column; gap: 28px; }
 .rw-demo-sidebar > a img { width: 175px; height: 65px; object-fit: cover; }
 .rw-demo-sidebar > p { font: 9px Inter, sans-serif; letter-spacing: .12em; color: #8c929c; }

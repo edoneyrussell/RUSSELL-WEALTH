@@ -266,7 +266,7 @@ export default function RussellWealthLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
             </div>
           </div>
-
+          <a href="/demo/customer" className="flex h-[54px] items-center justify-center rounded-[14px] border border-[#858a93] px-[22px] font-['Inter:Semi_Bold'] text-[14px] font-semibold text-[#f2f2f3] transition-colors hover:bg-[#ffffff12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2edce]">Replay customer tour</a>
         </div>
       </div>
       <div data-rw-anchor="rw-security" className="content-stretch flex flex-col h-[810px] items-start overflow-clip pl-[96px] pt-[84px] relative shrink-0 w-full" id="rw-security" data-node-id="51:2689" data-name="Security showcase">
