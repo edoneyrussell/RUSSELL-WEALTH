@@ -138,16 +138,16 @@ const panel = "rounded-2xl border border-[#29323C] bg-[#10161C] p-5 sm:p-6";
 const field = "w-full rounded-xl border border-[#36414D] bg-[#151D25] px-4 py-4 text-[#F3F6F9] outline-none focus:border-[#A7C0D4]";
 const secondaryButton = "rounded-xl border border-[#374451] bg-[#18212A] px-4 py-3 text-sm font-medium transition hover:border-[#A7C0D4] hover:bg-[#263544]";
 
-export default function DemoBanking() {
+export default function DemoBanking({initialMode}:{initialMode?:"DEPOSIT"|"WITHDRAW"}={}) {
   const customerFetch = useCustomerFetch();
   const [data, setData] = useState<BankingData | null>(null);
   const [mode, setMode] = useState<"DEPOSIT" | "WITHDRAW">(
-    window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT"
+    initialMode ?? (window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT")
   );
   useEffect(() => {
     const syncBankingRoute = () => {
       const nextMode =
-        window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT";
+        initialMode ?? (window.location.pathname === "/withdraw" ? "WITHDRAW" : "DEPOSIT");
 
       setMode(nextMode);
       setStep(1);
@@ -158,7 +158,7 @@ export default function DemoBanking() {
 
     window.addEventListener("popstate", syncBankingRoute);
     return () => window.removeEventListener("popstate", syncBankingRoute);
-  }, []);
+  }, [initialMode]);
 
   const [bankCode, setBankCode] = useState("TD");
   const [bankPickerOpen, setBankPickerOpen] = useState(false);

@@ -21,7 +21,7 @@ export function customerDemoResponse(input: string, init?: RequestInit): Respons
   else if (path === '/api/me') data = {authenticated:true,name:'Demo Investor',email:'investor@example.com',role:'CUSTOMER',profile_photo:null};
   else if (path === '/api/me/market-clock') data={exchange_code:'TSX'};
   else if (path === '/api/customer/watchlist') data = {symbols:['AAPL','MSFT','VDY'],items:assets.filter(a=>['AAPL','MSFT','VDY'].includes(a.symbol)).map(a=>({symbol:a.symbol,name:a.name}))};
-  else if (path === '/api/customer/accounts') data={accounts:[{id:1,name:'Demo Personal',account_type:'PERSONAL',management_mode:'SELF_DIRECTED',status:'OPEN',currency:'CAD',cash_balance:'8500.00',invested_value:'41500.00',total_value:'50000.00'}],selected_account_id:1,total_value:'50000.00',types:[]};
+  else if (path === '/api/customer/accounts') data={accounts:[{id:1,name:'Demo Personal',account_type:'PERSONAL',management_mode:'SELF_DIRECTED',status:'OPEN',currency:'CAD',cash_balance:'8500.00',invested_value:'41500.00',total_value:'50000.00'}],selected_account_id:1,total_value:'50000.00',types:[{code:'TFSA',name:'Tax-Free Savings Account',category:'Registered',description:'Choose an account type',modes:['SELF_DIRECTED','MANAGED']},{code:'PERSONAL',name:'Personal',category:'Investing',description:'Choose an account type',modes:['SELF_DIRECTED','MANAGED']}]};
   else if (path === '/api/customer/portfolio') data = {...demoPortfolio, ...(url.searchParams.get('account_id') === 'all' ? {account_id:null, account_name:'All accounts'} : {})};
   else if (path === '/api/customer/trading-status') data = {is_open:false,message:'Read-only demo: trading is disabled.',next_open:null,closes_at:null};
   else if (path === '/api/customer/assets') data = {assets};

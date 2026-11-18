@@ -17,13 +17,14 @@ function navigate(path:string){
   history.pushState({},'',path);window.dispatchEvent(new PopStateEvent('popstate'));
 }
 type Highlight={top:number;left:number;width:number;height:number;target:string};
-export default function WelcomeTour(){
-  const [progress,setProgress]=useState<TourProgress|null>(null);
+export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:boolean;onNavigate?:(path:string)=>void}={}){
+  const [progress,setProgress]=useState<TourProgress|null>(demo?{status:'pending',step:0}:null);
   const [prepared,setPrepared]=useState(false);
   const [error,setError]=useState('');
   const [rect,setRect]=useState<Highlight|null>(null);
   const [readyTarget,setReadyTarget]=useState('');
-  const locationReady=useSyncExternalStore(subscribeToLocationPrompt,locationPromptClosed);
+  const promptClosed=useSyncExternalStore(subscribeToLocationPrompt,locationPromptClosed);
+  const locationReady=demo||promptClosed;
   const dialog=useRef<HTMLDialogElement>(null);
   const panel=useRef<HTMLElement>(null);
   const action=useRef<HTMLButtonElement>(null);
@@ -39,13 +40,13 @@ export default function WelcomeTour(){
     const controller=new AbortController();
     lifetime.current=controller;
     let manuallyReplayed=false;
-    sharedFetch(endpoint,{credentials:'same-origin',signal:controller.signal})
+    if(!demo)sharedFetch(endpoint,{credentials:'same-origin',signal:controller.signal})
       .then(async response=>response.ok?response.json():null)
       .then(value=>{if(!controller.signal.aborted && !manuallyReplayed && isTourProgress(value))setProgress(value);}).catch(()=>{});
     const replay=()=>{manuallyReplayed=true;setError('');setProgress({status:'pending',step:0});};
     window.addEventListener('rw-replay-welcome-tour',replay);
     return()=>{alive.current=false;controller.abort();window.removeEventListener('rw-replay-welcome-tour',replay);};
-  },[]);
+  },[demo]);
 
   useEffect(()=>{
     if(!showing || !locationReady || prepared)return;
@@ -83,7 +84,7 @@ export default function WelcomeTour(){
 
   useLayoutEffect(()=>{
     if(!active || !locationReady || !prepared)return;
-    navigate(step.path);setRect(null);setReadyTarget('');
+    onNavigate(step.path);setRect(null);setReadyTarget('');
     let target:HTMLElement|null=null;
     let stopped=false;
     let attempts=0;
@@ -126,15 +127,15 @@ export default function WelcomeTour(){
     find();
     window.addEventListener('resize',schedule);window.visualViewport?.addEventListener('resize',schedule);
     return()=>{stopped=true;clearTimeout(retry);clearTimeout(scheduled);resize.disconnect();window.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('resize',schedule);};
-  },[active,progress?.step,locationReady,prepared,step]);
+  },[active,progress?.step,locationReady,prepared,step,onNavigate]);
 
   function move(next:TourProgress){
     const previous=progress;
     setError('');setProgress(next);
-    if(next.status==='completed'){navigate('/dashboard');setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}),0);}
+    if(next.status==='completed'){onNavigate('/dashboard');setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}),0);}
     // Steps are local and instant. Only start/exit/finish need a durable write;
     // later logins never resume an old tour automatically.
-    if(next.status==='active' && previous?.status==='active')return;
+    if(demo || (next.status==='active' && previous?.status==='active'))return;
     const owner=lifetime.current;
     writes.current=writes.current.catch(()=>{}).then(async()=>{
       if(!owner || owner.signal.aborted)return;
