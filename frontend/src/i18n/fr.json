@@ -1856,5 +1856,6 @@
   "No unresolved alerts": "Aucune alerte non résolue",
   "No alerts match these filters": "Aucune alerte ne correspond à ces filtres",
   "Successful sign-ins and individual failed attempts are recorded in Logs. Monitoring continues while this page is open.": "Les connexions réussies et les tentatives échouées sont consignées dans les journaux. La surveillance continue tant que cette page est ouverte.",
-  "View security logs": "Voir les journaux de sécurité"
+  "View security logs": "Voir les journaux de sécurité",
+  "Explore the public security demo with fictional data.": "Explorez la démonstration publique de sécurité avec des données fictives."
 }

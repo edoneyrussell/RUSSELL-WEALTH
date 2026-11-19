@@ -4,7 +4,6 @@ import { useUnsavedChanges } from '../experience/useUnsavedChanges';
 import { notifyProfileUpdated } from "../hooks/useAccountProfile";
 import { useContext, useEffect, useState, useRef, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ShieldLock } from 'lucide-react';
 import { logout } from '../auth';
 
 type Account = {
@@ -13,6 +12,7 @@ type Account = {
   email?: string;
   profile_photo?: string | null;
   role?: string;
+  roles?: string[];
 };
 
 const emptyProfile = { password_hint: '', first_name: '', last_name: '', email: '', phone: '', address_line1: '', address_line2: '', city: '', region: '', postal_code: '', country: '' };
@@ -73,12 +73,6 @@ async function readProfileResponse(response: Response) {
 export default function CustomerSettings({ security = false }: { security?: boolean } = {}) {
   const request=useSecurityFetch();
   const demo=useContext(SecurityDemoContext);
-  const [adminNotice, setAdminNotice] = useState(false);
-  const adminDialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (adminNotice) adminDialog.current?.showModal();
-    else adminDialog.current?.close();
-  }, [adminNotice]);
   const [account, setAccount] = useState<Account | null>(null);
   const [uploading, setUploading] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -198,7 +192,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
     .map((part) => part[0].toUpperCase())
     .join('') || 'ER';
 
-  const isAdmin = account?.role === 'SOC_ADMIN';
+  const isAdmin = account?.role === 'SOC_ADMIN' || Boolean(account?.roles?.includes('SOC_ADMIN'));
 
   const handlePhotoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -532,10 +526,10 @@ export default function CustomerSettings({ security = false }: { security?: bool
               </p>
             </a>
           ) : (
-            <button type="button" onClick={() => setAdminNotice(true)} className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left transition hover:border-[#777e89]">
+            <a href="/demo/security" className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left transition hover:border-[#777e89]">
               <h3 className="text-[14px] font-semibold">Security Dashboard</h3>
-              <p className="text-[#8c929c] text-[12px] mt-2">Learn about access to security operations.</p>
-            </button>
+              <p className="text-[#8c929c] text-[12px] mt-2">Explore the public security demo with fictional data.</p>
+            </a>
           )}
         </div>
 
@@ -554,12 +548,6 @@ export default function CustomerSettings({ security = false }: { security?: bool
           </button>
         </div>
       </main>
-      <dialog ref={adminDialog} aria-labelledby="admin-only-title" onCancel={() => setAdminNotice(false)} onClose={() => setAdminNotice(false)} className="m-auto w-[calc(100%_-_40px)] max-w-md rounded-2xl border border-[#465364] bg-[#141b25] p-7 text-[#f5f5f5] shadow-2xl backdrop:bg-black/75">
-        <div className="mb-5 flex size-12 items-center justify-center rounded-xl border border-[#526780] bg-[#243247] text-[#c5d6ed]"><ShieldLock size={25}/></div>
-        <h2 id="admin-only-title" className="text-xl font-semibold">For Russell Wealth admins only</h2>
-        <p className="mt-4 text-sm leading-6 text-[#b4bfce]">This feature is for Russell Wealth admins only. If you want access to this feature, please contact the site administrator.</p>
-        <button type="button" onClick={() => setAdminNotice(false)} className="mt-6 w-full rounded-xl border border-[#647e9e] bg-[#2a3b51] px-4 py-3 text-sm font-medium hover:bg-[#344b68]">Got it</button>
-      </dialog>
     </div>
   );
 }
