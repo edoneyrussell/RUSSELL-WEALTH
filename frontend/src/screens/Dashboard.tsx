@@ -165,7 +165,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto">
             {!demo && createPortal(
               <button
                 type="button"

@@ -211,9 +211,9 @@ export default function PortfolioExperience() {
                 className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full opacity-20 blur-[100px]"
                 style={{ background: "#7998BA" }}
               />
-              <div className="relative grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div>
-                  <div className="flex items-center gap-2">
+              <div className="relative grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className={label}>Total Portfolio Value</span>
                     <select
                       aria-label="Portfolio display currency"
