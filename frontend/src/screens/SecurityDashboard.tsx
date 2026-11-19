@@ -199,7 +199,7 @@ export default function RussellWealthSecurityAnalyticsDashboard() {
         />
       )}
     {!showSecurityLogs && !showSecurityAlerts && <div>
-    <div className="soc-dashboard bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
+    <div data-tour="soc-overview" className="soc-dashboard bg-[#080a0d] content-stretch flex items-start relative size-full" data-node-id="15:2923" data-name="Russell Wealth Security Analytics Dashboard">
       <div className="bg-[#0b0d11] border-[#30343b] border-r border-solid content-stretch flex flex-col gap-[30px] items-start min-h-[1080px] overflow-clip pb-[24px] pt-[27px] px-[24px] relative shrink-0 w-[324px]" data-node-id="15:2924" data-name="Sidebar">
         <div className="h-[78px] overflow-clip relative shrink-0 w-[242px]" data-node-id="15:2925" data-name="Russell Wealth logo">
           <div className="absolute h-[119.2px] left-[-27.8px] top-[-23.8px] w-[297.5px]" data-node-id="15:2926" data-name="Original logo artwork">

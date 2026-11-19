@@ -33,3 +33,5 @@ html[data-rw-welcome-tour-active="true"] .rw-page-transition{animation:none!impo
   .rw-tour-panel progress{grid-column:1 / -1;margin:0}
   .rw-tour-panel footer{grid-column:1 / -1}
 }
+
+html[data-rw-welcome-tour-active="true"] .rw-unified-customer-content::after{content:"";display:block;height:100dvh;pointer-events:none}

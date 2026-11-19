@@ -1,4 +1,4 @@
-import { sharedFetch } from '../experience/sharedFetch';
+import { useSecurityFetch, useSecurityRequest } from '../demo/securityDemo';
 import { useRemoteData } from '../experience/useRemoteData';
 import { useViewState } from '../experience/ViewState';
 import { DataStatus, Skeleton } from '../experience/Feedback';
@@ -6,19 +6,17 @@ import { useState } from 'react';
 import { getLocale } from '../i18n/language';
 type SessionRecord={id:string;name:string;email:string;role:string;device:string;source_ip:string;location:string;location_basis:string;accuracy_m?:number;created_at:string;last_seen_at:string;expires_at:string;is_current:boolean;can_revoke:boolean;protection_reason?:string};
 const input='w-full rounded-lg border border-[#30343b] bg-[#0e1116] px-3 py-2 text-sm text-white';
-async function api<T>(url:string,options:RequestInit={}):Promise<T>{
-  const response=await fetch(url,{credentials:'include',cache:'no-store',...options,headers:{...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});
-  const data=await response.json();if(!response.ok)throw new Error(data.error || 'Unable to load sessions');return data;
-}
 const date=(value:string)=>new Date(value).toLocaleString(getLocale());
 export default function ActiveSessions(){
-  const {data,loading,error,refresh,updatedAt}=useRemoteData<{sessions:SessionRecord[];truncated:boolean}>('/api/security/sessions',sharedFetch,{pollMs:30000,validate:value=>Array.isArray(value?.sessions)});
+  const securityFetch=useSecurityFetch();
+  const api=useSecurityRequest();
+  const {data,loading,error,refresh,updatedAt}=useRemoteData<{sessions:SessionRecord[];truncated:boolean}>('/api/security/sessions',securityFetch,{pollMs:30000,validate:value=>Array.isArray(value?.sessions)});
   const sessions=data?.sessions??[],truncated=data?.truncated??false;
   const [search,setSearch]=useViewState('sessions:search','');
   const [target,setTarget]=useState<SessionRecord|null>(null),[reason,setReason]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[actionError,setActionError]=useState(''),[message,setMessage]=useState('');
   async function revoke(event:React.FormEvent){event.preventDefault();if(!target||busy)return;setBusy(true);setActionError('');try{await api(`/api/security/sessions/${target.id}/revoke`,{method:'POST',body:JSON.stringify({reason:reason.trim(),current_password:password})});setTarget(null);setReason('');setPassword('');setMessage('Session revoked. It can no longer access the account.');void refresh();}catch(err){setActionError(err instanceof Error?err.message:'Unable to revoke session');}finally{setBusy(false);}}
   const filtered=sessions.filter(row=>[row.name,row.email,row.device,row.source_ip,row.location].some(value=>value?.toLowerCase().includes(search.toLowerCase())));
-  return <main className="min-h-screen bg-[#080a0d] p-5 text-white md:p-8">
+  return <main data-tour="soc-sessions" className="min-h-screen bg-[#080a0d] p-5 text-white md:p-8">
     <header className="mb-6 flex flex-wrap justify-between gap-4"><div><p className="text-xs tracking-widest text-[#8c929c]">SECURITY OPERATIONS</p><h1 className="mt-2 text-3xl font-semibold">Active Sessions</h1><p className="mt-2 text-sm text-[#8c929c]">Track signed-in devices and end an individual session.</p></div><button onClick={()=>void refresh()} className="h-fit rounded-lg border border-[#30343b] px-4 py-2 text-sm">Refresh</button></header>
     <div className="mb-5 grid gap-3 sm:grid-cols-3">{[['Tracked sessions',sessions.length],['Accounts',new Set(sessions.map(row=>row.email)).size],['Active in last 5 minutes',sessions.filter(row=>Date.now()-Date.parse(row.last_seen_at)<300000).length]].map(([label,value])=><div key={label} className="rounded-xl border border-[#30343b] bg-[#14171c] p-5"><p className="text-xs text-[#8c929c]">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></div>)}</div>
     <label className="mb-5 block max-w-lg text-sm">Search sessions<input className={`${input} mt-2`} value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search account, device, IP or location"/></label>

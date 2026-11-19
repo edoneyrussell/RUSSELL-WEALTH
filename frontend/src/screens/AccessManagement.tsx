@@ -1,3 +1,4 @@
+import { useSecurityFetch } from '../demo/securityDemo';
 import { Skeleton } from '../experience/Feedback';
 import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
@@ -14,6 +15,7 @@ type Action = { user: Account; kind: 'role' | 'status' | 'delete'; value?: strin
 const control = 'rounded-lg border border-[#34404D] bg-[#18232E] px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40';
 
 export default function AccessManagement() {
+  const securityFetch=useSecurityFetch();
   const [users, setUsers] = useState<Account[]>([]);
   const [currentId, setCurrentId] = useState<number>();
   const [currentSource, setCurrentSource] = useState('');
@@ -53,7 +55,7 @@ export default function AccessManagement() {
     inFlight.current = true;
     setRefreshing(true);
     try {
-      const response = await fetch('/api/security/users', { credentials: 'same-origin', cache: 'no-store', signal });
+      const response = await securityFetch('/api/security/users', { credentials: 'same-origin', cache: 'no-store', signal });
       const data = await response.json().catch(() => ({ error: 'The server could not complete the request. Please try again.' }));
       if (!response.ok) throw new Error(data.error || 'Unable to load accounts');
       if (signal?.aborted) return;
@@ -69,7 +71,7 @@ export default function AccessManagement() {
       inFlight.current = false;
       if (!signal?.aborted) { setLoading(false); setRefreshing(false); }
     }
-  }, []);
+  }, [securityFetch]);
   useEffect(() => {
     if (action || busy) return;
     const controller = new AbortController();
@@ -99,7 +101,7 @@ export default function AccessManagement() {
     try {
       const change = action.kind === 'delete' ? {}
         : action.kind === 'role' ? { role: action.value } : { account_status: action.value };
-      const response = await fetch(`/api/security/users/${action.user.id}?source=${encodeURIComponent(action.user.source)}`, {
+      const response = await securityFetch(`/api/security/users/${action.user.id}?source=${encodeURIComponent(action.user.source)}`, {
         method: action.kind === 'delete' ? 'DELETE' : 'PATCH',
         credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...change, current_password: confirmation }),
       });
@@ -127,7 +129,7 @@ export default function AccessManagement() {
   const uniqueAccounts = new Set(users.map(user => user.email.toLowerCase())).size;
   const activeAdmins = new Set(users.filter(user => user.role === 'SOC_ADMIN' && user.account_status === 'ACTIVE').map(user => user.email.toLowerCase())).size;
   return (
-    <main className="rw-access-management min-h-screen bg-[#090C10] p-5 text-[#F0F3F7] sm:p-8">
+    <main data-tour="soc-access" className="rw-access-management min-h-screen bg-[#090C10] p-5 text-[#F0F3F7] sm:p-8">
       <div className="mx-auto max-w-7xl">
         <p className="text-xs font-semibold tracking-[0.2em] text-[#91A9BA]">RUSSELL WEALTH / SOC OPERATIONS</p>
         <div className="rw-access-heading mt-5 flex items-center gap-4">

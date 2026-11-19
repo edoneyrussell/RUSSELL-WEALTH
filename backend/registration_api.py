@@ -112,6 +112,13 @@ def _login_registered_customer(db, email):
     log_security_event(user['id'], 'LOGIN_SUCCESS', request.remote_addr, 'INFO',
                        f'Account created and signed in for {email}', account_email=email)
     session['welcome_tour_first_login']=True
+    # Registration signs the customer in too; apply the same SOC notification rule.
+    from login_notifications import send_login_notification
+    from flask import current_app
+    try:
+        send_login_notification(email, request.remote_addr)
+    except Exception:
+        current_app.logger.exception("Login alert failed")
 
 
 
@@ -134,6 +141,14 @@ def _ensure_investment_account(db, email):
         SELECT ?, 'Investment Portfolio', 0
         WHERE NOT EXISTS (
             SELECT 1 FROM investment_accounts WHERE user_id=?
+        )
+    """, (user_id, user_id))
+    db.execute("""
+        INSERT INTO investment_accounts
+            (user_id, account_name, cash_balance_cents, account_type, management_mode, status)
+        SELECT ?, 'TFSA', 0, 'TFSA', 'SELF_DIRECTED', 'OPEN'
+        WHERE NOT EXISTS (
+            SELECT 1 FROM investment_accounts WHERE user_id=? AND account_type='TFSA'
         )
     """, (user_id, user_id))
 

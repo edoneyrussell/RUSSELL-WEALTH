@@ -17,9 +17,11 @@ function navigate(path:string){
   history.pushState({},'',path);window.dispatchEvent(new PopStateEvent('popstate'));
 }
 type Highlight={top:number;left:number;width:number;height:number;target:string};
-export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:boolean;onNavigate?:(path:string)=>void}={}){
+type TourStep={path:string;target:string;title:string;body:string};
+const customerIntroduction='Take a guided walkthrough of accounts, investing, markets, watchlists, transfers, and settings. Read each step and choose Next. You can skip now and replay the tour from Settings anytime.';
+export default function WelcomeTour({demo=false,onNavigate=navigate,stepList=welcomeSteps,introduction=customerIntroduction,screensReady=false,homePath='/dashboard'}:{demo?:boolean;onNavigate?:(path:string)=>void;stepList?:readonly TourStep[];introduction?:string;screensReady?:boolean;homePath?:string}={}){
   const [progress,setProgress]=useState<TourProgress|null>(demo?{status:'pending',step:0}:null);
-  const [prepared,setPrepared]=useState(false);
+  const [prepared,setPrepared]=useState(screensReady);
   const [error,setError]=useState('');
   const [rect,setRect]=useState<Highlight|null>(null);
   const [readyTarget,setReadyTarget]=useState('');
@@ -33,7 +35,7 @@ export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:bool
   const lifetime=useRef<AbortController|null>(null);
   const showing=progress?.status==='pending'||progress?.status==='active';
   const active=progress?.status==='active';
-  const step=welcomeSteps[progress?.step??0];
+  const step=stepList[progress?.step??0];
 
   useEffect(()=>{
     alive.current=true;
@@ -98,10 +100,12 @@ export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:bool
       const screenHeight=viewport?.height??innerHeight;
       const screenWidth=viewport?.width??innerWidth;
       const ceiling=panel.current?.getBoundingClientRect().top??screenHeight-360;
-      const start=Math.max(12,Math.min(88,ceiling/4));
+      let scrollRoot=target.parentElement;
+      while(scrollRoot && !(/auto|scroll/.test(getComputedStyle(scrollRoot).overflowY) && scrollRoot.scrollHeight>scrollRoot.clientHeight))scrollRoot=scrollRoot.parentElement;
+      const start=Math.max((scrollRoot?.getBoundingClientRect().top??0)+12,Math.min(88,ceiling/4));
       const bounds=target.getBoundingClientRect();
-      // One deliberate positioning operation, only when layout actually moves.
-      if(Math.abs(bounds.top-start)>2){window.scrollBy({top:bounds.top-start,behavior:'instant'});}
+      // SOC workspaces scroll inside their content panel; customer pages may scroll the window.
+      if(Math.abs(bounds.top-start)>2){(scrollRoot??window).scrollBy({top:bounds.top-start,behavior:'instant'});}
       const box=target.getBoundingClientRect();
       const top=Math.max(8,box.top-5),left=Math.max(8,box.left-5);
       const next={top,left,width:Math.max(0,Math.min(screenWidth-8,box.right+5)-left),
@@ -132,7 +136,7 @@ export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:bool
   function move(next:TourProgress){
     const previous=progress;
     setError('');setProgress(next);
-    if(next.status==='completed'){onNavigate('/dashboard');setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}),0);}
+    if(next.status==='completed'){onNavigate(homePath);setTimeout(()=>window.scrollTo({top:0,behavior:'instant'}),0);}
     // Steps are local and instant. Only start/exit/finish need a durable write;
     // later logins never resume an old tour automatically.
     if(demo || (next.status==='active' && previous?.status==='active'))return;
@@ -150,16 +154,16 @@ export default function WelcomeTour({demo=false,onNavigate=navigate}:{demo?:bool
   return createPortal(<dialog ref={dialog} className="rw-tour" aria-labelledby="rw-tour-title" aria-describedby="rw-tour-description" onCancel={event=>{event.preventDefault();if(progress)move({status:'skipped',step:progress.step});}}>
     {rect && rect.target===step.target && active && <div aria-hidden="true" className="rw-tour-highlight" data-tour-target={rect.target} style={{top:rect.top,left:rect.left,width:rect.width,height:rect.height}}/>}
     <section ref={panel} className="rw-tour-panel">
-      <div className="rw-tour-eyebrow">{active?t('Welcome tour · {0} of {1}').replace('{0}',String((progress?.step??0)+1)).replace('{1}',String(welcomeSteps.length)):t('WELCOME TO RUSSELL WEALTH')}</div>
+      <div className="rw-tour-eyebrow">{active?t('Welcome tour · {0} of {1}').replace('{0}',String((progress?.step??0)+1)).replace('{1}',String(stepList.length)):t('WELCOME TO RUSSELL WEALTH')}</div>
       <h2 id="rw-tour-title">{t(active?step.title:'Let’s show you around')}</h2>
-      <p id="rw-tour-description">{t(active?step.body:'Take a guided walkthrough of accounts, investing, markets, watchlists, transfers, and settings. Read each step and choose Next. You can skip now and replay the tour from Settings anytime.')}</p>
+      <p id="rw-tour-description">{t(active?step.body:introduction)}</p>
       {!prepared && showing && <p className="rw-tour-hint" role="status">{t('Preparing your walkthrough…')}</p>}
       {error && <p className="rw-tour-error" role="alert">{t(error)}</p>}
-      {active && <progress aria-label={t('Welcome tour progress')} value={(progress?.step??0)+1} max={welcomeSteps.length}/>}
+      {active && <progress aria-label={t('Welcome tour progress')} value={(progress?.step??0)+1} max={stepList.length}/>}
       <footer>
         <button type="button" onClick={()=>move({status:'skipped',step:progress?.step??0})}>{t(active?'Exit tour':'Skip for now')}</button>
         {active && (progress?.step??0)>0 && <button type="button" onClick={()=>move({status:'active',step:(progress?.step??1)-1})}>{t('Back')}</button>}
-        <button ref={action} type="button" className="rw-tour-next" disabled={!prepared || (active && readyTarget!==step.target && !error)} onClick={()=>move(!active?{status:'active',step:0}:(progress?.step??0)===welcomeSteps.length-1?{status:'completed',step:welcomeSteps.length-1}:{status:'active',step:(progress?.step??0)+1})}>{t(!active?'Show me around':(progress?.step??0)===welcomeSteps.length-1?'Finish tour':'Next')}</button>
+        <button ref={action} type="button" className="rw-tour-next" disabled={!prepared || (active && readyTarget!==step.target && !error)} onClick={()=>move(!active?{status:'active',step:0}:(progress?.step??0)===stepList.length-1?{status:'completed',step:stepList.length-1}:{status:'active',step:(progress?.step??0)+1})}>{t(!active?'Show me around':(progress?.step??0)===stepList.length-1?'Finish tour':'Next')}</button>
       </footer>
     </section>
   </dialog>,document.body);

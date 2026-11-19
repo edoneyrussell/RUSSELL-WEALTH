@@ -1,3 +1,4 @@
+import EmptyState, { emptyActionClass } from '../components/EmptyState';
 import { Skeleton, DataStatus } from '../experience/Feedback';
 import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
@@ -544,12 +545,14 @@ export default function PortfolioExperience() {
                   );
                 })}
 
-                {filtered.length === 0 && (
-                  <div className="py-12 text-center text-sm text-[#9AA8B7]">
-                    {holdings.length === 0
-                      ? "No holdings yet. Open Trade to explore investments."
-                      : "No holdings match your filters."}
-                  </div>
+                {!error && filtered.length === 0 && (
+                  <EmptyState title={holdings.length === 0 ? "No investments yet" : "No holdings match your filters"}
+                    description={holdings.length === 0 ? "Add simulated funds, then explore the markets to find your first investment. Your holdings will appear here after a purchase." : "Try another search or reset your filters to see your holdings."}>
+                    {holdings.length === 0 ? <>
+                      <button className={emptyActionClass} onClick={() => navigate('/deposit')}>Add funds</button>
+                      <button className={emptyActionClass} onClick={() => navigate('/markets')}>Explore markets</button>
+                    </> : <button className={emptyActionClass} onClick={() => { setSearch(''); setFilter('All'); }}>Reset filters</button>}
+                  </EmptyState>
                 )}
               </div>
 

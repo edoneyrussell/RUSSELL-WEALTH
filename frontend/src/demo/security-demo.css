@@ -1,0 +1,10 @@
+/* Fit the real SOC workspace inside the public preview's own sidebar. */
+.rw-security-demo [data-name="Live alerts and global activity"],
+.rw-security-demo [data-name="Incident overview and threat trends"],
+.rw-security-demo [data-name="Coverage and response operations"]{display:grid!important;grid-template-columns:minmax(0,1fr);overflow:visible!important}
+.rw-security-demo [data-name="Real-time alerts"]{width:100%!important;min-width:0}
+.rw-security-demo [data-name="Global threat activity"]{width:100%;height:360px!important;min-width:0;flex:none!important}
+.rw-security-demo [data-name="Global threat activity"]>div:first-child{flex-wrap:wrap;gap:8px}
+.rw-security-demo [data-name="Global threat activity"]>.flex-1{min-height:200px}
+.rw-security-demo .rw-unified-customer-content{min-width:0}
+@media(min-width:1600px){.rw-security-demo [data-name="Live alerts and global activity"]{grid-template-columns:minmax(0,1.8fr) minmax(320px,1fr)}}

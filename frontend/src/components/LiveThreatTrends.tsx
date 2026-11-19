@@ -44,7 +44,7 @@ export default function LiveThreatTrends({ trends = [], unavailable = false }: P
   );
 
   return (
-    <div className="w-full flex flex-col gap-3">
+    <div data-tour="soc-trends" className="w-full flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h3 className="text-[#f5f5f5] text-[20px] font-semibold">

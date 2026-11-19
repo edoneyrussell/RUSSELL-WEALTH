@@ -1,3 +1,4 @@
+import EmptyState, { emptyActionClass } from '../components/EmptyState';
 import { Skeleton, DataStatus } from '../experience/Feedback';
 import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
@@ -132,9 +133,13 @@ export default function Transactions() {
               Unable to load transaction history.
             </p>
           ) : entries.length === 0 ? (
-            <p className="p-8 text-[#b4b8c0]">
-              {search ? 'No transactions match your search.' : 'No transactions recorded for this account selection.'}
-            </p>
+            <EmptyState title={search ? 'No transactions match your search' : 'No transactions yet'}
+              description={search ? 'Try another search or view your complete transaction history.' : 'Your simulated trades, deposits, and withdrawals will appear here. Choose All accounts to include activity across your accounts.'}>
+              {search ? <a className={emptyActionClass} href="/transactions">Show all transactions</a> : <>
+                <a className={emptyActionClass} href="/deposit">Add funds</a>
+                <a className={emptyActionClass} href="/markets">Explore markets</a>
+              </>}
+            </EmptyState>
           ) : (
             <div className="divide-y divide-[#30343b]">
               {groups.map(group => {

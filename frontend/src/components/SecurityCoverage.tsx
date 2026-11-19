@@ -88,8 +88,8 @@ export default function SecurityCoverage() {
       title: 'Authentication',
       icon: LockKeyhole,
       value: data?.authentication,
-      href: demo ? '/demo/security?panel=logs&search=LOGIN' : '/security/sessions',
-      action: demo ? 'View demo sign-in events' : 'Open Active Sessions',
+      href: demo ? '/demo/security?section=Active%20Sessions' : '/security/sessions',
+      action: 'Open Active Sessions',
       description: 'Review signed-in devices and revoke an individual session.'
     },
     {
@@ -111,7 +111,7 @@ export default function SecurityCoverage() {
   ];
 
   return (
-    <section className="rw-security-coverage bg-[#14171c] border border-[#30343b] rounded-[14px] p-[18px] w-full lg:flex-1 min-w-0">
+    <section data-tour="soc-coverage" className="rw-security-coverage bg-[#14171c] border border-[#30343b] rounded-[14px] p-[18px] w-full lg:flex-1 min-w-0">
       <div className="flex items-center justify-between gap-3 mb-4">
         <h3 className="text-[#f5f5f5] text-[20px] font-semibold">
           Security Coverage

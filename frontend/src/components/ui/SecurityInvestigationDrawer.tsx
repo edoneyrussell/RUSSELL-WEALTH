@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { SecurityDemoContext } from '../../demo/securityDemo';
+import { useContext, useEffect } from 'react';
 import type { SecurityEvent } from '../../hooks/useSecurityOverview';
 
 type Props = {
@@ -10,6 +11,7 @@ export default function SecurityInvestigationDrawer({
   event,
   onClose,
 }: Props) {
+  const demo=useContext(SecurityDemoContext);
   useEffect(() => {
     if (!event) return;
 
@@ -29,7 +31,7 @@ export default function SecurityInvestigationDrawer({
     ['Severity', event.severity],
     ['Account', event.email ?? 'Unknown'],
     ['Location', event.location ?? 'Location unavailable'],
-    ['Location source', event.location_basis === 'BROWSER_REPORTED' ? 'Device-reported location' : event.location_basis === 'IP_APPROXIMATE' ? 'Approximate public-IP location' : 'Location unavailable'],
+    ['Location source', event.location_basis === 'BROWSER_REPORTED' ? 'Device-reported location' : event.location_basis === 'IP_APPROXIMATE' ? 'Approximate public-IP location' : event.location_basis === 'DEMO' ? 'Illustrative demo location' : 'Location unavailable'],
     ...(event.accuracy_m != null ? [['Reported accuracy', `±${Math.round(event.accuracy_m)} m`]] : []),
     ['Source IP', event.source_ip ?? 'Unknown'],
     ['Recorded time', event.created_at],
@@ -70,7 +72,7 @@ export default function SecurityInvestigationDrawer({
 
         <div className="rw-investigation-footer">
           <span className="rw-investigation-dot" />
-          Event retrieved from the security database
+          {demo?'Fictional event · Public demo dataset':'Event retrieved from the security database'}
         </div>
       </aside>
     </div>

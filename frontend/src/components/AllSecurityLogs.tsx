@@ -124,7 +124,7 @@ export default function AllSecurityLogs({ onClose }: Props) {
   }, [page, eventType, severity, search]);
 
   return (
-    <div className="rw-security-logs fixed inset-0 z-[5000] bg-[#080a0d] overflow-y-auto p-6 md:p-10">
+    <div data-tour="soc-logs" className="rw-security-logs fixed inset-0 z-[5000] bg-[#080a0d] overflow-y-auto p-6 md:p-10">
       <div className="max-w-[1400px] mx-auto space-y-6">
         <div className="rw-security-logs-header flex items-center justify-between gap-4">
           <div>

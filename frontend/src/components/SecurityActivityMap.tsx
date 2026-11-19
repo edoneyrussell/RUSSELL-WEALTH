@@ -61,7 +61,7 @@ export default function SecurityActivityMap({events, selectedEventId}: Props) {
     const key = `${event.latitude},${event.longitude}`;
     groups.set(key, [...(groups.get(key) ?? []), event]);
   }
-  return <div className="relative h-full min-h-[180px] w-full overflow-hidden rounded-[10px] bg-[#10151b]">
+  return <div data-tour="soc-map" className="relative h-full min-h-[180px] w-full overflow-hidden rounded-[10px] bg-[#10151b]">
     <MapContainer center={[20, 0]} zoom={0} minZoom={0} scrollWheelZoom style={{height:'100%',width:'100%',background:'#10151b'}}>
       <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
       <FitActivity points={located}/>

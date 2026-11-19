@@ -319,6 +319,7 @@ export default function RussellWealthMobileLandingPage() {
               </div>
             </div>
           </div>
+          <a href="/demo/security" className="flex min-h-[50px] items-center justify-center rounded-[14px] border border-[#858a93] px-[22px] py-3 font-semibold text-[14px] text-[#f2f2f3] transition-colors hover:bg-[#ffffff12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2edce]">Replay customer tour</a>
 
         </div>
       </div>

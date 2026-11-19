@@ -1,4 +1,4 @@
-import { sharedFetch } from '../experience/sharedFetch';
+import { useSecurityRequest } from '../demo/securityDemo';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getLocale } from "../i18n/language";
@@ -54,34 +54,6 @@ const control =
 const action =
   "rounded-lg bg-[#8f202b] px-4 py-2 text-sm font-medium text-white disabled:opacity-40";
 
-async function request<T>(
-  url: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const response = await sharedFetch(url, {
-    credentials: "include",
-    cache: "no-store",
-    ...options,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    let message = `Request failed (${response.status})`;
-    try {
-      const body = await response.json();
-      if (typeof body.error === "string") message = body.error;
-    } catch {
-      // Keep HTTP error.
-    }
-    throw new Error(message);
-  }
-
-  return response.json() as Promise<T>;
-}
-
 function dateLabel(value: unknown): string {
   if (typeof value !== "string" || !value) return "—";
   const normalized = value.includes("T")
@@ -124,6 +96,7 @@ function Badge({ value }: { value: string }) {
 }
 
 export default function RussellWealthIncidentInvestigation() {
+  const request=useSecurityRequest();
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(() => { const id=Number(new URLSearchParams(window.location.search).get("incident")); return Number.isInteger(id) && id>0 ? id : null; });
   const [detail, setDetail] = useState<DetailResponse | null>(null);
@@ -159,7 +132,7 @@ export default function RussellWealthIncidentInvestigation() {
     } finally {
       setLoading(false);listPending.current=false;
     }
-  }, []);
+  }, [request]);
 
   const refreshDetail = useCallback(async (id: number) => {
     if(detailPending.current===id)return;detailPending.current=id;
@@ -175,7 +148,7 @@ export default function RussellWealthIncidentInvestigation() {
     } catch (err) {
       if (activeId.current === id) setDetailError(err instanceof Error ? err.message : "Unable to load incident details");
     } finally {if(detailPending.current===id)detailPending.current=null;}
-  }, []);
+  }, [request]);
 
   useEffect(() => {
     void refreshList();
@@ -381,7 +354,7 @@ export default function RussellWealthIncidentInvestigation() {
               <div className="grid min-w-0 gap-5 2xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="min-w-0 space-y-5">
                   <section className={panel}>
-                    <h2 className="text-lg font-semibold">Investigation timeline</h2>
+                    <h2 data-tour="soc-timeline" className="text-lg font-semibold">Investigation timeline</h2>
                     <p className={`mt-2 mb-5 text-sm ${muted}`}>Related logins, account changes, alerts, notes, and response actions in chronological order.</p>
                     {!investigation && <p className={muted}>Loading related evidence...</p>}
                     {investigation?.truncated && <p role="status" className="mb-4 text-sm text-[#f5b942]">This timeline shows the most recent evidence. Older records remain in security logs.</p>}
@@ -457,6 +430,7 @@ export default function RussellWealthIncidentInvestigation() {
 function ResponsePanel({ incidentId, status, evidence, onComplete }: {
   incidentId: number; status: string; evidence: Investigation | null; onComplete: () => Promise<void>;
 }) {
+  const request=useSecurityRequest();
   const [responseAction, setResponseAction] = useState("UPDATE_STATUS");
   const [nextStatus, setNextStatus] = useState(status);
   const [accountId, setAccountId] = useState("");
@@ -490,7 +464,7 @@ function ResponsePanel({ incidentId, status, evidence, onComplete }: {
       await onComplete();
     } finally { if (mounted.current) setPending(false); }
   }
-  return <aside className={`${panel} h-fit min-w-0 2xl:sticky 2xl:top-5`}>
+  return <aside data-tour="soc-response" className={`${panel} h-fit min-w-0 2xl:sticky 2xl:top-5`}>
     <h2 className="text-lg font-semibold">Response panel</h2>
     <p className={`mt-2 text-sm ${muted}`}>Every response records the analyst, time, reason, and outcome.</p>
     <form onSubmit={submit} className="mt-5 space-y-4">

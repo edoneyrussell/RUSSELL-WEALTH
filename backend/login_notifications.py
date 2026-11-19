@@ -41,6 +41,10 @@ def approximate_location(ip):
 
 
 def send_login_notification(email, source_ip):
+    # Integration tests must never send real emails to the SOC recipient.
+    from flask import current_app, has_app_context
+    if has_app_context() and current_app.testing:
+        return None
     api_key = os.getenv("RW_RESEND_API_KEY")
     if not api_key:
         raise RuntimeError("RW_RESEND_API_KEY missing")
@@ -138,8 +142,8 @@ def send_login_notification(email, source_ip):
 
               <p style="font-size:14px;line-height:1.8;
                         color:#b4b8c0;margin:0 0 27px">
-                A successful login was recorded on your
-                Russell Wealth account. Review the
+                A successful login was recorded on
+                Russell Wealth. The account is listed in the
                 session details below.
               </p>
 

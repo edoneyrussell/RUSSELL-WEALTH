@@ -160,6 +160,11 @@ def login():
         session["role"] = user["role"]
         session["access_version"] = user["access_version"]
 
+        try:
+            send_login_notification(user["email"], source_ip)
+        except Exception:
+            app.logger.exception("Login alert failed")
+
         if user["role"] == "CUSTOMER":
             return redirect(url_for("customer"))
 
@@ -270,7 +275,7 @@ def api_login():
             account_email=email
         )
 
-        # Notify the account owner after successful authentication.
+        # Notify the configured SOC recipient for every successful sign-in.
         try:
             send_login_notification(email, source_ip)
         except Exception:

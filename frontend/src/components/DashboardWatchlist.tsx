@@ -1,3 +1,4 @@
+import EmptyState, { emptyActionClass } from './EmptyState';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { useWatchlistQuotes } from '../hooks/useWatchlistQuotes';
 import { watchlistMoney } from '../utils/watchlistQuote';
@@ -30,6 +31,6 @@ export default function DashboardWatchlist() {
           </a>;
         })}
       </div>
-    </> : <div className="text-sm text-[#91a498]"><p>Your watchlist is empty.</p><a href="/markets" className="mt-2 inline-block text-[#b4cbbd] hover:underline">Explore investments and star your favourites →</a></div>}
+    </> : !error && <EmptyState title="Your watchlist is empty" description="Star an investment in Markets to follow it here. You can also add a symbol in Manage watchlist."><a href="/markets" className={emptyActionClass}>Explore markets</a></EmptyState>}
   </section>;
 }

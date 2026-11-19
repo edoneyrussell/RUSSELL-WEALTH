@@ -1,3 +1,4 @@
+import { demoSecurityLink } from '../demo/securityDemoNavigation';
 import { t } from '../i18n/language.ts';
 import { useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -12,6 +13,7 @@ const pages: Result[] = [
   { key:'alerts',kind:'Tab',title:'Security Alerts',description:'Detections, warnings and alert review',href:'/security?panel=alerts' },
   { key:'incidents',kind:'Tab',title:'Incidents',description:'Investigations, evidence and analyst notes',href:'/security/incidents' },
   { key:'network',kind:'Tab',title:'Network & Infrastructure',description:'Assets, services, health and monitoring',href:'/security/network' },
+  { key:'sessions',kind:'Tab',title:'Active Sessions',description:'Signed-in devices, locations and session revocation',href:'/security/sessions' },
   { key:'settings',kind:'Tab',title:'Admin Settings',description:'Profile, account settings and dashboards',href:'/admin/settings' },
   ...[
     ['Render','Flask backend API'], ['Neon','PostgreSQL database'], ['Vercel','React frontend website'],
@@ -33,7 +35,7 @@ export default function SocSearch() {
   const root = useRef<HTMLDivElement>(null), input = useRef<HTMLInputElement>(null), popup = useRef<HTMLDivElement>(null);
   const listId = useId();
   const term=query.trim();
-  const tabs=pages.filter(row => (!demo || ['overview','logs','alerts'].includes(row.key)) && `${row.title} ${row.description} ${t(row.title)} ${t(row.description)}`.toLowerCase().includes(term.toLowerCase())).map(row=>demo ? {...row,href:row.href.replace('/security','/demo/security')} : row);
+  const tabs=pages.filter(row=>`${row.title} ${row.description} ${t(row.title)} ${t(row.description)}`.toLowerCase().includes(term.toLowerCase())).map(row=>demo?{...row,href:demoSecurityLink(row.href)??'/demo/security'}:row);
   const results=[...tabs,...(data.query===term ? data.results : [])];
   useEffect(()=>{
     if (!open || !term) return;
@@ -62,7 +64,7 @@ export default function SocSearch() {
     return ()=>{window.removeEventListener('resize',update);window.removeEventListener('scroll',update,true);document.removeEventListener('pointerdown',outside);};
   },[open]);
   useEffect(()=>{if(active>=0) document.getElementById(`${listId}-${active}`)?.scrollIntoView({block:'nearest'});},[active,listId]);
-  const go=(row:Result | undefined)=>{if(row) window.location.assign(row.href);};
+  const go=(row:Result | undefined)=>{if(row){if(demo){setOpen(false);window.dispatchEvent(new CustomEvent('rw-demo-security-navigate',{detail:{path:row.href}}));}else window.location.assign(row.href);}};
   return <div ref={root} data-name="Search" className="flex h-12 w-[380px] max-w-full shrink-0 items-center gap-3 rounded-lg border border-[#30343b] bg-[#1a1d22] px-3">
     <Search size={19} aria-hidden="true" className="shrink-0 text-[#9faabb]" />
     <input ref={input} type="search" role="combobox" aria-label="Search SOC" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listId : undefined} aria-activedescendant={open && active>=0 && results[active] ? `${listId}-${active}` : undefined}

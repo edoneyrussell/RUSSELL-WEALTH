@@ -1,3 +1,4 @@
+import EmptyState, { emptyActionClass } from './EmptyState';
 import { Skeleton } from '../experience/Feedback';
 import { useViewState } from '../experience/ViewState';
 import { getLocale } from '../i18n/language.ts';
@@ -115,6 +116,7 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
   const [alertId, setAlertId] = useState(() => new URLSearchParams(window.location.search).get('alert') || '');
   const [data, setData] = useState<ResponseData | null>(null);
   const [error, setError] = useState('');
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [actionError,setActionError]=useState('');
   const [saving, setSaving] = useState<number | null>(null);
   useEffect(() => {
@@ -126,7 +128,7 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
         const params = new URLSearchParams({page:String(page), per_page:'25', severity, status, search, alert:alertId, assignment, escalated:escalatedOnly?'1':''});
         const response = await securityFetch(`/api/security/alerts?${params}`, {credentials:'include', cache:'no-store', signal:controller.signal});
         if (!response.ok) throw new Error('Unable to load alerts');
-        setData(await response.json()); setError('');
+        setData(await response.json()); setLastChecked(new Date()); setError('');
       } catch (e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Request failed'); } finally {pending=false;}
     }
     load();
@@ -162,7 +164,7 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
       setRevision(value=>value+1);window.dispatchEvent(new Event('security-alerts-cleared'));
     }catch(err){setActionError(err instanceof Error?err.message:'Update failed');}finally{setSaving(null);}
   }
-  return <main className="rw-alert-workspace p-4 md:p-8 min-h-screen text-[#f5f5f5]">
+  return <main data-tour="soc-alerts" className="rw-alert-workspace p-4 md:p-8 min-h-screen text-[#f5f5f5]">
     <header className="flex flex-wrap justify-between gap-4 mb-6">
       <div><p className="text-xs text-[#9aa39e] mb-2">RUSSELL WEALTH / SECURITY</p><h1 className="text-3xl font-semibold">Security alerts</h1>
       <p className="text-sm text-[#9aa39e] mt-2">Recorded detections · Regina time (CST) · Refreshes every 10 seconds</p></div>
@@ -213,7 +215,14 @@ export default function SecurityAlerts({ onClose, initialEscalated=false }: Prop
         </article>;
       })}
       {!data && !error && <p>Loading alerts…</p>}
-      {data?.logs.length===0 && <p className="rw-alert-card text-[#aeb9b2]">No alerts match these filters. Successful sign-ins and individual failed attempts are recorded in Logs.</p>}
+      {!error && data?.logs.length===0 && <div className="rw-alert-card">
+        <EmptyState title={status==='ACTIVE' && data.active_count===0 ? 'No unresolved alerts' : 'No alerts match these filters'}
+          description="Successful sign-ins and individual failed attempts are recorded in Logs. Monitoring continues while this page is open.">
+          <button className={emptyActionClass} onClick={() => { window.dispatchEvent(new Event('rw-open-security-logs')); }}>View security logs</button>
+          <button className={emptyActionClass} onClick={() => { setSeverity(''); setStatus('ACTIVE'); setAssignment('all'); setEscalatedOnly(false); setSearch(''); setAlertId(''); setPage(1); setRevision(value=>value+1); }}>Reset filters</button>
+        </EmptyState>
+        {lastChecked && <p className="pb-4 text-center text-xs text-[#819087]">Last successful check: {lastChecked.toLocaleString(getLocale())}</p>}
+      </div>}
     </div>
     <footer className="flex flex-wrap items-center justify-between gap-4 mt-6 text-sm"><span>Page {page} of {data?.pagination.total_pages || 1}</span><div className="flex gap-3"><button className="rw-alert-select" disabled={page<=1} onClick={()=>setPage(p=>p-1)}>Previous</button><button className="rw-alert-select" disabled={page>=(data?.pagination.total_pages||1)} onClick={()=>setPage(p=>p+1)}>Next</button></div></footer>
   </main>;

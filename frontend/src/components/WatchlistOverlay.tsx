@@ -1,3 +1,4 @@
+import EmptyState, { emptyActionClass } from './EmptyState';
 import { useCustomerFetch, customerDemoNavigate } from "../demo/customerDemo";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Plus, RefreshCw, Search, Star, Trash2, X } from "lucide-react";
@@ -348,14 +349,7 @@ export default function WatchlistOverlay() {
           </div>
 
           {watchlistLoading ? <p className="p-6 text-sm text-[#91A1B4]">Loading your saved watchlist…</p> : symbols.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <p className="font-['Lora'] text-2xl">
-                Your watchlist is empty
-              </p>
-              <p className="mt-3 text-sm text-[#91A1B4]">
-                Add a stock symbol above to start monitoring it.
-              </p>
-            </div>
+            !watchlistError && <EmptyState title="Your watchlist is empty" description="Star an investment in Markets to follow it here. You can also add a symbol above."><button className={emptyActionClass} onClick={() => { if (customerDemoNavigate('/markets')) return; window.history.pushState({}, '', '/markets'); window.dispatchEvent(new PopStateEvent('popstate')); }}>Explore markets</button></EmptyState>
           ) : (
             <div className="divide-y divide-[#2B333D]">
               {symbols.map(symbol => {

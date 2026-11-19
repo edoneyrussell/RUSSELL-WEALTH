@@ -1,8 +1,8 @@
-import { sharedFetch } from '../experience/sharedFetch';
+import { SecurityDemoContext, useSecurityFetch } from '../demo/securityDemo';
 import { useRemoteData } from '../experience/useRemoteData';
 import { DataStatus, Skeleton } from '../experience/Feedback';
 import { getLocale } from '../i18n/language';
-import { useState } from "react";
+import { useContext, useState } from "react";
 
 type Deployment = {provider?: string; commit?: string; branch?: string; environment?: string; built_at?: string; uncommitted_changes?: boolean | null};
 
@@ -41,8 +41,10 @@ const serviceDetails: Record<string, { description: string; url: string }> = {
 };
 
 export default function NetworkInfrastructure() {
+  const request=useSecurityFetch();
+  const demo=useContext(SecurityDemoContext);
   const [selectedService, setSelectedService] = useState(() => new URLSearchParams(window.location.search).get("service"));
-  const {data,error,loading,refresh,updatedAt}=useRemoteData<InfrastructureResponse>('/api/security/infrastructure',sharedFetch,{pollMs:60000,validate:value=>Boolean(value?.success&&Array.isArray(value.services))});
+  const {data,error,loading,refresh,updatedAt}=useRemoteData<InfrastructureResponse>('/api/security/infrastructure',request,{pollMs:60000,validate:value=>Boolean(value?.success&&Array.isArray(value.services))});
 
   const services = data?.services ?? [];
   const color = (status?: string) => status==='online' ? '#5ee2a0' : status==='offline' ? '#ff737d' : status==='degraded' ? '#f6c86b' : '#525965';
@@ -61,7 +63,7 @@ export default function NetworkInfrastructure() {
               Network Infrastructure
             </h1>
             <p className="mt-2 text-sm text-[#8c929c]">
-              Live connectivity and response monitoring across production services.
+              {demo?'Illustrative service checks · No production monitoring in this public demo.':'Live connectivity and response monitoring across production services.'}
             </p>
           </div>
           <div className="rounded-full border border-[#30343b] bg-[#14171c] px-4 py-2 text-xs text-[#b4b8c0]">
@@ -73,7 +75,7 @@ export default function NetworkInfrastructure() {
 
 
         <section className="rounded-2xl border border-[#30343b] bg-[#14171c] p-5 md:p-6">
-          <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-lg font-semibold">Live connection diagram</h2><p className="mt-1 text-xs text-[#8c929c]">Your application’s path from visitor to database</p></div><span className="text-xs text-[#8c929c]">Endpoint checks · 60 seconds</span></div>
+          <div className="flex flex-wrap justify-between gap-3"><div><h2 data-tour="soc-network" className="text-lg font-semibold">Live connection diagram</h2><p className="mt-1 text-xs text-[#8c929c]">Your application’s path from visitor to database</p></div><span className="text-xs text-[#8c929c]">Endpoint checks · 60 seconds</span></div>
           <div className="mt-6 grid items-center gap-2 md:grid-cols-[1fr_40px_1fr_40px_1fr_40px_1fr]">
             {['Visitor','Vercel','Render','Neon'].map((name,index) => {
               const service=services.find(item=>item.name===name);
@@ -117,8 +119,8 @@ export default function NetworkInfrastructure() {
                   {service?.detail ?? "Waiting for telemetry"}
                 </div>
                 <a
-                  href={serviceDetails[name].url}
-                  target="_blank"
+                  href={demo?'#deployment-details':serviceDetails[name].url}
+                  target={demo?undefined:"_blank"}
                   rel="noopener noreferrer"
                   className="mt-4 inline-block text-xs text-[#9db9e4] hover:text-white"
                 >
@@ -130,7 +132,7 @@ export default function NetworkInfrastructure() {
         </div>
 
         <section className="rounded-2xl border border-[#30343b] bg-[#14171c] p-5 md:p-6">
-          <div className="flex flex-wrap justify-between gap-3"><div><h2 className="text-lg font-semibold">Uptime history</h2><p className="mt-1 text-xs text-[#8c929c]">Last 24 hours · Each block represents 30 minutes</p></div><div className="flex flex-wrap gap-3 text-xs text-[#8c929c]"><span className="text-[#5ee2a0]">● Online</span><span className="text-[#f6c86b]">● Degraded</span><span className="text-[#ff737d]">● Offline</span><span>● No observation</span></div></div>
+          <div className="flex flex-wrap justify-between gap-3"><div><h2 data-tour="soc-uptime" className="text-lg font-semibold">Uptime history</h2><p className="mt-1 text-xs text-[#8c929c]">Last 24 hours · Each block represents 30 minutes</p></div><div className="flex flex-wrap gap-3 text-xs text-[#8c929c]"><span className="text-[#5ee2a0]">● Online</span><span className="text-[#f6c86b]">● Degraded</span><span className="text-[#ff737d]">● Offline</span><span>● No observation</span></div></div>
           {data?.history_available===false && <p role="status" className="mt-4 text-sm text-[#f6c86b]">History storage is unavailable. Current checks are still shown.</p>}
           <div className="mt-6 space-y-6">
             {['Vercel','Render','Neon'].map(name=>{
@@ -148,7 +150,7 @@ export default function NetworkInfrastructure() {
         </section>
 
         <section className="rounded-2xl border border-[#30343b] bg-[#14171c] p-5 md:p-6">
-          <h2 className="text-lg font-semibold">Deployment details</h2>
+          <h2 id="deployment-details" className="text-lg font-semibold">Deployment details</h2>
           <p className="mt-1 text-xs text-[#8c929c]">Production services, release versions, and the application currently serving this dashboard</p>
           <div className="mt-5 grid gap-4 xl:grid-cols-3">
             {['Vercel','Render','Neon'].map(name=>{

@@ -277,6 +277,7 @@ export default function RussellWealthLandingPage() {
               <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgArrowRight} />
             </div>
           </div>
+          <a href="/demo/security" className="flex min-h-[50px] items-center justify-center rounded-[14px] border border-[#858a93] px-[22px] py-3 font-semibold text-[14px] text-[#f2f2f3] transition-colors hover:bg-[#ffffff12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c2edce]">Replay customer tour</a>
 
         </div>
         <div className="absolute h-[810px] left-0 top-0 w-[1440px]" data-node-id="51:2696" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 1440 810' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(64.8 36.45 -79.2 36.45 792 445.5)'><stop stop-color='rgba(28,35,43,0.4)' offset='0'/><stop stop-color='rgba(0,0,0,0)' offset='1'/></radialGradient></defs></svg>\")" }} data-name="Ambient light" />

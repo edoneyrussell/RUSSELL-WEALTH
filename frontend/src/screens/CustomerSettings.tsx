@@ -1,8 +1,8 @@
-import { sharedFetch } from '../experience/sharedFetch';
+import { SecurityDemoContext, useSecurityFetch } from '../demo/securityDemo';
 import { t } from '../i18n/language';
 import { useUnsavedChanges } from '../experience/useUnsavedChanges';
 import { notifyProfileUpdated } from "../hooks/useAccountProfile";
-import { useEffect, useState, useRef, type FormEvent } from 'react';
+import { useContext, useEffect, useState, useRef, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { ShieldLock } from 'lucide-react';
 import { logout } from '../auth';
@@ -71,6 +71,8 @@ async function readProfileResponse(response: Response) {
 }
 
 export default function CustomerSettings({ security = false }: { security?: boolean } = {}) {
+  const request=useSecurityFetch();
+  const demo=useContext(SecurityDemoContext);
   const [adminNotice, setAdminNotice] = useState(false);
   const adminDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
   useEffect(() => {
     let active = true;
 
-    sharedFetch('/api/me', { credentials: 'same-origin', cache:'no-store' })
+    request('/api/me', { credentials: 'same-origin', cache:'no-store' })
       .then((response) => response.ok ? response.json() : null)
       .then((data: Account | null) => {
         if (active && data) setAccount(previous => ({ ...previous, ...data }));
@@ -109,12 +111,12 @@ export default function CustomerSettings({ security = false }: { security?: bool
       .catch(() => {});
 
     return () => { active = false; };
-  }, []);
+  }, [request]);
 
   useEffect(() => {
     let active = true;
 
-    fetch("/api/me/profile", {
+    request("/api/me/profile", {
       credentials: "same-origin"
     })
       .then(readProfileResponse)
@@ -136,7 +138,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
       });
 
     return () => { active = false; };
-  }, [profileRevision]);
+  }, [profileRevision,request]);
 
   function openProfile() {
     setProfile({ ...savedProfile });
@@ -170,7 +172,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
     if(savingRef.current)return; savingRef.current=true;
     setSavingProfile(true); setProfileError(''); setProfileMessage('');
     try {
-      const response = await fetch('/api/me/profile', {
+      const response = await request('/api/me/profile', {
         method: 'PUT', credentials: 'same-origin', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({...profile, current_password: currentPassword})
       });
@@ -223,7 +225,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
       const form = new FormData();
       form.append("photo", file);
 
-      const response = await fetch("/api/me/photo", {
+      const response = await request("/api/me/photo", {
         method: "POST",
         credentials: "same-origin",
         body: form,
@@ -256,7 +258,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
     setPhotoError("");
 
     try {
-      const response = await fetch("/api/me/photo", {
+      const response = await request("/api/me/photo", {
         method: "DELETE",
         credentials: "same-origin",
       });
@@ -423,16 +425,16 @@ export default function CustomerSettings({ security = false }: { security?: bool
                 {profileMessage && <p role="status" className="rounded-lg border border-[#43634e] p-3 text-sm text-[#c2edce]">{profileMessage}</p>}
                 <footer className="sticky bottom-0 flex flex-wrap justify-end gap-3 border-t border-[#283332] bg-[#13191a] py-4">
                   <button type="button" disabled={savingProfile} onClick={closeProfile} className="min-h-11 rounded-full border border-[#34483b] px-6 text-sm">Close</button>
-                  <button type="submit" disabled={savingProfile || uploading} className="min-h-11 rounded-full bg-[#c2edce] px-6 text-sm font-semibold text-[#14251a] disabled:opacity-50">{savingProfile?'Saving…':'Save changes'}</button>
+                  <button type="submit" disabled={demo || savingProfile || uploading} className="min-h-11 rounded-full bg-[#c2edce] px-6 text-sm font-semibold text-[#14251a] disabled:opacity-50">{savingProfile?'Saving…':'Save changes'}</button>
                 </footer>
               </form>
             </section>
           </div>, document.body
         )}
 
-        {!security && <section className="mb-8 rounded-xl border border-[#34483b] bg-[#13191a] p-5">
+        {(!security||demo) && <section className="mb-8 rounded-xl border border-[#34483b] bg-[#13191a] p-5">
           <h2 className="text-base font-semibold">Welcome tour</h2>
-          <p className="mt-2 text-sm text-[#a8b6ad]">A guided walkthrough of your accounts, investments, transfers, and settings.</p>
+          <p className="mt-2 text-sm text-[#a8b6ad]">{security?'A guided walkthrough of security monitoring, investigations, and response.':'A guided walkthrough of your accounts, investments, transfers, and settings.'}</p>
           <button type="button" onClick={()=>window.dispatchEvent(new Event('rw-replay-welcome-tour'))} className="mt-4 min-h-11 rounded-full bg-[#c2edce] px-5 py-3 text-sm font-semibold text-[#14251a]">Replay welcome tour</button>
         </section>}
 
@@ -544,7 +546,8 @@ export default function CustomerSettings({ security = false }: { security?: bool
           </span>
           <button
             type="button"
-            onClick={logout}
+            disabled={demo}
+            onClick={demo?undefined:logout}
             className="rounded-lg border border-[#693a40] px-5 py-3 text-[#ff777e] text-[12px] hover:bg-[#292026]"
           >
             Log Out
