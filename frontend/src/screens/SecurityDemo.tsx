@@ -18,16 +18,20 @@ function sectionLink(section:DemoSection){return '/demo/security'+(section==='SO
 export default function SecurityDemo(){
   const [section,setSection]=useState(()=>demoSection(location.search));
   const [menu,setMenu]=useState(false);
+  const [returnToDashboard]=useState(()=>new URLSearchParams(location.search).get('returnTo')==='dashboard');
+  const exitPath=returnToDashboard?'/dashboard':'/';
   const [notice,setNotice]=useState('');
   const choose=useCallback((path:string)=>{
     const target=demoSecurityLink(path);
     if(!target){setNotice('This control is unavailable in the public preview. Real account actions require sign-in.');return;}
-    const next=demoSection(target.split('?')[1]??'');
-    history.replaceState({},'',target);setSection(next);setMenu(false);setNotice('');
+    const destination=new URL(target,location.origin);
+    if(returnToDashboard)destination.searchParams.set('returnTo','dashboard');
+    const next=demoSection(destination.search);
+    history.replaceState({},'',destination.pathname+destination.search);setSection(next);setMenu(false);setNotice('');
     // Existing dashboard panels switch immediately. Newly mounted dashboards read the URL.
     window.dispatchEvent(new Event(next==='Alerts'?'rw-open-security-alerts':next==='Logs'?'rw-open-security-logs':'rw-close-security-panels'));
     window.scrollTo({top:0,behavior:'instant'});
-  },[]);
+  },[returnToDashboard]);
   useEffect(()=>{
     const update=(event:Event)=>{const panel=(event as CustomEvent<{panel:string|null}>).detail?.panel;setSection(previous=>isDashboard(previous)?(panel||'SOC Dashboard') as DemoSection:previous);};
     const navigate=(event:Event)=>choose((event as CustomEvent<{path:string}>).detail.path);
@@ -37,16 +41,16 @@ export default function SecurityDemo(){
   const Module=modules[section as keyof typeof modules];
   return <SecurityDemoContext.Provider value={true}><div className="rw-security-demo rw-soc-theme" onClick={event=>event.stopPropagation()} onClickCapture={event=>{
     const anchor=(event.target as HTMLElement).closest('a[href]');
-    if(anchor instanceof HTMLAnchorElement&&anchor.getAttribute('href')?.startsWith('/')&&anchor.getAttribute('href')!=='/'){
+    if(anchor instanceof HTMLAnchorElement&&anchor.getAttribute('href')?.startsWith('/')&&anchor.getAttribute('href')!=='/'&&!anchor.hasAttribute('data-demo-exit')){
       event.preventDefault();event.stopPropagation();choose(anchor.getAttribute('href')!);
     }
   }}>
     <WelcomeTour demo stepList={securityDemoSteps} introduction={securityDemoIntroduction} homePath="/demo/security" screensReady onNavigate={choose}/>
-    <header className="rw-demo-banner"><div><strong>DEMO</strong><span>Fictional data only · No real customer information</span></div><div><button type="button" onClick={()=>window.dispatchEvent(new Event('rw-replay-welcome-tour'))}>Replay security tour</button><a href="/">← Back to home</a></div></header>
+    <header className="rw-demo-banner"><div><strong>DEMO</strong><span>Fictional data only · No real customer information</span></div><div><button type="button" onClick={()=>window.dispatchEvent(new Event('rw-replay-welcome-tour'))}>Replay security tour</button><a data-demo-exit href={exitPath}>{returnToDashboard?'← Back to Dashboard':'← Back to home'}</a></div></header>
     <button type="button" className="rw-demo-menu" aria-label="Toggle demo navigation" aria-expanded={menu} onClick={()=>setMenu(value=>!value)}><Menu size={20}/></button>
     <div className="rw-unified-customer-layout rw-unified-soc-layout">
       <aside data-name="Unified SOC Sidebar" className={`rw-unified-sidebar rw-soc-shared-sidebar rw-demo-sidebar ${menu?'is-open':''}`}>
-        <a href="/" aria-label="Russell Wealth home"><img src="/assets/c8aca.png" alt="Russell Wealth"/></a><p>SECURITY OPERATIONS</p>
+        <a data-demo-exit href={exitPath} aria-label={returnToDashboard?'Back to Dashboard':'Russell Wealth home'}><img src="/assets/c8aca.png" alt="Russell Wealth"/></a><p>SECURITY OPERATIONS</p>
         <nav aria-label="Demo SOC navigation">{items.map(([label,Icon])=><button type="button" key={label} aria-current={section===label?'page':undefined} onClick={()=>choose(sectionLink(label))}><Icon size={19}/>{label}</button>)}</nav>
         <div className="rw-demo-identity">Morgan Chen<small>Public preview · Simulated environment</small></div>
       </aside>

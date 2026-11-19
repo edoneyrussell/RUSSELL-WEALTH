@@ -526,7 +526,7 @@ export default function CustomerSettings({ security = false }: { security?: bool
               </p>
             </a>
           ) : (
-            <a href="/demo/security" className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left transition hover:border-[#777e89]">
+            <a href="/demo/security?returnTo=dashboard" className="rounded-xl border border-[#30343b] bg-[#14171c] p-5 text-left transition hover:border-[#777e89]">
               <h3 className="text-[14px] font-semibold">Security Dashboard</h3>
               <p className="text-[#8c929c] text-[12px] mt-2">Explore the public security demo with fictional data.</p>
             </a>

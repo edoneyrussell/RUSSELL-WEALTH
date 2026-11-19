@@ -165,7 +165,6 @@ export default function App() {
   useEffect(() => {
     let active = true
     if (path.startsWith('/demo/')) {
-      setAuth({ authenticated: false })
       return () => { active = false }
     }
 
